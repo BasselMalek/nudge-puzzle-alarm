@@ -61,7 +61,7 @@ export default function Alarms() {
                         </Text>
                     </LinearGradient>
                 </Card>
-                {/* <Button
+                <Button
                     mode="contained"
                     onPress={() => {
                         router.navigate("/themeDisplay");
@@ -69,7 +69,7 @@ export default function Alarms() {
                     style={{ marginBottom: 16 }}
                 >
                     Theme
-                </Button> */}
+                </Button>
                 <ScrollView
                     style={{
                         display: "flex",
