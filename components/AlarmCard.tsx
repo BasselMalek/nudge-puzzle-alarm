@@ -6,13 +6,13 @@ const unixIntToString = (unixMS: number) => {
     if (unixMS >= 8.634e7) {
         return "tm";
     } else {
-        const m = Math.round(unixMS / 1000 / 60);
+        const m = Math.ceil(unixMS / 1000 / 60);
         const hr = Math.floor(m / 60);
         return hr + "hrs " + (m - hr * 60) + "m";
     }
 };
 
-export default function first(props: {
+export default function AlarmCard(props: {
     enabled: boolean;
     alarmName?: string;
     ringTime: Date;
