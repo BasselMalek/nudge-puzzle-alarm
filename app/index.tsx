@@ -1,6 +1,14 @@
 import { useState } from "react";
 import { View, ScrollView } from "react-native";
-import { Button, Text, Surface, Card, useTheme } from "react-native-paper";
+import {
+    Button,
+    Text,
+    Surface,
+    Card,
+    useTheme,
+    FAB,
+    IconButton,
+} from "react-native-paper";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import { StatusBar } from "expo-status-bar";
@@ -38,7 +46,8 @@ export default function Alarms() {
                     <LinearGradient
                         style={{
                             height: "100%",
-                            padding: 20,
+                            paddingVertical: 10,
+                            paddingHorizontal: 15,
                             alignItems: "flex-end",
                             justifyContent: "flex-end",
                         }}
@@ -51,6 +60,18 @@ export default function Alarms() {
                         }
                         dither
                     >
+                        <IconButton
+                            icon={"cog"}
+                            onPress={() => {}}
+                            style={{
+                                elevation: 5,
+                                padding: 0,
+                                margin: 0,
+                                position: "absolute",
+                                top: 5,
+                                right: 5,
+                            }}
+                        />
                         <Text
                             variant="headlineSmall"
                             style={{
@@ -61,7 +82,7 @@ export default function Alarms() {
                         </Text>
                     </LinearGradient>
                 </Card>
-                <Button
+                {/* <Button
                     mode="contained"
                     onPress={() => {
                         router.navigate("/themeDisplay");
@@ -69,7 +90,16 @@ export default function Alarms() {
                     style={{ marginBottom: 16 }}
                 >
                     Theme
-                </Button>
+                </Button> */}
+                <FAB
+                    icon={"plus"}
+                    style={{
+                        position: "absolute",
+                        bottom: safeInsets.bottom + 20,
+                        right: safeInsets.right + 20,
+                    }}
+                    onPress={() => {}}
+                />
                 <ScrollView
                     style={{
                         display: "flex",

@@ -75,16 +75,19 @@ export default function AlarmCard(props: {
                 >
                     <Tag
                         name={"barcode"}
+                        size="small"
                         tagColor={palette.secondaryContainer}
                         iconColor={palette.onSecondaryContainer}
                     />
                     <Tag
                         name={"nfc"}
+                        size="small"
                         tagColor={palette.secondaryContainer}
                         iconColor={palette.onSecondaryContainer}
                     />
                     <Tag
                         name={"puzzle"}
+                        size="small"
                         tagColor={palette.secondaryContainer}
                         iconColor={palette.onSecondaryContainer}
                     />
