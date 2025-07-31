@@ -1,146 +1,89 @@
 import { useState } from "react";
-import { Text, View, StyleSheet, ScrollView, Button } from "react-native";
+import { View, ScrollView } from "react-native";
+import { Button, Text, Surface, Card, useTheme } from "react-native-paper";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import { StatusBar } from "expo-status-bar";
 import AlarmCard from "../components/AlarmCard";
-import { palette } from "@/constants/Theme";
+import { router } from "expo-router";
 
 export default function Alarms() {
     const safeInsets = useSafeAreaInsets();
+    const palette = useTheme().colors;
     const [alarmGradientDim, setAlarmGradientDim] = useState(false);
+
     return (
         <>
             <StatusBar translucent />
-            <View style={styles.root}>
-                <LinearGradient
+            <View
+                style={{
+                    flex: 1,
+                    display: "flex",
+                    paddingTop: safeInsets.top + 10,
+                    paddingLeft: safeInsets.left + 10,
+                    paddingRight: safeInsets.right + 10,
+                    paddingBottom: safeInsets.bottom + 10,
+                    backgroundColor: palette.background,
+                    gap: 10,
+                }}
+            >
+                <Card
                     style={{
-                        ...styles.nextAlarm,
+                        borderRadius: 20,
+                        overflow: "hidden",
+                        height: "25%",
                     }}
-                    colors={
-                        alarmGradientDim
-                            ? ["#94a8ff", "#0a28ae"]
-                            : ["#3b4366", "#041046"]
-                    }
-                    dither
+                    elevation={4}
                 >
-                    <Text
+                    <LinearGradient
                         style={{
-                            color: "red",
-                            textAlign: "center",
-                            fontSize: 36,
+                            height: "100%",
+                            padding: 20,
+                            alignItems: "flex-end",
+                            justifyContent: "flex-end",
                         }}
+                        start={{ x: 0.0, y: 1.0 }}
+                        end={{ y: 0.0, x: 1.0 }}
+                        colors={
+                            alarmGradientDim
+                                ? [palette.primary, palette.inversePrimary]
+                                : [palette.onSecondary, palette.onPrimary]
+                        }
+                        dither
                     >
-                        {"Hi!"}
-                    </Text>
-                </LinearGradient>
-                <View style={styles.alarmList}>
-                    <ScrollView
-                        style={{
-                            display: "flex",
-                        }}
-                    >
-                        <AlarmCard
-                            alarmName="Test1"
-                            ringTime={new Date("2025-02-20T03:24:00")}
-                            repeat={[]}
-                            enabled
-                            onPress={() => {}}
-                        />
-                        <AlarmCard
-                            alarmName="Test1"
-                            ringTime={new Date("2025-02-20T03:24:00")}
-                            repeat={[]}
-                            enabled
-                            onPress={() => {}}
-                        />
-                        <AlarmCard
-                            alarmName="Test1"
-                            ringTime={new Date("2025-02-20T03:24:00")}
-                            repeat={[]}
-                            enabled
-                            onPress={() => {}}
-                        />
-                        <AlarmCard
-                            alarmName="Test1"
-                            ringTime={new Date("2025-02-20T03:24:00")}
-                            repeat={[]}
-                            enabled
-                            onPress={() => {}}
-                        />
-                        <AlarmCard
-                            alarmName="Test1"
-                            ringTime={new Date("2025-02-20T03:24:00")}
-                            repeat={[]}
-                            enabled
-                            onPress={() => {}}
-                        />
-                        <AlarmCard
-                            alarmName="Test1"
-                            ringTime={new Date("2025-02-20T03:24:00")}
-                            repeat={[]}
-                            enabled
-                            onPress={() => {}}
-                        />
-                        <AlarmCard
-                            alarmName="Test1"
-                            ringTime={new Date("2025-02-20T03:24:00")}
-                            repeat={[]}
-                            enabled
-                            onPress={() => {}}
-                        />
-                        <AlarmCard
-                            alarmName="Test1"
-                            ringTime={new Date("2025-02-20T03:24:00")}
-                            repeat={[]}
-                            enabled
-                            onPress={() => {}}
-                        />
-                        <AlarmCard
-                            alarmName="Test1"
-                            ringTime={new Date("2025-02-20T03:24:00")}
-                            repeat={[]}
-                            enabled
-                            onPress={() => {}}
-                        />
-                        <AlarmCard
-                            alarmName="Test1"
-                            ringTime={new Date("2025-02-20T03:24:00")}
-                            repeat={[]}
-                            enabled
-                            onPress={() => {}}
-                        />
-                        <AlarmCard
-                            alarmName="Test1"
-                            ringTime={new Date("2025-02-20T03:24:00")}
-                            repeat={[]}
-                            enabled
-                            onPress={() => {}}
-                        />
-                    </ScrollView>
-                </View>
+                        <Text
+                            variant="headlineSmall"
+                            style={{
+                                textAlign: "right",
+                            }}
+                        >
+                            {"Next alarm in 2h 35m"}
+                        </Text>
+                    </LinearGradient>
+                </Card>
+                {/* <Button
+                    mode="contained"
+                    onPress={() => {
+                        router.navigate("/themeDisplay");
+                    }}
+                    style={{ marginBottom: 16 }}
+                >
+                    Theme
+                </Button> */}
+                <ScrollView
+                    style={{
+                        display: "flex",
+                    }}
+                >
+                    <AlarmCard
+                        alarmName="Test1"
+                        ringTime={new Date("2025-07-31T18:24:00")}
+                        repeat={[]}
+                        enabled
+                        onToggle={() => {}}
+                    />
+                </ScrollView>
             </View>
         </>
     );
 }
-const styles = StyleSheet.create({
-    root: {
-        flex: 1,
-        display: "flex",
-        paddingBottom: 0,
-    },
-    nextAlarm: {
-        flex: 1,
-        marginTop: 0,
-        padding: 20,
-        alignContent: "center",
-        justifyContent: "center",
-    },
-    alarmList: {
-        backgroundColor: palette.background,
-        flex: 4,
-        paddingVertical: 20,
-        paddingHorizontal: 10,
-        paddingBottom: 0,
-    },
-});

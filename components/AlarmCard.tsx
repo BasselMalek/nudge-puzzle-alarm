@@ -1,14 +1,20 @@
-import { TouchableOpacity, View, Text, Switch } from "react-native";
-import { palette } from "../constants/Theme";
+import { View } from "react-native";
+import { Card, Text, Switch, useTheme } from "react-native-paper";
 import Tag from "./Tag";
+import WeekdayRepeat from "./WeekdayRepeat";
 
 const unixIntToString = (unixMS: number) => {
-    if (unixMS >= 8.634e7) {
-        return "tm";
+    if (unixMS >= 86400000) {
+        return "24h+";
     } else {
-        const m = Math.ceil(unixMS / 1000 / 60);
-        const hr = Math.floor(m / 60);
-        return hr + "hrs " + (m - hr * 60) + "m";
+        const totalMins = Math.floor(unixMS / 1000 / 60);
+        const hrs = Math.floor(totalMins / 60);
+        const mins = totalMins % 60;
+        if (hrs > 0) {
+            return `${hrs}h ${mins}m`;
+        } else {
+            return `${mins}m`;
+        }
     }
 };
 
@@ -19,103 +25,71 @@ export default function AlarmCard(props: {
     repeat: Array<String>;
     // attachedPuzzles,
     onPress: () => void;
+    onToggle: (enabled: boolean) => void;
 }) {
+    const palette = useTheme().colors;
     return (
-        <>
-            <View
+        <Card
+            style={{
+                marginVertical: 5,
+            }}
+            onPress={props.onPress}
+        >
+            <Card.Content
                 style={{
-                    flex: 1,
-                    borderRadius: 12,
-                    minHeight: 150,
-                    marginVertical: 5,
-                    paddingVertical: 10,
-                    paddingHorizontal: 8,
-                    flexDirection: "column",
-                    backgroundColor: palette.accent,
-                    elevation: 5,
+                    padding: 8,
+                    gap: 4,
                 }}
             >
-                <View
-                    style={{
-                        flex: 1,
-                        alignItems: "center",
-                        justifyContent: "space-around",
-                        flexDirection: "row",
-                        margin: 0,
-                    }}
-                >
-                    <Text style={{ flex: 1, fontSize: 21, fontWeight: "bold" }}>
-                        {props.alarmName}
-                    </Text>
-                    <Switch />
-                </View>
-                <Text style={{ flex: 1 }}>
-                    {props.ringTime.toLocaleTimeString([], {
-                        hour: "2-digit",
-                        hour12: true,
-                        minute: "2-digit",
-                    }) + "\t"}
-                    <Text
+                <View>
+                    <View
                         style={{
-                            fontSize: 10,
-                            fontWeight: "thin",
-                            fontStyle: "italic",
+                            flexDirection: "row",
+                            justifyContent: "space-between",
+                            alignItems: "center",
                         }}
                     >
-                        {unixIntToString(props.ringTime.getTime() - Date.now())}
-                    </Text>
-                </Text>
+                        <Text variant="headlineLarge">
+                            {props.ringTime.toLocaleTimeString([], {
+                                hour: "2-digit",
+                                hour12: true,
+                                minute: "2-digit",
+                            })}
+                        </Text>
+                        <Switch
+                            value={props.enabled}
+                            onValueChange={props.onToggle}
+                        />
+                    </View>
+                </View>
+
+                <Text variant="labelMedium">{props.alarmName}</Text>
+                <WeekdayRepeat />
+
                 <View
                     style={{
                         flexDirection: "row",
                         flexWrap: "nowrap",
-                        paddingVertical: 5,
-                        columnGap: 5,
-                        flex: 2,
+                        columnGap: 8,
                     }}
                 >
                     <Tag
                         name={"barcode"}
-                        tagColor={palette.secondary}
-                        iconColor={palette.accent}
+                        tagColor={palette.secondaryContainer}
+                        iconColor={palette.onSecondaryContainer}
                     />
                     <Tag
                         name={"nfc"}
-                        tagColor={palette.secondary}
-                        iconColor={palette.accent}
+                        tagColor={palette.secondaryContainer}
+                        iconColor={palette.onSecondaryContainer}
                     />
                     <Tag
                         name={"puzzle"}
-                        tagColor={palette.secondary}
-                        iconColor={palette.accent}
+                        tagColor={palette.secondaryContainer}
+                        iconColor={palette.onSecondaryContainer}
                     />
                 </View>
-                <View
-                    style={{
-                        flexDirection: "row",
-                        flexWrap: "nowrap",
-                        paddingVertical: 5,
-                        columnGap: 5,
-                        flex: 2,
-                    }}
-                >
-                    <Tag
-                        name={"S"}
-                        tagColor={palette.secondary}
-                        iconColor={palette.accent}
-                    />
-                    <Tag
-                        name={"nfc"}
-                        tagColor={palette.secondary}
-                        iconColor={palette.accent}
-                    />
-                    <Tag
-                        name={"puzzle"}
-                        tagColor={palette.secondary}
-                        iconColor={palette.accent}
-                    />
-                </View>
-            </View>
-        </>
+            </Card.Content>
+        </Card>
     );
 }
