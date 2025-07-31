@@ -64,7 +64,7 @@ export default function AlarmCard(props: {
                 </View>
 
                 <Text variant="labelMedium">{props.alarmName}</Text>
-                <WeekdayRepeat />
+                <WeekdayRepeat days={[""]} />
 
                 <View
                     style={{

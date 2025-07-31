@@ -112,7 +112,9 @@ export default function Alarms() {
                         repeat={[]}
                         enabled
                         onToggle={() => {}}
-                        onPress={() => {}}
+                        onPress={() => {
+                            router.push("/alarmModal?id=d");
+                        }}
                     />
                 </ScrollView>
             </View>

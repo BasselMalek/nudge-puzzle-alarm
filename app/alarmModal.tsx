@@ -1,9 +1,11 @@
 import { View, ScrollView } from "react-native";
-import { useTheme } from "react-native-paper";
+import { useTheme, Text } from "react-native-paper";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
+import { useLocalSearchParams } from "expo-router";
 
-export default function Settings() {
+export default function AlarmModal() {
+    const { id } = useLocalSearchParams();
     return (
         <>
             <StatusBar translucent />
@@ -13,7 +15,9 @@ export default function Settings() {
                     display: "flex",
                     gap: 10,
                 }}
-            ></View>
+            >
+                <Text>{"id: " + id}</Text>
+            </View>
         </>
     );
 }
