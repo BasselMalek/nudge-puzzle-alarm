@@ -31,7 +31,6 @@ export default function Alarms() {
                     paddingLeft: safeInsets.left + 10,
                     paddingRight: safeInsets.right + 10,
                     paddingBottom: safeInsets.bottom + 10,
-                    backgroundColor: palette.background,
                     gap: 10,
                 }}
             >
@@ -62,7 +61,9 @@ export default function Alarms() {
                     >
                         <IconButton
                             icon={"cog"}
-                            onPress={() => {}}
+                            onPress={() => {
+                                router.push("/settings");
+                            }}
                             style={{
                                 elevation: 5,
                                 padding: 0,
@@ -111,6 +112,7 @@ export default function Alarms() {
                         repeat={[]}
                         enabled
                         onToggle={() => {}}
+                        onPress={() => {}}
                     />
                 </ScrollView>
             </View>

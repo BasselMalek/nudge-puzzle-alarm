@@ -22,6 +22,7 @@ export default function RootLayout() {
                             title: "Alarms",
                             contentStyle: {
                                 display: "flex",
+                                backgroundColor: paperTheme.colors.background,
                                 padding: 0,
                                 margin: 0,
                             },
@@ -31,6 +32,24 @@ export default function RootLayout() {
                     <Stack.Screen
                         name="themeDisplay"
                         options={{ presentation: "modal" }}
+                    />
+                    <Stack.Screen
+                        name="settings"
+                        options={{
+                            title: "Settings",
+                            presentation: "modal",
+                            headerStyle: {
+                                backgroundColor:
+                                    paperTheme.colors.surfaceContainer,
+                            },
+                            headerTintColor: paperTheme.colors.onSurfaceVariant,
+                            contentStyle: {
+                                display: "flex",
+                                backgroundColor: paperTheme.colors.background,
+                                padding: 0,
+                                margin: 0,
+                            },
+                        }}
                     />
                 </Stack>
             </PaperProvider>
