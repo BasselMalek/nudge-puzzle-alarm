@@ -149,33 +149,6 @@ function WeekdayRepeat(props: {
                                         : colors.onSurfaceDisabled
                                 }
                             />
-                            // <TouchableRipple
-                            //     key={day}
-                            //     onPress={() => toggleDay(day)}
-                            //     style={{
-                            //         width: 20,
-                            //         height: 20,
-                            //         borderRadius: 4,
-                            //         backgroundColor: isSelected
-                            //             ? colors.primaryContainer
-                            //             : colors.surface,
-                            //         justifyContent: "center",
-                            //         alignItems: "center",
-                            //         elevation: 5,
-                            //     }}
-                            // >
-                            //     <Text
-                            //         style={{
-                            //             fontSize: 14,
-                            //             fontWeight: "500",
-                            //             color: isSelected
-                            //                 ? colors.onPrimaryContainer
-                            //                 : colors.onSurface,
-                            //         }}
-                            //     >
-                            //         {letter}
-                            //     </Text>
-                            // </TouchableRipple>
                         );
                     }
                 )}

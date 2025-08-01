@@ -22,8 +22,7 @@ export default function AlarmCard(props: {
     enabled: boolean;
     alarmName?: string;
     ringTime: Date;
-    repeat: Array<String>;
-    // attachedPuzzles,
+    repeat: Array<DayKey>;
     onPress: () => void;
     onToggle: (enabled: boolean) => void;
 }) {
@@ -62,16 +61,14 @@ export default function AlarmCard(props: {
                         />
                     </View>
                 </View>
-
                 <Text variant="titleMedium" style={{ paddingBottom: 5 }}>
                     {props.alarmName}
                 </Text>
                 <WeekdayRepeat
                     onSelectionChange={(selectedDays: DayKey[]) => {}}
                     startDay={"sunday"}
-                    selectedDays={["sunday"]}
+                    selectedDays={props.repeat}
                 />
-
                 <View
                     style={{
                         flexDirection: "row",

@@ -14,6 +14,8 @@ import { LinearGradient } from "expo-linear-gradient";
 import { StatusBar } from "expo-status-bar";
 import AlarmCard from "../components/AlarmCard";
 import { router } from "expo-router";
+import AlarmModal from "../components/alarmModal";
+import AlarmWrapper from "../components/AlarmEntry";
 
 export default function Alarms() {
     const safeInsets = useSafeAreaInsets();
@@ -95,14 +97,13 @@ export default function Alarms() {
                     display: "flex",
                 }}
             >
-                <AlarmCard
-                    alarmName="Test1"
-                    ringTime={new Date("2025-07-31T18:24:00")}
-                    repeat={[]}
-                    enabled
-                    onToggle={() => {}}
-                    onPress={() => {
-                        router.push("/alarmModal?id=d");
+                <AlarmWrapper
+                    enabled={false}
+                    ringTime={new Date()}
+                    alarmName="School"
+                    repeat={["monday"]}
+                    onToggle={function (enabled: boolean): void {
+                        throw new Error("Function not implemented.");
                     }}
                 />
             </ScrollView>
