@@ -23,67 +23,56 @@ export default function Alarms() {
     return (
         <>
             <StatusBar translucent />
-            <View
+            <Card
                 style={{
-                    flex: 1,
-                    display: "flex",
-                    paddingTop: safeInsets.top + 10,
-                    paddingLeft: safeInsets.left + 10,
-                    paddingRight: safeInsets.right + 10,
-                    paddingBottom: safeInsets.bottom + 10,
-                    gap: 10,
+                    borderRadius: 20,
+                    overflow: "hidden",
+                    height: "25%",
                 }}
+                elevation={4}
             >
-                <Card
+                <LinearGradient
                     style={{
-                        borderRadius: 20,
-                        overflow: "hidden",
-                        height: "25%",
+                        height: "100%",
+                        paddingVertical: 10,
+                        paddingHorizontal: 15,
+                        alignItems: "flex-end",
+                        justifyContent: "flex-end",
                     }}
-                    elevation={4}
+                    start={{ x: 0.0, y: 1.0 }}
+                    end={{ y: 0.0, x: 1.0 }}
+                    colors={
+                        alarmGradientDim
+                            ? [palette.primary, palette.inversePrimary]
+                            : [palette.onSecondary, palette.onPrimary]
+                    }
+                    dither
                 >
-                    <LinearGradient
-                        style={{
-                            height: "100%",
-                            paddingVertical: 10,
-                            paddingHorizontal: 15,
-                            alignItems: "flex-end",
-                            justifyContent: "flex-end",
+                    <IconButton
+                        icon={"cog"}
+                        onPress={() => {
+                            router.push("/settings");
                         }}
-                        start={{ x: 0.0, y: 1.0 }}
-                        end={{ y: 0.0, x: 1.0 }}
-                        colors={
-                            alarmGradientDim
-                                ? [palette.primary, palette.inversePrimary]
-                                : [palette.onSecondary, palette.onPrimary]
-                        }
-                        dither
+                        style={{
+                            elevation: 5,
+                            padding: 0,
+                            margin: 0,
+                            position: "absolute",
+                            top: 5,
+                            right: 5,
+                        }}
+                    />
+                    <Text
+                        variant="headlineSmall"
+                        style={{
+                            textAlign: "right",
+                        }}
                     >
-                        <IconButton
-                            icon={"cog"}
-                            onPress={() => {
-                                router.push("/settings");
-                            }}
-                            style={{
-                                elevation: 5,
-                                padding: 0,
-                                margin: 0,
-                                position: "absolute",
-                                top: 5,
-                                right: 5,
-                            }}
-                        />
-                        <Text
-                            variant="headlineSmall"
-                            style={{
-                                textAlign: "right",
-                            }}
-                        >
-                            {"Next alarm in 2h 35m"}
-                        </Text>
-                    </LinearGradient>
-                </Card>
-                {/* <Button
+                        {"Next alarm in 2h 35m"}
+                    </Text>
+                </LinearGradient>
+            </Card>
+            {/* <Button
                     mode="contained"
                     onPress={() => {
                         router.navigate("/themeDisplay");
@@ -92,32 +81,31 @@ export default function Alarms() {
                 >
                     Theme
                 </Button> */}
-                <FAB
-                    icon={"plus"}
-                    style={{
-                        position: "absolute",
-                        bottom: safeInsets.bottom + 20,
-                        right: safeInsets.right + 20,
+            <FAB
+                icon={"plus"}
+                style={{
+                    position: "absolute",
+                    bottom: safeInsets.bottom + 20,
+                    right: safeInsets.right + 20,
+                }}
+                onPress={() => {}}
+            />
+            <ScrollView
+                style={{
+                    display: "flex",
+                }}
+            >
+                <AlarmCard
+                    alarmName="Test1"
+                    ringTime={new Date("2025-07-31T18:24:00")}
+                    repeat={[]}
+                    enabled
+                    onToggle={() => {}}
+                    onPress={() => {
+                        router.push("/alarmModal?id=d");
                     }}
-                    onPress={() => {}}
                 />
-                <ScrollView
-                    style={{
-                        display: "flex",
-                    }}
-                >
-                    <AlarmCard
-                        alarmName="Test1"
-                        ringTime={new Date("2025-07-31T18:24:00")}
-                        repeat={[]}
-                        enabled
-                        onToggle={() => {}}
-                        onPress={() => {
-                            router.push("/alarmModal?id=d");
-                        }}
-                    />
-                </ScrollView>
-            </View>
+            </ScrollView>
         </>
     );
 }

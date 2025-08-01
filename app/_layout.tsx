@@ -1,11 +1,15 @@
 import { Stack } from "expo-router";
-import { SafeAreaProvider } from "react-native-safe-area-context";
+import {
+    SafeAreaProvider,
+    useSafeAreaInsets,
+} from "react-native-safe-area-context";
 import { MD3DarkTheme, MD3LightTheme, PaperProvider } from "react-native-paper";
 import { useMaterial3Theme } from "@pchmn/expo-material3-theme";
 import { useColorScheme } from "react-native";
 
 export default function RootLayout() {
     const colorScheme = useColorScheme();
+    const safeInsets = useSafeAreaInsets();
     const { theme } = useMaterial3Theme();
 
     const paperTheme =
@@ -23,8 +27,11 @@ export default function RootLayout() {
                             contentStyle: {
                                 display: "flex",
                                 backgroundColor: paperTheme.colors.background,
-                                padding: 0,
-                                margin: 0,
+                                paddingTop: safeInsets.top + 10,
+                                paddingLeft: safeInsets.left + 15,
+                                paddingRight: safeInsets.right + 15,
+                                paddingBottom: safeInsets.bottom + 10,
+                                gap: 10,
                             },
                             headerShown: false,
                         }}
@@ -46,8 +53,11 @@ export default function RootLayout() {
                             contentStyle: {
                                 display: "flex",
                                 backgroundColor: paperTheme.colors.background,
-                                padding: 0,
-                                margin: 0,
+                                paddingTop: safeInsets.top + 10,
+                                paddingLeft: safeInsets.left + 10,
+                                paddingRight: safeInsets.right + 10,
+                                paddingBottom: safeInsets.bottom + 10,
+                                gap: 10,
                             },
                         }}
                     />
@@ -55,7 +65,7 @@ export default function RootLayout() {
                         name="alarmModal"
                         options={{
                             title: "Edit Alarm",
-                            presentation: "modal",
+                            presentation: "formSheet",
                             headerStyle: {
                                 backgroundColor:
                                     paperTheme.colors.surfaceContainer,
@@ -64,8 +74,11 @@ export default function RootLayout() {
                             contentStyle: {
                                 display: "flex",
                                 backgroundColor: paperTheme.colors.background,
-                                padding: 0,
-                                margin: 0,
+                                paddingTop: safeInsets.top + 10,
+                                paddingLeft: safeInsets.left + 10,
+                                paddingRight: safeInsets.right + 10,
+                                paddingBottom: safeInsets.bottom + 10,
+                                gap: 15,
                             },
                         }}
                     />

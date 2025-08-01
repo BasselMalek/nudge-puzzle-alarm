@@ -1,7 +1,7 @@
 import { View } from "react-native";
 import { Card, Text, Switch, useTheme } from "react-native-paper";
 import Tag from "./Tag";
-import WeekdayRepeat from "./WeekdayRepeat";
+import { DayKey, WeekdayRepeat } from "./WeekdayRepeat";
 
 const unixIntToString = (unixMS: number) => {
     if (unixMS >= 86400000) {
@@ -63,8 +63,14 @@ export default function AlarmCard(props: {
                     </View>
                 </View>
 
-                <Text variant="labelMedium">{props.alarmName}</Text>
-                <WeekdayRepeat days={[""]} />
+                <Text variant="titleMedium" style={{ paddingBottom: 5 }}>
+                    {props.alarmName}
+                </Text>
+                <WeekdayRepeat
+                    onSelectionChange={(selectedDays: DayKey[]) => {}}
+                    startDay={"sunday"}
+                    selectedDays={["sunday"]}
+                />
 
                 <View
                     style={{

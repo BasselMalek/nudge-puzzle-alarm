@@ -7,13 +7,6 @@ export default function Settings() {
     return (
         <>
             <StatusBar translucent />
-            <View
-                style={{
-                    flex: 1,
-                    display: "flex",
-                    gap: 10,
-                }}
-            ></View>
         </>
     );
 }
