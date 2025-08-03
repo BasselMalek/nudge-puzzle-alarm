@@ -1,9 +1,10 @@
-import { View } from "react-native";
+import { FlatList, ScrollView, View } from "react-native";
 import { useTheme, Text, Card, Icon, TextInput } from "react-native-paper";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import Modal from "react-native-modal";
 import { WeekdayRepeat, DayKey } from "@/components/WeekdayRepeat";
+import CarouselCard from "./CarouselCard";
 
 export default function AlarmModal(props: {
     visible: boolean;
@@ -21,16 +22,20 @@ export default function AlarmModal(props: {
             backdropOpacity={0.7}
             onBackdropPress={props.onClose}
             onSwipeComplete={props.onClose}
+            onBackButtonPress={props.onClose}
             swipeDirection="down"
             propagateSwipe
+            scrollTo={() => {}}
+            scrollOffset={1}
         >
             <View
                 style={{
                     backgroundColor: palette.surface,
                     borderTopLeftRadius: 20,
                     borderTopRightRadius: 20,
-                    minHeight: "60%",
-                    maxHeight: "85%",
+                    // minHeight: "82%",
+                    maxHeight: "90%",
+                    flex: 1,
                     paddingBottom: insets.bottom,
                 }}
             >
@@ -46,7 +51,9 @@ export default function AlarmModal(props: {
                     }}
                 />
 
-                <View style={{ flex: 1, padding: 20, gap: 15 }}>
+                <View
+                    style={{ flex: 1, padding: 20, gap: 15, display: "flex" }}
+                >
                     <Card
                         style={{
                             borderRadius: 20,
@@ -88,7 +95,6 @@ export default function AlarmModal(props: {
                             </Text>
                         </LinearGradient>
                     </Card>
-
                     <Card
                         style={{
                             borderRadius: 20,
@@ -123,6 +129,105 @@ export default function AlarmModal(props: {
                                     selectedDays={[]}
                                 />
                             </View>
+                        </Card.Content>
+                    </Card>
+                    <Card
+                        style={{
+                            borderRadius: 20,
+                            flex: 1,
+                        }}
+                        elevation={4}
+                    >
+                        <Card.Content
+                            style={{
+                                gap: 20,
+                                paddingVertical: 20,
+                                paddingHorizontal: 20,
+                            }}
+                        >
+                            <FlatList
+                                horizontal
+                                showsHorizontalScrollIndicator={false}
+                                ItemSeparatorComponent={() => (
+                                    <View style={{ width: 10 }} />
+                                )}
+                                style={{ height: "100%", marginHorizontal: 0 }}
+                                data={[
+                                    {
+                                        title: "NFC Scan",
+                                        icon: "nfc",
+                                        desc: "Disable puzzle by scanning a linked NFC tag.",
+                                    },
+                                    {
+                                        title: "Barcode Scan",
+                                        icon: "nfc",
+                                        desc: "Disable puzzle by scanning a linked NFC tag.",
+                                    },
+                                    {
+                                        title: "Connect Puzzle",
+                                        icon: "nfc",
+                                        desc: "Disable puzzle by scanning a linked NFC tag.",
+                                    },
+                                    {
+                                        icon: "plus",
+                                    },
+                                ]}
+                                renderItem={({ item }) => (
+                                    <CarouselCard
+                                        title={item.title}
+                                        icon={item.icon}
+                                        desc={item.desc}
+                                    />
+                                )}
+                            />
+                        </Card.Content>
+                    </Card>
+                    <Card
+                        style={{
+                            borderRadius: 20,
+                            flex: 1,
+                        }}
+                        elevation={4}
+                    >
+                        <Card.Content
+                            style={{
+                                gap: 20,
+                                paddingVertical: 20,
+                                paddingHorizontal: 20,
+                            }}
+                        >
+                            <FlatList
+                                horizontal
+                                showsHorizontalScrollIndicator={false}
+                                ItemSeparatorComponent={() => (
+                                    <View style={{ width: 10 }} />
+                                )}
+                                style={{ gap: 10, height: "100%" }}
+                                data={[
+                                    {
+                                        title: "NFC Scan",
+                                        icon: "nfc",
+                                        desc: "Disable puzzle by scanning a linked NFC tag.",
+                                    },
+                                    {
+                                        title: "Barcode Scan",
+                                        icon: "nfc",
+                                        desc: "Disable puzzle by scanning a linked NFC tag.",
+                                    },
+                                    {
+                                        title: "Connect Puzzle",
+                                        icon: "nfc",
+                                        desc: "Disable puzzle by scanning a linked NFC tag.",
+                                    },
+                                ]}
+                                renderItem={({ item }) => (
+                                    <CarouselCard
+                                        title={item.title}
+                                        icon={item.icon}
+                                        desc={item.desc}
+                                    />
+                                )}
+                            />
                         </Card.Content>
                     </Card>
                 </View>
