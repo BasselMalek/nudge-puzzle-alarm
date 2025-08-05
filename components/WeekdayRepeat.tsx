@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { View } from "react-native";
-import { TouchableRipple, Text, useTheme } from "react-native-paper";
+import { TouchableRipple, Text, useTheme, Checkbox } from "react-native-paper";
 import Tag from "./Tag";
 
 type DayKey =
@@ -13,10 +13,12 @@ type DayKey =
     | "saturday";
 
 function WeekdayRepeat(props: {
+    changeable?: boolean;
     enabled?: boolean;
+    onEnableChange: (enabled: boolean) => void;
+    selectedDays: DayKey[];
     onSelectionChange: (selectedDays: DayKey[]) => void;
     startDay: "sunday" | "monday" | "saturday";
-    selectedDays: DayKey[];
 }) {
     const { colors } = useTheme();
     const [selected, setSelected] = useState<DayKey[]>(props.selectedDays);
@@ -68,54 +70,70 @@ function WeekdayRepeat(props: {
         setSelected(updated);
         props.onSelectionChange(updated);
     };
-    if (props.enabled) {
+    if (props.changeable) {
         return (
-            <View
-                style={{
-                    flexDirection: "row",
-                    justifyContent: "center",
-                    alignItems: "center",
-                    columnGap: 15,
-                    paddingHorizontal: 4,
-                }}
-            >
-                {(weekOrders[props.startDay] || weekOrders.saturday).map(
-                    (day: DayKey) => {
-                        const isSelected = selected.includes(day);
-                        const { letter, full } = dayConfigs[day];
-
+            <View>
+                <Checkbox.Item
+                    labelVariant="labelLarge"
+                    label="Repeat"
+                    labelStyle={{ textAlign: "left" }}
+                    status={props.enabled === true ? "checked" : "unchecked"}
+                    onPress={() => {
+                        props.onEnableChange(!props.enabled);
+                    }}
+                />
+                {(() => {
+                    if (props.enabled) {
                         return (
-                            <TouchableRipple
-                                key={day}
-                                onPress={() => toggleDay(day)}
+                            <View
                                 style={{
-                                    width: 32,
-                                    height: 32,
-                                    borderRadius: 6,
-                                    backgroundColor: isSelected
-                                        ? colors.primaryContainer
-                                        : colors.surface,
-                                    justifyContent: "center",
+                                    flexDirection: "row",
+                                    justifyContent: "space-around",
                                     alignItems: "center",
-                                    marginHorizontal: 2,
-                                    elevation: 5,
                                 }}
                             >
-                                <Text
-                                    style={{
-                                        fontSize: 14,
-                                        fontWeight: "500",
-                                        color: isSelected
-                                            ? colors.onPrimaryContainer
-                                            : colors.onSurface,
-                                    }}
-                                >
-                                    {letter}
-                                </Text>
-                            </TouchableRipple>
+                                {(
+                                    weekOrders[props.startDay] ||
+                                    weekOrders.saturday
+                                ).map((day: DayKey) => {
+                                    const isSelected = selected.includes(day);
+                                    const { letter, full } = dayConfigs[day];
+
+                                    return (
+                                        <TouchableRipple
+                                            key={day}
+                                            onPress={() => toggleDay(day)}
+                                            style={{
+                                                width: 32,
+                                                height: 32,
+                                                borderRadius: 6,
+                                                backgroundColor: isSelected
+                                                    ? colors.primaryContainer
+                                                    : colors.surface,
+                                                justifyContent: "center",
+                                                alignItems: "center",
+                                                marginHorizontal: 2,
+                                                elevation: 5,
+                                            }}
+                                        >
+                                            <Text
+                                                style={{
+                                                    fontSize: 14,
+                                                    fontWeight: "500",
+                                                    color: isSelected
+                                                        ? colors.onPrimaryContainer
+                                                        : colors.onSurface,
+                                                }}
+                                            >
+                                                {letter}
+                                            </Text>
+                                        </TouchableRipple>
+                                    );
+                                })}
+                            </View>
                         );
                     }
-                )}
+                })()}
             </View>
         );
     } else {
