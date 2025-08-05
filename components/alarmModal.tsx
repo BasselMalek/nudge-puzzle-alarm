@@ -177,6 +177,11 @@ export default function AlarmModal(props: {
                                         title={item.title}
                                         icon={item.icon}
                                         desc={item.desc}
+                                        style={{
+                                            borderRadius: 20,
+                                            backgroundColor: palette.surface,
+                                            flex: 1,
+                                        }}
                                     />
                                 )}
                             />
@@ -225,6 +230,11 @@ export default function AlarmModal(props: {
                                         title={item.title}
                                         icon={item.icon}
                                         desc={item.desc}
+                                        style={{
+                                            borderRadius: 20,
+                                            backgroundColor: palette.surface,
+                                            flex: 1,
+                                        }}
                                     />
                                 )}
                             />

@@ -12,9 +12,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import { StatusBar } from "expo-status-bar";
-import AlarmCard from "../components/AlarmCard";
 import { router } from "expo-router";
-import AlarmModal from "../components/alarmModal";
 import AlarmWrapper from "../components/AlarmEntry";
 
 export default function Alarms() {

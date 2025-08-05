@@ -1,4 +1,4 @@
-import { View } from "react-native";
+import { StyleProp, View, ViewStyle } from "react-native";
 import {
     Text,
     Card,
@@ -12,44 +12,44 @@ export default function CarouselCard(props: {
     title?: String;
     icon: String;
     desc?: String;
+    style: StyleProp<ViewStyle>;
     // onPress: Function;
 }) {
     const { colors } = useTheme();
     return (
         <Card
+            style={props.style}
             mode="contained"
-            style={{
-                borderRadius: 20,
-                backgroundColor: colors.surface,
-                flex: 1,
-            }}
             // onPress={() => {
             //     props.onPress;
             // }}
         >
             <Card.Content
                 style={{
-                    paddingVertical: 20,
-                    paddingHorizontal: 20,
+                    padding: 20,
                     justifyContent: "center",
                     alignItems: "center",
                     height: "100%",
                     rowGap: 10,
                 }}
             >
-                <Icon size={32} source={props.icon} />
-                <Text variant="titleSmall">{props.title}</Text>
+                <Icon size={28} source={props.icon} color={colors.onSurface} />
+                <Text variant="titleSmall" style={{ color: colors.onSurface }}>
+                    {props.title}
+                </Text>
                 {/* <Text variant="labelSmall">{props.desc}</Text> */}
-                <View style={{ flexDirection: "row", columnGap: 10 }}>
+                <View style={{ flexDirection: "row", columnGap: 5 }}>
                     <IconButton
                         style={{ borderRadius: 10 }}
-                        mode="contained"
+                        mode="contained-tonal"
                         icon={"pencil"}
+                        size={16}
                     ></IconButton>
                     <IconButton
                         style={{ borderRadius: 10 }}
-                        mode="contained"
+                        mode="contained-tonal"
                         icon={"delete"}
+                        size={16}
                     ></IconButton>
                 </View>
             </Card.Content>

@@ -2,6 +2,7 @@ import AlarmModal from "./alarmModal";
 import AlarmCard from "@/components/AlarmCard";
 import { useState } from "react";
 import { DayKey } from "./WeekdayRepeat";
+import { router } from "expo-router";
 
 export default function AlarmWrapper(props: {
     enabled: boolean;
@@ -27,7 +28,9 @@ export default function AlarmWrapper(props: {
                 alarmName={props.alarmName}
                 ringTime={props.ringTime}
                 repeat={props.repeat}
-                onPress={handleCardPress}
+                onPress={() => {
+                    router.push("/alarmOptions");
+                }}
                 onToggle={props.onToggle}
             />
 

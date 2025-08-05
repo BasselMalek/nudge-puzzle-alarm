@@ -61,6 +61,27 @@ export default function RootLayout() {
                             },
                         }}
                     />
+                    <Stack.Screen
+                        name="alarmOptions"
+                        options={{
+                            title: "",
+                            headerStyle: {
+                                backgroundColor:
+                                    paperTheme.colors.surfaceContainer,
+                            },
+                            presentation: "modal",
+                            headerTintColor: paperTheme.colors.onSurfaceVariant,
+                            contentStyle: {
+                                display: "flex",
+                                backgroundColor: paperTheme.colors.background,
+                                paddingTop: 10,
+                                paddingLeft: safeInsets.left + 10,
+                                paddingRight: safeInsets.right + 10,
+                                paddingBottom: safeInsets.bottom + 10,
+                                gap: 10,
+                            },
+                        }}
+                    />
                 </Stack>
             </PaperProvider>
         </SafeAreaProvider>
