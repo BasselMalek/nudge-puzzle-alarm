@@ -1,16 +1,8 @@
 import React, { useState } from "react";
 import { View } from "react-native";
 import { TouchableRipple, Text, useTheme, Checkbox } from "react-native-paper";
+import { DayKey } from "@/types/DayKey";
 import Tag from "./Tag";
-
-type DayKey =
-    | "sunday"
-    | "monday"
-    | "tuesday"
-    | "wednesday"
-    | "thursday"
-    | "friday"
-    | "saturday";
 
 function WeekdayRepeat(props: {
     changeable?: boolean;
