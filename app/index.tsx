@@ -14,38 +14,14 @@ import { LinearGradient } from "expo-linear-gradient";
 import { StatusBar } from "expo-status-bar";
 import { router } from "expo-router";
 import { Alarm } from "@/types/Alarm";
+import { useAlarms } from "@/hooks/useAlarms";
 import AlarmCard from "@/components/AlarmCard";
-
-type AlarmAction =
-    | { type: "UPDATE_ALARM"; payload: Partial<Alarm> & { id: string } }
-    | { type: "DELETE_ALARM"; payload: string }
-    | { type: "ADD_ALARM"; payload: Alarm };
-
-const alarmsReducer = (state: Alarm[], action: AlarmAction) => {
-    switch (action.type) {
-        case "UPDATE_ALARM":
-            return state.map((alarm) =>
-                alarm.id === action.payload.id
-                    ? { ...alarm, ...action.payload }
-                    : alarm
-            );
-
-        case "DELETE_ALARM":
-            return state.filter((alarm) => alarm.id !== action.payload);
-
-        case "ADD_ALARM":
-            return [...state, action.payload];
-
-        default:
-            return state;
-    }
-};
 
 export default function Alarms() {
     const safeInsets = useSafeAreaInsets();
     const palette = useTheme().colors;
     const [alarmGradientDim, setAlarmGradientDim] = useState(false);
-    const [alarmsList, dispatch] = useReducer(alarmsReducer, [
+    const { alarms, updateAlarm, deleteAlarm, addAlarm } = useAlarms([
         {
             id: "alarm_1",
             name: "Morning Workout",
@@ -143,7 +119,7 @@ export default function Alarms() {
                 style={{
                     display: "flex",
                 }}
-                data={alarmsList}
+                data={alarms}
                 renderItem={({ item }) => (
                     <AlarmCard
                         enabled={item.isEnabled}
@@ -151,14 +127,12 @@ export default function Alarms() {
                         ringTime={item.ringTime}
                         repeated={item.repeat}
                         repeat={item.repeatDays}
+                        //TODO: implement a swipe to delete thing here.
                         onPress={() => {
-                            router.push("/alarmOptions");
+                            router.navigate(`./alarmOptions?id=${item.id}`);
                         }}
                         onToggle={(status) => {
-                            dispatch({
-                                type: "UPDATE_ALARM",
-                                payload: { id: item.id, isEnabled: status },
-                            });
+                            updateAlarm(item.id, { isEnabled: status });
                         }}
                     />
                 )}

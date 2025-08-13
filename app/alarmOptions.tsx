@@ -13,10 +13,13 @@ import { LinearGradient } from "expo-linear-gradient";
 import { WeekdayRepeat, DayKey } from "@/components/WeekdayRepeat";
 import CarouselCard from "@/components/CarouselCard";
 import { useState } from "react";
+import { useLocalSearchParams } from "expo-router";
 
 export default function AlarmOptions() {
     const palette = useTheme().colors;
     const insets = useSafeAreaInsets();
+    const id = useLocalSearchParams();
+    //fetch(id)
     const [repeatDays, setRepeatDays] = useState<DayKey[]>([]);
     const [isRepeated, setIsRepeated] = useState(false);
 
