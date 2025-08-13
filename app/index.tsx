@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { View, ScrollView } from "react-native";
+import { useReducer, useState } from "react";
+import { View, ScrollView, FlatList } from "react-native";
 import {
     Button,
     Text,
@@ -13,12 +13,61 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import { StatusBar } from "expo-status-bar";
 import { router } from "expo-router";
-import AlarmWrapper from "../components/AlarmEntry";
+import { Alarm } from "@/types/Alarm";
+import AlarmCard from "@/components/AlarmCard";
+
+type AlarmAction =
+    | { type: "UPDATE_ALARM"; payload: Partial<Alarm> & { id: string } }
+    | { type: "DELETE_ALARM"; payload: string }
+    | { type: "ADD_ALARM"; payload: Alarm };
+
+const alarmsReducer = (state: Alarm[], action: AlarmAction) => {
+    switch (action.type) {
+        case "UPDATE_ALARM":
+            return state.map((alarm) =>
+                alarm.id === action.payload.id
+                    ? { ...alarm, ...action.payload }
+                    : alarm
+            );
+
+        case "DELETE_ALARM":
+            return state.filter((alarm) => alarm.id !== action.payload);
+
+        case "ADD_ALARM":
+            return [...state, action.payload];
+
+        default:
+            return state;
+    }
+};
 
 export default function Alarms() {
     const safeInsets = useSafeAreaInsets();
     const palette = useTheme().colors;
     const [alarmGradientDim, setAlarmGradientDim] = useState(false);
+    const [alarmsList, dispatch] = useReducer(alarmsReducer, [
+        {
+            id: "alarm_1",
+            name: "Morning Workout",
+            ringTime: "2001-01-01T06:30",
+            repeat: true,
+            repeatDays: ["monday", "wednesday", "friday"],
+            puzzles: [],
+            powerUps: [],
+            isEnabled: true,
+        },
+
+        {
+            id: "alarm_2",
+            name: "Important Meeting",
+            ringTime: "2001-01-01T14:00",
+            repeat: false,
+            repeatDays: [],
+            puzzles: [],
+            powerUps: [],
+            isEnabled: true,
+        },
+    ]);
 
     return (
         <>
@@ -90,21 +139,30 @@ export default function Alarms() {
                 }}
                 onPress={() => {}}
             />
-            <ScrollView
+            <FlatList
                 style={{
                     display: "flex",
                 }}
-            >
-                <AlarmWrapper
-                    enabled={false}
-                    ringTime={new Date()}
-                    alarmName="School"
-                    repeat={["monday"]}
-                    onToggle={function (enabled: boolean): void {
-                        throw new Error("Function not implemented.");
-                    }}
-                />
-            </ScrollView>
+                data={alarmsList}
+                renderItem={({ item }) => (
+                    <AlarmCard
+                        enabled={item.isEnabled}
+                        alarmName={item.name}
+                        ringTime={item.ringTime}
+                        repeated={item.repeat}
+                        repeat={item.repeatDays}
+                        onPress={() => {
+                            router.push("/alarmOptions");
+                        }}
+                        onToggle={(status) => {
+                            dispatch({
+                                type: "UPDATE_ALARM",
+                                payload: { id: item.id, isEnabled: status },
+                            });
+                        }}
+                    />
+                )}
+            ></FlatList>
         </>
     );
 }

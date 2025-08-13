@@ -21,7 +21,8 @@ const unixIntToString = (unixMS: number) => {
 export default function AlarmCard(props: {
     enabled: boolean;
     alarmName?: string;
-    ringTime: Date;
+    ringTime: string;
+    repeated: boolean;
     repeat: Array<DayKey>;
     onPress: () => void;
     onToggle: (enabled: boolean) => void;
@@ -49,7 +50,7 @@ export default function AlarmCard(props: {
                         }}
                     >
                         <Text variant="headlineLarge">
-                            {props.ringTime.toLocaleTimeString([], {
+                            {new Date(props.ringTime).toLocaleTimeString([], {
                                 hour: "2-digit",
                                 hour12: true,
                                 minute: "2-digit",
@@ -68,6 +69,9 @@ export default function AlarmCard(props: {
                     onSelectionChange={(selectedDays: DayKey[]) => {}}
                     startDay={"sunday"}
                     selectedDays={props.repeat}
+                    onEnableChange={function (enabled: boolean): void {
+                        throw new Error("Function not implemented.");
+                    }}
                 />
                 <View
                     style={{
