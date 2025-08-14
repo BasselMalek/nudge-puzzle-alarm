@@ -3,21 +3,6 @@ import { Card, Text, Switch, useTheme } from "react-native-paper";
 import Tag from "./Tag";
 import { DayKey, WeekdayRepeat } from "./WeekdayRepeat";
 
-const unixIntToString = (unixMS: number) => {
-    if (unixMS >= 86400000) {
-        return "24h+";
-    } else {
-        const totalMins = Math.floor(unixMS / 1000 / 60);
-        const hrs = Math.floor(totalMins / 60);
-        const mins = totalMins % 60;
-        if (hrs > 0) {
-            return `${hrs}h ${mins}m`;
-        } else {
-            return `${mins}m`;
-        }
-    }
-};
-
 export default function AlarmCard(props: {
     enabled: boolean;
     alarmName?: string;

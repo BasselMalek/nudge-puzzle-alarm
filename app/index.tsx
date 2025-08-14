@@ -1,4 +1,4 @@
-import { useReducer, useState } from "react";
+import { useEffect, useReducer, useState } from "react";
 import { View, ScrollView, FlatList } from "react-native";
 import {
     Button,
@@ -13,19 +13,34 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import { StatusBar } from "expo-status-bar";
 import { router } from "expo-router";
-import { Alarm } from "@/types/Alarm";
 import { useAlarms } from "@/hooks/useAlarms";
 import AlarmCard from "@/components/AlarmCard";
+
+const unixIntToString = (unixMS: number) => {
+    if (unixMS >= 86400000) {
+        return "24h+";
+    } else {
+        const totalMins = Math.floor(unixMS / 1000 / 60);
+        const hrs = Math.floor(totalMins / 60);
+        const mins = totalMins % 60;
+        if (hrs > 0) {
+            return `${hrs}h ${mins}m`;
+        } else {
+            return `${mins}m`;
+        }
+    }
+};
 
 export default function Alarms() {
     const safeInsets = useSafeAreaInsets();
     const palette = useTheme().colors;
     const [alarmGradientDim, setAlarmGradientDim] = useState(false);
+    const [soonestRingTime, setSoonestRingTime] = useState("");
     const { alarms, updateAlarm, deleteAlarm, addAlarm } = useAlarms([
         {
             id: "alarm_1",
             name: "Morning Workout",
-            ringTime: "2001-01-01T06:30",
+            ringTime: "2025-08-14T06:30",
             repeat: true,
             repeatDays: ["monday", "wednesday", "friday"],
             puzzles: [],
@@ -36,7 +51,7 @@ export default function Alarms() {
         {
             id: "alarm_2",
             name: "Important Meeting",
-            ringTime: "2001-01-01T14:00",
+            ringTime: "2025-08-14T14:00",
             repeat: false,
             repeatDays: [],
             puzzles: [],
@@ -44,6 +59,32 @@ export default function Alarms() {
             isEnabled: true,
         },
     ]);
+
+    useEffect(() => {
+        const soonest = alarms
+            .filter((v, k) => v.isEnabled === true)
+            .sort((a, b) => {
+                return (
+                    new Date(a.ringTime).getTime() -
+                    Date.now() -
+                    (new Date(b.ringTime).getTime() - Date.now())
+                );
+            })
+            .at(0);
+        console.log(soonest);
+        if (soonest != undefined) {
+            setAlarmGradientDim(true);
+            setSoonestRingTime(
+                "Next alarm in " +
+                    unixIntToString(
+                        new Date(soonest.ringTime).getTime() - Date.now()
+                    )
+            );
+        } else {
+            setAlarmGradientDim(false);
+            setSoonestRingTime("No alarms for now");
+        }
+    }, [alarms]);
 
     return (
         <>
@@ -93,7 +134,7 @@ export default function Alarms() {
                             textAlign: "right",
                         }}
                     >
-                        {"Next alarm in 2h 35m"}
+                        {soonestRingTime}
                     </Text>
                 </LinearGradient>
             </Card>
