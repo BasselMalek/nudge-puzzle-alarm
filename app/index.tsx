@@ -1,20 +1,15 @@
-import { useEffect, useReducer, useState } from "react";
-import { View, ScrollView, FlatList } from "react-native";
-import {
-    Button,
-    Text,
-    Surface,
-    Card,
-    useTheme,
-    FAB,
-    IconButton,
-} from "react-native-paper";
+import { useCallback, useEffect, useState } from "react";
+import { FlatList } from "react-native";
+import { Text, Card, useTheme, FAB, IconButton } from "react-native-paper";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import { StatusBar } from "expo-status-bar";
-import { router } from "expo-router";
+import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { useAlarms } from "@/hooks/useAlarms";
 import AlarmCard from "@/components/AlarmCard";
+import * as SQL from "expo-sqlite";
+import { Alarm } from "@/types/Alarm";
+import * as FileSystem from "expo-file-system";
 
 const unixIntToString = (unixMS: number) => {
     if (unixMS >= 86400000) {
@@ -36,29 +31,26 @@ export default function Alarms() {
     const palette = useTheme().colors;
     const [alarmGradientDim, setAlarmGradientDim] = useState(false);
     const [soonestRingTime, setSoonestRingTime] = useState("");
-    const { alarms, updateAlarm, deleteAlarm, addAlarm } = useAlarms([
-        {
-            id: "alarm_1",
-            name: "Morning Workout",
-            ringTime: "2025-08-14T06:30",
-            repeat: true,
-            repeatDays: ["monday", "wednesday", "friday"],
-            puzzles: [],
-            powerUps: [],
-            isEnabled: true,
-        },
+    const { alarms, updateAlarm, deleteAlarm, loadAlarms, saveAlarms } =
+        useAlarms(SQL.useSQLiteContext());
+    const { update } = useLocalSearchParams();
+    const [loadStale, setLoadStale] = useState(true);
+    useFocusEffect(
+        useCallback(() => {
+            setLoadStale(update === "true" ? true : false);
+            return () => {};
+        }, [])
+    );
 
-        {
-            id: "alarm_2",
-            name: "Important Meeting",
-            ringTime: "2025-08-14T14:00",
-            repeat: false,
-            repeatDays: [],
-            puzzles: [],
-            powerUps: [],
-            isEnabled: true,
-        },
-    ]);
+    useEffect(() => {
+        saveAlarms();
+        setLoadStale(true);
+    }, [alarms]);
+
+    useEffect(() => {
+        loadAlarms();
+        return () => setLoadStale(false);
+    }, [loadStale]);
 
     useEffect(() => {
         const soonest = alarms
@@ -71,7 +63,6 @@ export default function Alarms() {
                 );
             })
             .at(0);
-        console.log(soonest);
         if (soonest != undefined) {
             setAlarmGradientDim(true);
             setSoonestRingTime(
@@ -151,10 +142,16 @@ export default function Alarms() {
                 icon={"plus"}
                 style={{
                     position: "absolute",
+                    zIndex: 1,
                     bottom: safeInsets.bottom + 20,
                     right: safeInsets.right + 20,
                 }}
-                onPress={() => {}}
+                onPress={() => {
+                    router.navigate("./alarmOptions?id=new");
+                }}
+                onLongPress={() => {
+                    console.log(alarms);
+                }}
             />
             <FlatList
                 style={{

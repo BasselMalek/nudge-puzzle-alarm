@@ -6,7 +6,7 @@ import Tag from "./Tag";
 
 function WeekdayRepeat(props: {
     changeable?: boolean;
-    enabled?: boolean;
+    enabled: boolean;
     onEnableChange: (enabled: boolean) => void;
     selectedDays: DayKey[];
     onSelectionChange: (selectedDays: DayKey[]) => void;
@@ -140,7 +140,8 @@ function WeekdayRepeat(props: {
             >
                 {(weekOrders[props.startDay] || weekOrders.saturday).map(
                     (day: DayKey) => {
-                        const isSelected = selected.includes(day);
+                        const isSelected =
+                            selected.includes(day) && props.enabled;
                         const { letter, full } = dayConfigs[day];
 
                         return (

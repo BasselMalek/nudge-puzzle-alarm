@@ -43,7 +43,9 @@ export default function AlarmCard(props: {
                         </Text>
                         <Switch
                             value={props.enabled}
-                            onValueChange={props.onToggle}
+                            onValueChange={() => {
+                                props.onToggle(!props.enabled);
+                            }}
                         />
                     </View>
                 </View>
@@ -51,6 +53,7 @@ export default function AlarmCard(props: {
                     {props.alarmName}
                 </Text>
                 <WeekdayRepeat
+                    enabled={props.repeated}
                     onSelectionChange={(selectedDays: DayKey[]) => {}}
                     startDay={"sunday"}
                     selectedDays={props.repeat}

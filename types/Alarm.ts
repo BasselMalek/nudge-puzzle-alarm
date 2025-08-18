@@ -12,24 +12,18 @@ export interface Alarm {
     puzzles: Puzzle[];
     powerUps: PowerUp[];
     isEnabled: boolean;
+    lastModified: Date;
 }
 
-export const createAlarm = (params: {
+export interface AlarmDto {
+    id: string;
     name: string;
-    ringTime: string;
-    repeat?: boolean;
-    repeatDays?: DayKey[];
-    puzzles?: Puzzle[];
-    powerUps?: PowerUp[];
-}): Alarm => ({
-    id: randomUUID(),
-    name: params.name,
-    ringTime: params.ringTime,
-    repeat: params.repeat ?? false,
-    repeatDays: params.repeatDays ?? [],
-    puzzles: params.puzzles ?? [],
-    powerUps: params.powerUps ?? [],
-    isEnabled: true,
-});
+    ring_time: string;
+    repeat: number;
+    power_ups: string | null; // * These are JSON strings
+    repeat_days: string | null;
+    puzzles: string | null;
 
-// export const loadAlarm = (params: {id:})
+    is_enabled: number;
+    last_modified: string; // * This is an ISO string
+}

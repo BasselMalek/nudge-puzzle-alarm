@@ -12,16 +12,68 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import { WeekdayRepeat, DayKey } from "@/components/WeekdayRepeat";
 import CarouselCard from "@/components/CarouselCard";
-import { useState } from "react";
-import { useLocalSearchParams } from "expo-router";
+import { useEffect, useState } from "react";
+import { router, useLocalSearchParams } from "expo-router";
+import { Puzzle } from "@/types/Puzzle";
+import { PowerUp } from "@/types/PowerUp";
+import { Alarm, AlarmDto } from "@/types/Alarm";
+import { createAlarm, parseAlarm } from "@/hooks/useAlarms";
+import { SQLiteDatabase, useSQLiteContext } from "expo-sqlite";
+
+const saveAlarm = (id: string, db: SQLiteDatabase, alarm: Alarm) => {
+    if (id === "new") {
+        db.runSync(
+            "INSERT INTO alarms (id, name, ring_time, repeat, repeat_days, puzzles, power_ups, is_enabled, last_modified) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            [
+                alarm.id,
+                alarm.name,
+                alarm.ringTime,
+                alarm.repeat ? 1 : 0,
+                JSON.stringify(alarm.repeatDays),
+                JSON.stringify(alarm.puzzles),
+                JSON.stringify(alarm.powerUps),
+                alarm.isEnabled ? 1 : 0,
+                alarm.lastModified.toISOString(),
+            ]
+        );
+    } else {
+        db.runSync(
+            "UPDATE alarms SET name = ?, ring_time = ?, repeat = ?, repeat_days = ?, puzzles = ?, power_ups = ?, is_enabled = ?, last_modified = ? WHERE id = ?;",
+            [
+                alarm!.name,
+                alarm!.ringTime,
+                alarm!.repeat ? 1 : 0,
+                JSON.stringify(alarm!.repeatDays),
+                JSON.stringify(alarm!.puzzles),
+                JSON.stringify(alarm!.powerUps),
+                alarm!.isEnabled ? 1 : 0,
+                alarm!.lastModified.toISOString(),
+                alarm.id,
+            ]
+        );
+    }
+};
 
 export default function AlarmOptions() {
-    const palette = useTheme().colors;
     const insets = useSafeAreaInsets();
-    const id = useLocalSearchParams();
-    //fetch(id)
-    const [repeatDays, setRepeatDays] = useState<DayKey[]>([]);
-    const [isRepeated, setIsRepeated] = useState(false);
+    const palette = useTheme().colors;
+    const { id } = useLocalSearchParams();
+    const db = useSQLiteContext();
+    const [alarm, setAlarm] = useState<Alarm>(createAlarm({ name: "" }));
+    useEffect(() => {
+        if (id != "new") {
+            const inital = db.getFirstSync<AlarmDto>(
+                "SELECT * FROM alarms WHERE id = ?",
+                [id as string]
+            );
+            if (inital === undefined) {
+                router.back();
+                console.log("not loaded");
+            } else {
+                setAlarm(parseAlarm(inital!));
+            }
+        }
+    }, []);
 
     return (
         <>
@@ -58,7 +110,7 @@ export default function AlarmOptions() {
                             textAlign: "center",
                         }}
                     >
-                        {new Date().toLocaleTimeString([], {
+                        {new Date(alarm.ringTime).toLocaleTimeString([], {
                             hour: "2-digit",
                             hour12: true,
                             minute: "2-digit",
@@ -82,20 +134,27 @@ export default function AlarmOptions() {
                     <TextInput
                         mode="outlined"
                         label={"Alarm Name"}
-                        defaultValue={"testing"}
+                        defaultValue={alarm.name}
+                        onChange={(e) => {
+                            setAlarm({ ...alarm, name: e.nativeEvent.text });
+                        }}
                     />
 
                     <WeekdayRepeat
                         changeable
-                        enabled={isRepeated}
-                        onEnableChange={setIsRepeated}
-                        selectedDays={repeatDays}
-                        onSelectionChange={setRepeatDays}
+                        enabled={alarm?.repeat}
+                        onEnableChange={(enabled) => {
+                            setAlarm({ ...alarm, repeat: enabled });
+                        }}
+                        selectedDays={alarm.repeatDays}
+                        onSelectionChange={(selected) => {
+                            setAlarm({ ...alarm, repeatDays: selected });
+                        }}
                         startDay={"sunday"}
                     />
                 </Card.Content>
             </Card>
-            <Card
+            {/* <Card
                 style={{
                     borderRadius: 20,
                     flex: 1,
@@ -116,26 +175,7 @@ export default function AlarmOptions() {
                             <View style={{ width: 10 }} />
                         )}
                         style={{ height: "100%", marginHorizontal: 0 }}
-                        data={[
-                            {
-                                title: "NFC Scan",
-                                icon: "nfc",
-                                desc: "Disable puzzle by scanning a linked NFC tag.",
-                            },
-                            {
-                                title: "Barcode Scan",
-                                icon: "nfc",
-                                desc: "Disable puzzle by scanning a linked NFC tag.",
-                            },
-                            {
-                                title: "Connect Puzzle",
-                                icon: "nfc",
-                                desc: "Disable puzzle by scanning a linked NFC tag.",
-                            },
-                            {
-                                icon: "plus",
-                            },
-                        ]}
+                        data={alarm.puzzles}
                         renderItem={({ item }) => (
                             <CarouselCard
                                 title={item.title}
@@ -150,8 +190,8 @@ export default function AlarmOptions() {
                         )}
                     />
                 </Card.Content>
-            </Card>
-            <Card
+            </Card> */}
+            {/* <Card
                 style={{
                     borderRadius: 20,
                     flex: 1,
@@ -172,25 +212,7 @@ export default function AlarmOptions() {
                             <View style={{ width: 10 }} />
                         )}
                         style={{ gap: 10, height: "100%" }}
-                        data={[
-                            {
-                                title: "NFC Scan",
-                                icon: "nfc",
-                                desc: "Disable puzzle by scanning a linked NFC tag.",
-                            },
-                            {
-                                title: "Barcode Scan",
-                                icon: "nfc",
-                                desc: "Disable puzzle by scanning a linked NFC tag.",
-                            },
-                            {
-                                title: "Connect Puzzle",
-                                icon: "nfc",
-                                desc: "Disable puzzle by scanning a linked NFC tag.",
-                            },
-                        ]}
-                        renderItem={({ item }) => (
-                            <CarouselCard
+                        data={alarm.powerUps}
                                 title={item.title}
                                 icon={item.icon}
                                 desc={item.desc}
@@ -203,15 +225,21 @@ export default function AlarmOptions() {
                         )}
                     />
                 </Card.Content>
-            </Card>
+            </Card> */}
             <FAB
-                icon={"plus"}
+                icon={"check"}
                 style={{
                     position: "absolute",
                     bottom: insets.bottom + 20,
                     right: insets.right + 20,
                 }}
-                onPress={() => {}}
+                onPress={() => {
+                    saveAlarm(id as string, db, alarm);
+                    router.navigate("/?update=true");
+                }}
+                onLongPress={() => {
+                    console.log(alarm);
+                }}
             />
         </>
     );
