@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useState } from "react";
-import { FlatList } from "react-native";
+import { useCallback, useEffect, useState, useMemo } from "react";
+import { FlatList, ListRenderItem } from "react-native";
 import { Text, Card, useTheme, FAB, IconButton } from "react-native-paper";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
@@ -9,7 +9,6 @@ import { useAlarms } from "@/hooks/useAlarms";
 import AlarmCard from "@/components/AlarmCard";
 import * as SQL from "expo-sqlite";
 import { Alarm } from "@/types/Alarm";
-import * as FileSystem from "expo-file-system";
 
 const unixIntToString = (unixMS: number) => {
     if (unixMS >= 86400000) {
@@ -35,25 +34,26 @@ export default function Alarms() {
         useAlarms(SQL.useSQLiteContext());
     const { update } = useLocalSearchParams();
     const [loadStale, setLoadStale] = useState(true);
+
     useFocusEffect(
         useCallback(() => {
             setLoadStale(update === "true" ? true : false);
             return () => {};
-        }, [])
+        }, [update])
     );
 
     useEffect(() => {
         saveAlarms();
         setLoadStale(true);
-    }, [alarms]);
+    }, [alarms, saveAlarms]);
 
     useEffect(() => {
         loadAlarms();
         return () => setLoadStale(false);
-    }, [loadStale]);
+    }, [loadStale, loadAlarms]);
 
-    useEffect(() => {
-        const soonest = alarms
+    const soonestAlarm = useMemo(() => {
+        return alarms
             .filter((v, k) => v.isEnabled === true)
             .sort((a, b) => {
                 return (
@@ -63,19 +63,68 @@ export default function Alarms() {
                 );
             })
             .at(0);
-        if (soonest != undefined) {
+    }, [alarms]);
+
+    useEffect(() => {
+        if (soonestAlarm != undefined) {
             setAlarmGradientDim(true);
             setSoonestRingTime(
                 "Next alarm in " +
                     unixIntToString(
-                        new Date(soonest.ringTime).getTime() - Date.now()
+                        new Date(soonestAlarm.ringTime).getTime() - Date.now()
                     )
             );
         } else {
             setAlarmGradientDim(false);
             setSoonestRingTime("No alarms for now");
         }
+    }, [soonestAlarm]);
+
+    const gradientColors = useMemo(() => {
+        return alarmGradientDim
+            ? ([palette.primary, palette.inversePrimary] as const)
+            : ([palette.onSecondary, palette.onPrimary] as const);
+    }, [
+        alarmGradientDim,
+        palette.primary,
+        palette.inversePrimary,
+        palette.onSecondary,
+        palette.onPrimary,
+    ]);
+
+    const handleSettingsPress = useCallback(() => {
+        router.push("/settings");
+    }, []);
+
+    const handleFABPress = useCallback(() => {
+        router.navigate("./alarmOptions?id=new");
+    }, []);
+
+    const handleFABLongPress = useCallback(() => {
+        console.log(alarms);
     }, [alarms]);
+
+    const renderAlarmItem = useCallback(
+        ({ item }: any) => (
+            <AlarmCard
+                enabled={item.isEnabled}
+                alarmName={item.name}
+                ringTime={item.ringTime}
+                repeated={item.repeat}
+                repeat={item.repeatDays}
+                //TODO: implement a swipe to delete thing here.
+                onPress={() => {
+                    router.navigate(`./alarmOptions?id=${item.id}`);
+                }}
+                onToggle={(status) => {
+                    updateAlarm(item.id, { isEnabled: status });
+                }}
+            />
+        ),
+        [updateAlarm]
+    );
+
+    const keyExtractor = useCallback((item: Alarm) => item.id, []);
 
     return (
         <>
@@ -98,18 +147,12 @@ export default function Alarms() {
                     }}
                     start={{ x: 0.0, y: 1.0 }}
                     end={{ y: 0.0, x: 1.0 }}
-                    colors={
-                        alarmGradientDim
-                            ? [palette.primary, palette.inversePrimary]
-                            : [palette.onSecondary, palette.onPrimary]
-                    }
+                    colors={gradientColors}
                     dither
                 >
                     <IconButton
                         icon={"cog"}
-                        onPress={() => {
-                            router.push("/settings");
-                        }}
+                        onPress={handleSettingsPress}
                         style={{
                             elevation: 5,
                             padding: 0,
@@ -129,6 +172,7 @@ export default function Alarms() {
                     </Text>
                 </LinearGradient>
             </Card>
+
             {/* <Button
                     mode="contained"
                     onPress={() => {
@@ -146,35 +190,17 @@ export default function Alarms() {
                     bottom: safeInsets.bottom + 20,
                     right: safeInsets.right + 20,
                 }}
-                onPress={() => {
-                    router.navigate("./alarmOptions?id=new");
-                }}
-                onLongPress={() => {
-                    console.log(alarms);
-                }}
+                onPress={handleFABPress}
+                onLongPress={handleFABLongPress}
             />
             <FlatList
                 style={{
                     display: "flex",
                 }}
                 data={alarms}
-                renderItem={({ item }) => (
-                    <AlarmCard
-                        enabled={item.isEnabled}
-                        alarmName={item.name}
-                        ringTime={item.ringTime}
-                        repeated={item.repeat}
-                        repeat={item.repeatDays}
-                        //TODO: implement a swipe to delete thing here.
-                        onPress={() => {
-                            router.navigate(`./alarmOptions?id=${item.id}`);
-                        }}
-                        onToggle={(status) => {
-                            updateAlarm(item.id, { isEnabled: status });
-                        }}
-                    />
-                )}
-            ></FlatList>
+                renderItem={renderAlarmItem}
+                keyExtractor={keyExtractor}
+            />
         </>
     );
 }

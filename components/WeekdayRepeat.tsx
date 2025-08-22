@@ -1,8 +1,49 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { View } from "react-native";
 import { TouchableRipple, Text, useTheme, Checkbox } from "react-native-paper";
 import { DayKey } from "@/types/DayKey";
 import Tag from "./Tag";
+import { useLocalSearchParams } from "expo-router";
+
+const dayConfigs: Record<DayKey, { letter: string; full: string }> = {
+    sunday: { letter: "S", full: "Sunday" },
+    monday: { letter: "M", full: "Monday" },
+    tuesday: { letter: "T", full: "Tuesday" },
+    wednesday: { letter: "W", full: "Wednesday" },
+    thursday: { letter: "T", full: "Thursday" },
+    friday: { letter: "F", full: "Friday" },
+    saturday: { letter: "S", full: "Saturday" },
+};
+
+const weekOrders: Record<"sunday" | "monday" | "saturday", DayKey[]> = {
+    sunday: [
+        "sunday",
+        "monday",
+        "tuesday",
+        "wednesday",
+        "thursday",
+        "friday",
+        "saturday",
+    ],
+    monday: [
+        "monday",
+        "tuesday",
+        "wednesday",
+        "thursday",
+        "friday",
+        "saturday",
+        "sunday",
+    ],
+    saturday: [
+        "saturday",
+        "sunday",
+        "monday",
+        "tuesday",
+        "wednesday",
+        "thursday",
+        "friday",
+    ],
+};
 
 function WeekdayRepeat(props: {
     changeable?: boolean;
@@ -12,49 +53,6 @@ function WeekdayRepeat(props: {
     onSelectionChange: (selectedDays: DayKey[]) => void;
     startDay: "sunday" | "monday" | "saturday";
 }) {
-    const { colors } = useTheme();
-    const [selected, setSelected] = useState<DayKey[]>(props.selectedDays);
-
-    const dayConfigs: Record<DayKey, { letter: string; full: string }> = {
-        sunday: { letter: "S", full: "Sunday" },
-        monday: { letter: "M", full: "Monday" },
-        tuesday: { letter: "T", full: "Tuesday" },
-        wednesday: { letter: "W", full: "Wednesday" },
-        thursday: { letter: "T", full: "Thursday" },
-        friday: { letter: "F", full: "Friday" },
-        saturday: { letter: "S", full: "Saturday" },
-    };
-
-    const weekOrders: Record<"sunday" | "monday" | "saturday", DayKey[]> = {
-        sunday: [
-            "sunday",
-            "monday",
-            "tuesday",
-            "wednesday",
-            "thursday",
-            "friday",
-            "saturday",
-        ],
-        monday: [
-            "monday",
-            "tuesday",
-            "wednesday",
-            "thursday",
-            "friday",
-            "saturday",
-            "sunday",
-        ],
-        saturday: [
-            "saturday",
-            "sunday",
-            "monday",
-            "tuesday",
-            "wednesday",
-            "thursday",
-            "friday",
-        ],
-    };
-
     const toggleDay = (day: DayKey) => {
         const updated = selected.includes(day)
             ? selected.filter((d) => d !== day)
@@ -62,6 +60,13 @@ function WeekdayRepeat(props: {
         setSelected(updated);
         props.onSelectionChange(updated);
     };
+    const { colors } = useTheme();
+    const [selected, setSelected] = useState<DayKey[]>([]);
+    useEffect(() => {
+        setSelected(props.selectedDays);
+        return () => {};
+    }, [selected]);
+
     if (props.changeable) {
         return (
             <View>
@@ -90,7 +95,6 @@ function WeekdayRepeat(props: {
                                 ).map((day: DayKey) => {
                                     const isSelected = selected.includes(day);
                                     const { letter, full } = dayConfigs[day];
-
                                     return (
                                         <TouchableRipple
                                             key={day}

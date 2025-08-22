@@ -1,4 +1,4 @@
-import { useReducer, useState } from "react";
+import { useReducer, useState, useCallback } from "react";
 import { Alarm, AlarmDto } from "@/types/Alarm";
 import { SQLiteDatabase } from "expo-sqlite";
 import { DayKey } from "@/types/DayKey";
@@ -69,8 +69,11 @@ export const createAlarm = (params: {
 
 export const useAlarms = (db: SQLiteDatabase) => {
     const [alarms, dispatch] = useReducer(alarmsReducer, []);
-    const [diff, setDiff] = useState<Map<string, Alarm>>();
-    const loadAlarms = async () => {
+    const [diff, setDiff] = useState<Map<string, Alarm>>(
+        new Map<string, Alarm>()
+    );
+
+    const loadAlarms = useCallback(async () => {
         const inital = await db.getAllAsync<AlarmDto>("SELECT * FROM alarms");
         dispatch({
             type: "SET_ALARMS",
@@ -84,8 +87,9 @@ export const useAlarms = (db: SQLiteDatabase) => {
                 })
             )
         );
-    };
-    const saveAlarms = async () => {
+    }, [db]);
+
+    const saveAlarms = useCallback(async () => {
         alarms.forEach((v) => {
             if (
                 v.lastModified.getTime() >
@@ -109,22 +113,25 @@ export const useAlarms = (db: SQLiteDatabase) => {
                 );
             }
         });
-    };
+    }, [alarms, diff, db]);
 
-    const updateAlarm = (id: string, updates: Partial<Alarm>) => {
+    const updateAlarm = useCallback((id: string, updates: Partial<Alarm>) => {
         dispatch({
             type: "UPDATE_ALARM",
             payload: { id, ...updates },
         });
-    };
+    }, []);
 
-    const deleteAlarm = (id: string) => {
-        dispatch({
-            type: "DELETE_ALARM",
-            payload: id,
-        });
-        db.runAsync("DELETE FROM alarms WHERE id = ?;", [id]);
-    };
+    const deleteAlarm = useCallback(
+        (id: string) => {
+            dispatch({
+                type: "DELETE_ALARM",
+                payload: id,
+            });
+            db.runAsync("DELETE FROM alarms WHERE id = ?;", [id]);
+        },
+        [db]
+    );
 
     return {
         alarms,

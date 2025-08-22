@@ -19,6 +19,7 @@ import { PowerUp } from "@/types/PowerUp";
 import { Alarm, AlarmDto } from "@/types/Alarm";
 import { createAlarm, parseAlarm } from "@/hooks/useAlarms";
 import { SQLiteDatabase, useSQLiteContext } from "expo-sqlite";
+import { StatusBar } from "expo-status-bar";
 
 const saveAlarm = (id: string, db: SQLiteDatabase, alarm: Alarm) => {
     if (id === "new") {
@@ -77,6 +78,7 @@ export default function AlarmOptions() {
 
     return (
         <>
+            <StatusBar translucent />
             <Card
                 style={{
                     borderRadius: 20,
