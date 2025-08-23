@@ -1,5 +1,12 @@
-import { useCallback, useEffect, useState, useMemo } from "react";
-import { FlatList, ListRenderItem } from "react-native";
+import {
+    useCallback,
+    useEffect,
+    useState,
+    useMemo,
+    useLayoutEffect,
+    useRef,
+} from "react";
+import { FlatList, ListRenderItem, View } from "react-native";
 import { Text, Card, useTheme, FAB, IconButton } from "react-native-paper";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
@@ -113,6 +120,9 @@ export default function Alarms() {
                 repeated={item.repeat}
                 repeat={item.repeatDays}
                 //TODO: implement a swipe to delete thing here.
+                onDelete={() => {
+                    deleteAlarm(item.id);
+                }}
                 onPress={() => {
                     router.navigate(`./alarmOptions?id=${item.id}`);
                 }}
@@ -196,10 +206,16 @@ export default function Alarms() {
             <FlatList
                 style={{
                     display: "flex",
+                    marginTop: 5,
                 }}
                 data={alarms}
                 renderItem={renderAlarmItem}
                 keyExtractor={keyExtractor}
+                showsVerticalScrollIndicator={false}
+                ItemSeparatorComponent={() => (
+                    <View style={{ height: 10 }}></View>
+                )}
+                //TODO: add some fade here with gradient + masked view
             />
         </>
     );

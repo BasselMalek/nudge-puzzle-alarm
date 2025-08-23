@@ -12,7 +12,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import { WeekdayRepeat, DayKey } from "@/components/WeekdayRepeat";
 import CarouselCard from "@/components/CarouselCard";
-import { useEffect, useState } from "react";
+import { Suspense, useCallback, useEffect, useState } from "react";
 import { router, useLocalSearchParams } from "expo-router";
 import { Puzzle } from "@/types/Puzzle";
 import { PowerUp } from "@/types/PowerUp";
@@ -75,6 +75,9 @@ export default function AlarmOptions() {
             }
         }
     }, []);
+    const updateText = useCallback(() => {
+        return alarm.name;
+    }, [alarm]);
 
     return (
         <>
@@ -136,7 +139,7 @@ export default function AlarmOptions() {
                     <TextInput
                         mode="outlined"
                         label={"Alarm Name"}
-                        defaultValue={alarm.name}
+                        value={updateText()}
                         onChange={(e) => {
                             setAlarm({ ...alarm, name: e.nativeEvent.text });
                         }}

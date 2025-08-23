@@ -1,7 +1,28 @@
-import { View } from "react-native";
-import { Card, Text, Switch, useTheme } from "react-native-paper";
+import { TouchableOpacity, View } from "react-native";
+import {
+    Card,
+    Text,
+    Switch,
+    useTheme,
+    Button,
+    FAB,
+    IconButton,
+    Icon,
+    Surface,
+} from "react-native-paper";
 import Tag from "./Tag";
 import { DayKey, WeekdayRepeat } from "./WeekdayRepeat";
+import {
+    GestureDetector,
+    Gesture,
+    GestureHandlerRootView,
+} from "react-native-gesture-handler";
+import Animated, {
+    useAnimatedStyle,
+    useSharedValue,
+    withSpring,
+    interpolate,
+} from "react-native-reanimated";
 
 export default function AlarmCard(props: {
     enabled: boolean;
@@ -11,83 +32,190 @@ export default function AlarmCard(props: {
     repeat: Array<DayKey>;
     onPress: () => void;
     onToggle: (enabled: boolean) => void;
+    onDelete?: () => void;
 }) {
-    const palette = useTheme().colors;
+    const { colors, roundness } = useTheme();
+    const translateX = useSharedValue(0);
+    const DELETE_BUTTON_WIDTH = 100;
+    const SWIPE_THRESHOLD = 70;
+
+    const panGesture = Gesture.Pan()
+        .activeOffsetX([-5, 5])
+        .failOffsetY([-5, 5])
+        .onUpdate((event) => {
+            translateX.value = Math.min(0, event.translationX);
+        })
+        .onEnd((event) => {
+            const shouldRevealDelete = event.translationX < -SWIPE_THRESHOLD;
+
+            if (shouldRevealDelete) {
+                translateX.value = withSpring(-DELETE_BUTTON_WIDTH);
+            } else {
+                translateX.value = withSpring(0);
+            }
+        });
+
+    const cardAnimatedStyle = useAnimatedStyle(() => ({
+        transform: [{ translateX: translateX.value }],
+    }));
+
+    const deleteButtonAnimatedStyle = useAnimatedStyle(() => {
+        const opacity = interpolate(
+            translateX.value,
+            [-DELETE_BUTTON_WIDTH, -20, 0],
+            [1, 0.7, 0]
+        );
+        return {
+            opacity,
+            transform: [{ translateX: translateX.value + DELETE_BUTTON_WIDTH }],
+        };
+    });
+
+    const handleCardPress = () => {
+        if (translateX.value < -10) {
+            translateX.value = withSpring(0);
+        } else {
+            props.onPress();
+        }
+    };
+
+    const handleDelete = () => {
+        if (props.onDelete) {
+            props.onDelete();
+        }
+        translateX.value = withSpring(0);
+    };
+
     return (
-        <Card
-            style={{
-                marginVertical: 5,
-            }}
-            onPress={props.onPress}
-        >
-            <Card.Content
-                style={{
-                    padding: 8,
-                    gap: 4,
-                }}
-            >
-                <View>
-                    <View
-                        style={{
-                            flexDirection: "row",
-                            justifyContent: "space-between",
-                            alignItems: "center",
-                        }}
-                    >
-                        <Text variant="headlineLarge">
-                            {new Date(props.ringTime).toLocaleTimeString([], {
-                                hour: "2-digit",
-                                hour12: true,
-                                minute: "2-digit",
-                            })}
-                        </Text>
-                        <Switch
-                            value={props.enabled}
-                            onValueChange={() => {
-                                props.onToggle(!props.enabled);
-                            }}
-                        />
-                    </View>
-                </View>
-                <Text variant="titleMedium" style={{ paddingBottom: 5 }}>
-                    {props.alarmName}
-                </Text>
-                <WeekdayRepeat
-                    enabled={props.repeated}
-                    onSelectionChange={(selectedDays: DayKey[]) => {}}
-                    startDay={"sunday"}
-                    selectedDays={props.repeat}
-                    onEnableChange={function (enabled: boolean): void {
-                        throw new Error("Function not implemented.");
-                    }}
-                />
-                <View
-                    style={{
-                        flexDirection: "row",
-                        flexWrap: "nowrap",
-                        columnGap: 8,
-                    }}
+        <GestureHandlerRootView>
+            <View style={{ position: "relative" }}>
+                <Animated.View
+                    style={[
+                        {
+                            position: "absolute",
+                            right: 0,
+                            top: 0,
+                            bottom: 0,
+                            width: DELETE_BUTTON_WIDTH,
+                            paddingHorizontal: 10,
+                        },
+                        deleteButtonAnimatedStyle,
+                    ]}
                 >
-                    <Tag
-                        name={"barcode"}
-                        size="small"
-                        tagColor={palette.secondaryContainer}
-                        iconColor={palette.onSecondaryContainer}
-                    />
-                    <Tag
-                        name={"nfc"}
-                        size="small"
-                        tagColor={palette.secondaryContainer}
-                        iconColor={palette.onSecondaryContainer}
-                    />
-                    <Tag
-                        name={"puzzle"}
-                        size="small"
-                        tagColor={palette.secondaryContainer}
-                        iconColor={palette.onSecondaryContainer}
-                    />
-                </View>
-            </Card.Content>
-        </Card>
+                    <Surface
+                        style={{
+                            backgroundColor: colors.error,
+                            height: "100%",
+                            width: "100%",
+                            borderRadius: roundness + 10,
+                            overflow: "hidden",
+                        }}
+                        elevation={4}
+                    >
+                        <TouchableOpacity
+                            style={{
+                                height: "100%",
+                                width: "100%",
+                                justifyContent: "center",
+                                alignItems: "center",
+                            }}
+                            onPress={handleDelete}
+                            activeOpacity={0.7}
+                        >
+                            <Icon
+                                source="delete"
+                                color={colors.onError}
+                                size={24}
+                            />
+                        </TouchableOpacity>
+                    </Surface>
+                </Animated.View>
+                <GestureDetector gesture={panGesture}>
+                    <Animated.View style={cardAnimatedStyle}>
+                        <Card onPress={handleCardPress}>
+                            <Card.Content
+                                style={{
+                                    padding: 8,
+                                    gap: 4,
+                                }}
+                            >
+                                <View>
+                                    <View
+                                        style={{
+                                            flexDirection: "row",
+                                            justifyContent: "space-between",
+                                            alignItems: "center",
+                                        }}
+                                    >
+                                        <Text variant="headlineLarge">
+                                            {new Date(
+                                                props.ringTime
+                                            ).toLocaleTimeString([], {
+                                                hour: "2-digit",
+                                                hour12: true,
+                                                minute: "2-digit",
+                                            })}
+                                        </Text>
+                                        <Switch
+                                            value={props.enabled}
+                                            onValueChange={() => {
+                                                props.onToggle(!props.enabled);
+                                            }}
+                                        />
+                                    </View>
+                                </View>
+                                <Text
+                                    variant="titleMedium"
+                                    style={{ paddingBottom: 5 }}
+                                >
+                                    {props.alarmName}
+                                </Text>
+                                <WeekdayRepeat
+                                    enabled={props.repeated}
+                                    onSelectionChange={(
+                                        selectedDays: DayKey[]
+                                    ) => {}}
+                                    startDay={"sunday"}
+                                    selectedDays={props.repeat}
+                                    onEnableChange={function (
+                                        enabled: boolean
+                                    ): void {
+                                        throw new Error(
+                                            "Function not implemented."
+                                        );
+                                    }}
+                                />
+                                <View
+                                    style={{
+                                        flexDirection: "row",
+                                        flexWrap: "nowrap",
+                                        columnGap: 8,
+                                    }}
+                                >
+                                    <Tag
+                                        name={"barcode"}
+                                        size="small"
+                                        tagColor={colors.secondaryContainer}
+                                        iconColor={colors.onSecondaryContainer}
+                                    />
+                                    <Tag
+                                        name={"nfc"}
+                                        size="small"
+                                        tagColor={colors.secondaryContainer}
+                                        iconColor={colors.onSecondaryContainer}
+                                    />
+                                    <Tag
+                                        name={"puzzle"}
+                                        size="small"
+                                        tagColor={colors.secondaryContainer}
+                                        iconColor={colors.onSecondaryContainer}
+                                    />
+                                </View>
+                            </Card.Content>
+                        </Card>
+                    </Animated.View>
+                </GestureDetector>
+            </View>
+        </GestureHandlerRootView>
     );
 }

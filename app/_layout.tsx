@@ -52,6 +52,7 @@ export default function RootLayout() {
                         <Stack.Screen
                             name="settings"
                             options={{
+                                headerTitle: "",
                                 title: "Settings",
                                 presentation: "modal",
                                 headerStyle: {
@@ -63,7 +64,7 @@ export default function RootLayout() {
                                     display: "flex",
                                     backgroundColor:
                                         paperTheme.colors.background,
-                                    paddingTop: safeInsets.top + 10,
+                                    paddingTop: 10,
                                     paddingLeft: safeInsets.left + 10,
                                     paddingRight: safeInsets.right + 10,
                                     paddingBottom: safeInsets.bottom + 10,
@@ -74,7 +75,7 @@ export default function RootLayout() {
                         <Stack.Screen
                             name="alarmOptions"
                             options={{
-                                title: "d",
+                                headerTitle: "",
                                 headerStyle: {
                                     backgroundColor:
                                         paperTheme.colors.background,
@@ -85,7 +86,7 @@ export default function RootLayout() {
                                     display: "flex",
                                     backgroundColor:
                                         paperTheme.colors.background,
-                                    paddingTop: safeInsets.top + 10,
+                                    paddingTop: 10,
                                     paddingLeft: safeInsets.left + 10,
                                     paddingRight: safeInsets.right + 10,
                                     paddingBottom: safeInsets.bottom + 10,
