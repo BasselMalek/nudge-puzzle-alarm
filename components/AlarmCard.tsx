@@ -43,7 +43,8 @@ export default function AlarmCard(props: {
         .activeOffsetX([-5, 5])
         .failOffsetY([-5, 5])
         .onUpdate((event) => {
-            translateX.value = Math.min(0, event.translationX);
+            translateX.value =
+                event.translationX < 0 ? event.translationX : withSpring(0);
         })
         .onEnd((event) => {
             const shouldRevealDelete = event.translationX < -SWIPE_THRESHOLD;

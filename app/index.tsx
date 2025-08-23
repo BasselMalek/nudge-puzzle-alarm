@@ -119,7 +119,6 @@ export default function Alarms() {
                 ringTime={item.ringTime}
                 repeated={item.repeat}
                 repeat={item.repeatDays}
-                //TODO: implement a swipe to delete thing here.
                 onDelete={() => {
                     deleteAlarm(item.id);
                 }}
