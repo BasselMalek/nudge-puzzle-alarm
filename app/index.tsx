@@ -1,12 +1,5 @@
-import {
-    useCallback,
-    useEffect,
-    useState,
-    useMemo,
-    useLayoutEffect,
-    useRef,
-} from "react";
-import { FlatList, ListRenderItem, View } from "react-native";
+import { useCallback, useEffect, useState, useMemo } from "react";
+import { FlatList, View } from "react-native";
 import { Text, Card, useTheme, FAB, IconButton } from "react-native-paper";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
@@ -64,9 +57,14 @@ export default function Alarms() {
             .filter((v, k) => v.isEnabled === true)
             .sort((a, b) => {
                 return (
-                    new Date(a.ringTime).getTime() -
+                    new Date(
+                        new Date().setHours(a.ringHours, a.ringMins)
+                    ).getTime() -
                     Date.now() -
-                    (new Date(b.ringTime).getTime() - Date.now())
+                    (new Date(
+                        new Date().setHours(b.ringHours, b.ringMins)
+                    ).getTime() -
+                        Date.now())
                 );
             })
             .at(0);
@@ -78,7 +76,12 @@ export default function Alarms() {
             setSoonestRingTime(
                 "Next alarm in " +
                     unixIntToString(
-                        new Date(soonestAlarm.ringTime).getTime() - Date.now()
+                        new Date(
+                            new Date().setHours(
+                                soonestAlarm.ringHours,
+                                soonestAlarm.ringMins
+                            )
+                        ).getTime() - Date.now()
                     )
             );
         } else {
@@ -112,11 +115,12 @@ export default function Alarms() {
     }, [alarms]);
 
     const renderAlarmItem = useCallback(
-        ({ item }: any) => (
+        ({ item }: { item: Alarm }) => (
             <AlarmCard
                 enabled={item.isEnabled}
                 alarmName={item.name}
-                ringTime={item.ringTime}
+                ringHours={item.ringHours}
+                ringMins={item.ringMins}
                 repeated={item.repeat}
                 repeat={item.repeatDays}
                 onDelete={() => {

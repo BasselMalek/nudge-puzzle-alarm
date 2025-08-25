@@ -21,11 +21,11 @@ export default function RootLayout() {
             <PaperProvider theme={paperTheme}>
                 <SQL.SQLiteProvider
                     databaseName="nudge_alarms.db"
-                    // onInit={async (db) => {
-                    //     db.runAsync(
-                    //         "CREATE TABLE IF NOT EXISTS alarms ( id TEXT PRIMARY KEY, name TEXT NOT NULL, ring_time TEXT NOT NULL, repeat BOOLEAN NOT NULL DEFAULT 0, repeat_days TEXT, puzzles TEXT, power_ups TEXT, is_enabled BOOLEAN NOT NULL DEFAULT 1, last_modified DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP);"
-                    //     );
-                    // }}
+                    onInit={async (db) => {
+                        db.runAsync(
+                            "CREATE TABLE IF NOT EXISTS alarms ( id TEXT PRIMARY KEY, name TEXT NOT NULL, ring_hours INT NOT NULL, ring_mins INT NOT NULL, repeat BOOLEAN NOT NULL DEFAULT 0, repeat_days TEXT, puzzles TEXT, power_ups TEXT, is_enabled BOOLEAN NOT NULL DEFAULT 1, last_modified DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP);"
+                        );
+                    }}
                 >
                     <Stack>
                         <Stack.Screen

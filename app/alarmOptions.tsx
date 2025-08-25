@@ -7,6 +7,7 @@ import {
     TextInput,
     FAB,
     Checkbox,
+    TouchableRipple,
 } from "react-native-paper";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
@@ -14,6 +15,7 @@ import { WeekdayRepeat, DayKey } from "@/components/WeekdayRepeat";
 import CarouselCard from "@/components/CarouselCard";
 import { Suspense, useCallback, useEffect, useState } from "react";
 import { router, useLocalSearchParams } from "expo-router";
+import { TimePickerModal } from "react-native-paper-dates";
 import { Puzzle } from "@/types/Puzzle";
 import { PowerUp } from "@/types/PowerUp";
 import { Alarm, AlarmDto } from "@/types/Alarm";
@@ -24,25 +26,27 @@ import { StatusBar } from "expo-status-bar";
 const saveAlarm = (id: string, db: SQLiteDatabase, alarm: Alarm) => {
     if (id === "new") {
         db.runSync(
-            "INSERT INTO alarms (id, name, ring_time, repeat, repeat_days, puzzles, power_ups, is_enabled, last_modified) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            "INSERT INTO alarms (id, name, ring_hours, ring_mins, repeat, repeat_days, puzzles, power_ups, is_enabled, last_modified) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
             [
                 alarm.id,
                 alarm.name,
-                alarm.ringTime,
+                alarm.ringHours,
+                alarm.ringMins,
                 alarm.repeat ? 1 : 0,
                 JSON.stringify(alarm.repeatDays),
                 JSON.stringify(alarm.puzzles),
                 JSON.stringify(alarm.powerUps),
                 alarm.isEnabled ? 1 : 0,
-                alarm.lastModified.toISOString(),
+                new Date().toISOString(),
             ]
         );
     } else {
         db.runSync(
-            "UPDATE alarms SET name = ?, ring_time = ?, repeat = ?, repeat_days = ?, puzzles = ?, power_ups = ?, is_enabled = ?, last_modified = ? WHERE id = ?;",
+            "UPDATE alarms SET name = ?, ring_hours = ?, ring_mins = ?, repeat = ?, repeat_days = ?, puzzles = ?, power_ups = ?, is_enabled = ?, last_modified = ? WHERE id = ?;",
             [
                 alarm!.name,
-                alarm!.ringTime,
+                alarm!.ringHours,
+                alarm!.ringMins,
                 alarm!.repeat ? 1 : 0,
                 JSON.stringify(alarm!.repeatDays),
                 JSON.stringify(alarm!.puzzles),
@@ -60,6 +64,22 @@ export default function AlarmOptions() {
     const palette = useTheme().colors;
     const { id } = useLocalSearchParams();
     const db = useSQLiteContext();
+    const [visible, setVisible] = useState(false);
+    const onDismiss = useCallback(() => {
+        setVisible(false);
+    }, [setVisible]);
+
+    const onConfirm = useCallback(
+        ({ hours, minutes }: { hours: number; minutes: number }) => {
+            setVisible(false);
+            setAlarm({
+                ...alarm,
+                ringHours: hours,
+                ringMins: minutes,
+            });
+        },
+        [setVisible]
+    );
     const [alarm, setAlarm] = useState<Alarm>(createAlarm({ name: "" }));
     useEffect(() => {
         if (id != "new") {
@@ -78,6 +98,12 @@ export default function AlarmOptions() {
     const updateText = useCallback(() => {
         return alarm.name;
     }, [alarm]);
+    const updateHours = useCallback(() => {
+        return alarm.ringHours;
+    }, [alarm]);
+    const updateMins = useCallback(() => {
+        return alarm.ringMins;
+    }, [alarm]);
 
     return (
         <>
@@ -90,37 +116,58 @@ export default function AlarmOptions() {
                 elevation={4}
             >
                 <LinearGradient
-                    style={{
-                        paddingVertical: 20,
-                        paddingHorizontal: 20,
-                        alignItems: "center",
-                        justifyContent: "center",
-                        flexDirection: "row",
-                        gap: 15,
-                        minHeight: 100,
-                    }}
+                    style={{}}
                     start={{ x: 0.0, y: 1.0 }}
                     end={{ y: 0.0, x: 1.0 }}
                     colors={
-                        false
+                        alarm.isEnabled
                             ? [palette.primary, palette.inversePrimary]
                             : [palette.onSecondary, palette.onPrimary]
                     }
                     dither
                 >
-                    <Icon source={"clock"} size={42} />
-                    <Text
-                        variant="displayMedium"
+                    <TouchableRipple
                         style={{
-                            textAlign: "center",
+                            paddingVertical: 20,
+                            paddingHorizontal: 20,
+                            alignItems: "center",
+                            justifyContent: "center",
+                            flexDirection: "row",
+                            gap: 15,
+                            minHeight: 100,
+                        }}
+                        onPress={() => {
+                            setVisible(true);
                         }}
                     >
-                        {new Date(alarm.ringTime).toLocaleTimeString([], {
-                            hour: "2-digit",
-                            hour12: true,
-                            minute: "2-digit",
-                        })}
-                    </Text>
+                        <>
+                            <TimePickerModal
+                                visible={visible}
+                                onDismiss={onDismiss}
+                                onConfirm={onConfirm}
+                                hours={updateHours()}
+                                minutes={updateMins()}
+                            />
+                            <Icon source={"clock"} size={42} />
+                            <Text
+                                variant="displayMedium"
+                                style={{
+                                    textAlign: "center",
+                                }}
+                            >
+                                {new Date(
+                                    new Date().setHours(
+                                        alarm.ringHours,
+                                        alarm.ringMins
+                                    )
+                                ).toLocaleTimeString([], {
+                                    hour: "2-digit",
+                                    hour12: true,
+                                    minute: "2-digit",
+                                })}
+                            </Text>
+                        </>
+                    </TouchableRipple>
                 </LinearGradient>
             </Card>
             <Card

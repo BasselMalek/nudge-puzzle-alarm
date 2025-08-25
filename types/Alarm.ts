@@ -6,7 +6,8 @@ import { randomUUID } from "expo-crypto";
 export interface Alarm {
     id: string;
     name: string;
-    ringTime: string;
+    ringHours: number;
+    ringMins: number;
     repeat: boolean;
     repeatDays: DayKey[];
     puzzles: Puzzle[];
@@ -18,7 +19,8 @@ export interface Alarm {
 export interface AlarmDto {
     id: string;
     name: string;
-    ring_time: string;
+    ring_hours: number;
+    ring_mins: number;
     repeat: number;
     power_ups: string | null; // * These are JSON strings
     repeat_days: string | null;

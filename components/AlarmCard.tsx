@@ -27,7 +27,8 @@ import Animated, {
 export default function AlarmCard(props: {
     enabled: boolean;
     alarmName?: string;
-    ringTime: string;
+    ringHours: number;
+    ringMins: number;
     repeated: boolean;
     repeat: Array<DayKey>;
     onPress: () => void;
@@ -150,7 +151,10 @@ export default function AlarmCard(props: {
                                     >
                                         <Text variant="headlineLarge">
                                             {new Date(
-                                                props.ringTime
+                                                new Date().setHours(
+                                                    props.ringHours,
+                                                    props.ringMins
+                                                )
                                             ).toLocaleTimeString([], {
                                                 hour: "2-digit",
                                                 hour12: true,

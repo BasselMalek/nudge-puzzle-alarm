@@ -44,13 +44,15 @@ export const parseAlarm = (result: AlarmDto): Alarm => ({
         result.repeat_days === null ? [] : JSON.parse(result.repeat_days),
     puzzles: result.puzzles === null ? [] : JSON.parse(result.puzzles),
     powerUps: result.power_ups === null ? [] : JSON.parse(result.power_ups),
-    ringTime: result.ring_time,
+    ringHours: result.ring_hours,
+    ringMins: result.ring_mins,
     lastModified: new Date(result.last_modified),
 });
 
 export const createAlarm = (params: {
     name: string;
-    ringTime?: string;
+    ringHours?: number;
+    ringMins?: number;
     repeat?: boolean;
     repeatDays?: DayKey[];
     puzzles?: Puzzle[];
@@ -58,7 +60,8 @@ export const createAlarm = (params: {
 }): Alarm => ({
     id: randomUUID(),
     name: params.name,
-    ringTime: params.ringTime ?? new Date().toISOString(),
+    ringHours: params.ringHours ?? 12,
+    ringMins: params.ringMins ?? 0,
     repeat: params.repeat ?? false,
     repeatDays: params.repeatDays ?? [],
     puzzles: params.puzzles ?? [],
@@ -98,10 +101,11 @@ export const useAlarms = (db: SQLiteDatabase) => {
                 console.log("updated");
 
                 db.runAsync(
-                    "UPDATE alarms SET name = ?, ring_time = ?, repeat = ?, repeat_days = ?, puzzles = ?, power_ups = ?, is_enabled = ?, last_modified = ? WHERE id = ?;",
+                    "UPDATE alarms SET name = ?, ring_hours = ?, ring_mins = ?, repeat = ?, repeat_days = ?, puzzles = ?, power_ups = ?, is_enabled = ?, last_modified = ? WHERE id = ?;",
                     [
                         v!.name,
-                        v!.ringTime,
+                        v!.ringHours,
+                        v!.ringMins,
                         v!.repeat ? 1 : 0,
                         JSON.stringify(v!.repeatDays),
                         JSON.stringify(v!.puzzles),
