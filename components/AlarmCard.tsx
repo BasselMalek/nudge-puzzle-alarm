@@ -23,14 +23,10 @@ import Animated, {
     withSpring,
     interpolate,
 } from "react-native-reanimated";
+import { Alarm } from "@/types/Alarm";
 
 export default function AlarmCard(props: {
-    enabled: boolean;
-    alarmName?: string;
-    ringHours: number;
-    ringMins: number;
-    repeated: boolean;
-    repeat: Array<DayKey>;
+    alarm: Alarm;
     onPress: () => void;
     onToggle: (enabled: boolean) => void;
     onDelete?: () => void;
@@ -152,8 +148,8 @@ export default function AlarmCard(props: {
                                         <Text variant="headlineLarge">
                                             {new Date(
                                                 new Date().setHours(
-                                                    props.ringHours,
-                                                    props.ringMins
+                                                    props.alarm.ringHours,
+                                                    props.alarm.ringMins
                                                 )
                                             ).toLocaleTimeString([], {
                                                 hour: "2-digit",
@@ -162,9 +158,11 @@ export default function AlarmCard(props: {
                                             })}
                                         </Text>
                                         <Switch
-                                            value={props.enabled}
+                                            value={props.alarm.isEnabled}
                                             onValueChange={() => {
-                                                props.onToggle(!props.enabled);
+                                                props.onToggle(
+                                                    !props.alarm.isEnabled
+                                                );
                                             }}
                                         />
                                     </View>
@@ -173,15 +171,15 @@ export default function AlarmCard(props: {
                                     variant="titleMedium"
                                     style={{ paddingBottom: 5 }}
                                 >
-                                    {props.alarmName}
+                                    {props.alarm.name}
                                 </Text>
                                 <WeekdayRepeat
-                                    enabled={props.repeated}
+                                    enabled={props.alarm.repeat}
                                     onSelectionChange={(
                                         selectedDays: DayKey[]
                                     ) => {}}
                                     startDay={"sunday"}
-                                    selectedDays={props.repeat}
+                                    selectedDays={props.alarm.repeatDays}
                                     onEnableChange={function (
                                         enabled: boolean
                                     ): void {
@@ -197,24 +195,20 @@ export default function AlarmCard(props: {
                                         columnGap: 8,
                                     }}
                                 >
-                                    <Tag
-                                        name={"barcode"}
-                                        size="small"
-                                        tagColor={colors.secondaryContainer}
-                                        iconColor={colors.onSecondaryContainer}
-                                    />
-                                    <Tag
-                                        name={"nfc"}
-                                        size="small"
-                                        tagColor={colors.secondaryContainer}
-                                        iconColor={colors.onSecondaryContainer}
-                                    />
-                                    <Tag
-                                        name={"puzzle"}
-                                        size="small"
-                                        tagColor={colors.secondaryContainer}
-                                        iconColor={colors.onSecondaryContainer}
-                                    />
+                                    {props.alarm.puzzles.map((puzz) => {
+                                        return (
+                                            <Tag
+                                                name={puzz.icon}
+                                                size="small"
+                                                tagColor={
+                                                    colors.secondaryContainer
+                                                }
+                                                iconColor={
+                                                    colors.onSecondaryContainer
+                                                }
+                                            />
+                                        );
+                                    })}
                                 </View>
                             </Card.Content>
                         </Card>

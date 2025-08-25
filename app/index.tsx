@@ -1,6 +1,13 @@
 import { useCallback, useEffect, useState, useMemo } from "react";
 import { FlatList, View } from "react-native";
-import { Text, Card, useTheme, FAB, IconButton } from "react-native-paper";
+import {
+    Text,
+    Card,
+    useTheme,
+    FAB,
+    IconButton,
+    Button,
+} from "react-native-paper";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import { StatusBar } from "expo-status-bar";
@@ -17,7 +24,7 @@ const unixIntToString = (unixMS: number) => {
         const totalMins = Math.floor(unixMS / 1000 / 60);
         const hrs = Math.floor(totalMins / 60);
         const mins = totalMins % 60;
-        if (hrs > 0) {
+        if (hrs != 0) {
             return `${hrs}h ${mins}m`;
         } else {
             return `${mins}m`;
@@ -76,12 +83,10 @@ export default function Alarms() {
             setSoonestRingTime(
                 "Next alarm in " +
                     unixIntToString(
-                        new Date(
-                            new Date().setHours(
-                                soonestAlarm.ringHours,
-                                soonestAlarm.ringMins
-                            )
-                        ).getTime() - Date.now()
+                        new Date().setHours(
+                            soonestAlarm.ringHours,
+                            soonestAlarm.ringMins
+                        ) - Date.now()
                     )
             );
         } else {
@@ -117,12 +122,7 @@ export default function Alarms() {
     const renderAlarmItem = useCallback(
         ({ item }: { item: Alarm }) => (
             <AlarmCard
-                enabled={item.isEnabled}
-                alarmName={item.name}
-                ringHours={item.ringHours}
-                ringMins={item.ringMins}
-                repeated={item.repeat}
-                repeat={item.repeatDays}
+                alarm={item}
                 onDelete={() => {
                     deleteAlarm(item.id);
                 }}
@@ -187,14 +187,14 @@ export default function Alarms() {
             </Card>
 
             {/* <Button
-                    mode="contained"
-                    onPress={() => {
-                        router.navigate("/themeDisplay");
-                    }}
-                    style={{ marginBottom: 16 }}
-                >
-                    Theme
-                </Button> */}
+                mode="contained"
+                onPress={() => {
+                    router.navigate("/themeDisplay");
+                }}
+                style={{ marginBottom: 16 }}
+            >
+                Theme
+            </Button> */}
             <FAB
                 icon={"plus"}
                 style={{

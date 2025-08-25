@@ -1,1 +1,4 @@
-export type Puzzle = "puzzle";
+export interface Puzzle {
+    name: string;
+    icon: string;
+}
