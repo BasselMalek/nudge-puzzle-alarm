@@ -1,13 +1,6 @@
 import { useCallback, useEffect, useState, useMemo } from "react";
 import { FlatList, View } from "react-native";
-import {
-    Text,
-    Card,
-    useTheme,
-    FAB,
-    IconButton,
-    Button,
-} from "react-native-paper";
+import { Text, Card, useTheme, FAB, IconButton } from "react-native-paper";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import { StatusBar } from "expo-status-bar";
@@ -16,6 +9,7 @@ import { useAlarms } from "@/hooks/useAlarms";
 import AlarmCard from "@/components/AlarmCard";
 import * as SQL from "expo-sqlite";
 import { Alarm } from "@/types/Alarm";
+import expoAlarmManager from "@/modules/expo-alarm-manager";
 
 const unixIntToString = (unixMS: number) => {
     if (unixMS >= 86400000) {
@@ -44,6 +38,7 @@ export default function Alarms() {
 
     useFocusEffect(
         useCallback(() => {
+            expoAlarmManager.setLinkingScheme("myapp://alarms");
             setLoadStale(update === "true" ? true : false);
             return () => {};
         }, [update])
@@ -185,16 +180,6 @@ export default function Alarms() {
                     </Text>
                 </LinearGradient>
             </Card>
-
-            {/* <Button
-                mode="contained"
-                onPress={() => {
-                    router.navigate("/themeDisplay");
-                }}
-                style={{ marginBottom: 16 }}
-            >
-                Theme
-            </Button> */}
             <FAB
                 icon={"plus"}
                 style={{

@@ -6,7 +6,7 @@
         "orientation": "portrait",
         "newArchEnabled": true,
         "icon": "./assets/images/icon.png",
-        "scheme": "myapp",
+        "scheme": "nudge",
         "userInterfaceStyle": "automatic",
         "splash": {
             "image": "./assets/images/splash.png",
@@ -14,15 +14,29 @@
             "backgroundColor": "#1f1f1f"
         },
         "ios": {
-            "supportsTablet": true
+            "supportsTablet": true,
+            "bundleIdentifier": "com.benjipine.nudge"
         },
         "android": {
+            "permissions": ["SCHEDULE_EXACT_ALARM", "USE_EXACT_ALARM"],
             "adaptiveIcon": {
                 "foregroundImage": "./assets/images/adaptive-icon.png",
                 "backgroundColor": "#ffffff"
             },
             "edgeToEdgeEnabled": true,
             "package": "com.benjipine.nudge"
+            // "intentFilters": [
+            //     {
+            //         "action": "VIEW",
+            //         "autoVerify": true,
+            //         "category": ["BROWSABLE", "DEFAULT"],
+            //         "data": [
+            //             {
+            //                 "scheme": "myapp"
+            //             }
+            //         ]
+            //     }
+            // ]
         },
         "web": {
             "bundler": "metro",

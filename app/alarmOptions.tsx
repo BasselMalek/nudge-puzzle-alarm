@@ -1,4 +1,3 @@
-import { FlatList, View } from "react-native";
 import {
     useTheme,
     Text,
@@ -6,7 +5,6 @@ import {
     Icon,
     TextInput,
     FAB,
-    Checkbox,
     TouchableRipple,
 } from "react-native-paper";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
