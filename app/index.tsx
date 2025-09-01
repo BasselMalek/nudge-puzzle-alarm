@@ -9,6 +9,7 @@ import { useAlarms } from "@/hooks/useAlarms";
 import AlarmCard from "@/components/AlarmCard";
 import * as SQL from "expo-sqlite";
 import { Alarm } from "@/types/Alarm";
+import { preventAutoHideAsync, hide } from "expo-splash-screen";
 import expoAlarmManager from "@/modules/expo-alarm-manager";
 
 const unixIntToString = (unixMS: number) => {
@@ -26,6 +27,7 @@ const unixIntToString = (unixMS: number) => {
     }
 };
 
+preventAutoHideAsync();
 export default function Alarms() {
     const safeInsets = useSafeAreaInsets();
     const palette = useTheme().colors;
@@ -43,16 +45,18 @@ export default function Alarms() {
             return () => {};
         }, [update])
     );
+    useEffect(() => {
+        loadAlarms();
+        return () => {
+            setLoadStale(false);
+            hide();
+        };
+    }, [loadStale, loadAlarms]);
 
     useEffect(() => {
         saveAlarms();
         setLoadStale(true);
     }, [alarms, saveAlarms]);
-
-    useEffect(() => {
-        loadAlarms();
-        return () => setLoadStale(false);
-    }, [loadStale, loadAlarms]);
 
     const soonestAlarm = useMemo(() => {
         return alarms

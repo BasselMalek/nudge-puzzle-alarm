@@ -19,5 +19,10 @@ web-build/
 expo-env.d.ts
 # @end expo-cli
 
-android/
-ios/
+**/.gradle
+**/.idea
+**/build
+
+
+/android
+/ios
