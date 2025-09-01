@@ -1,4 +1,4 @@
-# Puzzle Alarm
+# Nudge
 
 An alarm app that ensures you actually wake up with challenging and customizable puzzles. Simple and ad-free.
 
