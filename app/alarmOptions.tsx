@@ -66,18 +66,6 @@ export default function AlarmOptions() {
     const onDismiss = useCallback(() => {
         setVisible(false);
     }, [setVisible]);
-
-    const onConfirm = useCallback(
-        ({ hours, minutes }: { hours: number; minutes: number }) => {
-            setVisible(false);
-            setAlarm({
-                ...alarm,
-                ringHours: hours,
-                ringMins: minutes,
-            });
-        },
-        [setVisible]
-    );
     const [alarm, setAlarm] = useState<Alarm>(createAlarm({ name: "" }));
     useEffect(() => {
         if (id != "new") {
@@ -93,6 +81,18 @@ export default function AlarmOptions() {
             }
         }
     }, []);
+
+    const onConfirm = useCallback(
+        ({ hours, minutes }: { hours: number; minutes: number }) => {
+            setVisible(false);
+            setAlarm({
+                ...alarm,
+                ringHours: hours,
+                ringMins: minutes,
+            });
+        },
+        [alarm, setVisible]
+    );
     const updateText = useCallback(() => {
         return alarm.name;
     }, [alarm]);
