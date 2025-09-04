@@ -3,18 +3,19 @@ package expo.modules.alarmmanager
 import android.annotation.SuppressLint
 import android.app.AlarmManager
 import android.app.PendingIntent
+import android.app.role.RoleManager
 import android.content.Context
 import android.content.Intent
-import android.util.Log
+import android.os.Build
 import expo.modules.kotlin.Promise
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
-import androidx.core.net.toUri
-import java.util.UUID
+import java.util.*
 
 class ExpoAlarmManagerModule : Module() {
     companion object {
         private var LINKING_SCHEME: String? = null
+        private const val REQUEST_CODE_ALARM_ROLE = 1337
     }
 
     @SuppressLint("MissingPermission")
@@ -45,7 +46,7 @@ class ExpoAlarmManagerModule : Module() {
 
                 val alarmClockInfo = AlarmManager.AlarmClockInfo(timestamp, showIntent)
                 alarmManager.setAlarmClock(alarmClockInfo, operation)
-                
+
                 promise.resolve(true)
             } catch (e: Exception) {
                 promise.reject("E_SCHEDULE_ALARM", e.message, e)
@@ -56,7 +57,7 @@ class ExpoAlarmManagerModule : Module() {
         AsyncFunction("modifyAlarm") { alarmId: String, newTimestamp: Long, promise: Promise ->
             try {
                 deleteScheduledAlarmInternal(alarmId)
-                
+
                 val alarmManager = getAlarmManager()
                 if (alarmManager == null) {
                     promise.reject("E_NO_ALARM_MANAGER", "AlarmManager not available", null)
@@ -68,7 +69,7 @@ class ExpoAlarmManagerModule : Module() {
 
                 val alarmClockInfo = AlarmManager.AlarmClockInfo(newTimestamp, showIntent)
                 alarmManager.setAlarmClock(alarmClockInfo, operation)
-                
+
                 promise.resolve(true)
             } catch (e: Exception) {
                 promise.reject("E_MODIFY_ALARM", e.message, e)
@@ -87,12 +88,11 @@ class ExpoAlarmManagerModule : Module() {
     }
 
     private fun createAlarmIntent(alarmId: String): PendingIntent {
-        val intent = Intent(Intent.ACTION_VIEW).apply {
-            data = "${LINKING_SCHEME}/${alarmId}".toUri()
-
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK
+        val intent = Intent(appContext.reactContext, AlarmReceiver::class.java).apply {
+            putExtra("alarm_id", alarmId)
+            putExtra("linking_scheme", LINKING_SCHEME)
         }
-        return PendingIntent.getActivity(
+        return PendingIntent.getBroadcast(
             appContext.reactContext?.applicationContext,
             uuidToInt(alarmId),
             intent,
@@ -103,10 +103,10 @@ class ExpoAlarmManagerModule : Module() {
     private fun createShowIntent(): PendingIntent? {
         val packageManager = appContext.reactContext?.packageManager
         val packageName = appContext.reactContext?.packageName
-        
+
         val showIntentRaw = packageManager?.getLaunchIntentForPackage(packageName ?: "")
         showIntentRaw?.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
-        
+
         return showIntentRaw?.let { intent ->
             PendingIntent.getActivity(
                 appContext.reactContext?.applicationContext,
@@ -126,7 +126,6 @@ class ExpoAlarmManagerModule : Module() {
         val pendingIntent = createAlarmIntent(alarmId)
         alarmManager?.cancel(pendingIntent)
     }
-
 
     private fun uuidToInt(stringUuid: String): Int {
         val uuid = UUID.fromString(stringUuid)
