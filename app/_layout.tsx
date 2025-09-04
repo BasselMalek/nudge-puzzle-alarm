@@ -47,13 +47,29 @@ export default function RootLayout() {
                             }}
                         />
                         <Stack.Screen
+                            name="alarms/[id]"
+                            options={{
+                                // contentStyle: {
+                                //     display: "flex",
+                                //     backgroundColor:
+                                //         paperTheme.colors.background,
+                                //     paddingTop: safeInsets.top + 10,
+                                //     paddingLeft: safeInsets.left + 15,
+                                //     paddingRight: safeInsets.right + 15,
+                                //     paddingBottom: safeInsets.bottom + 10,
+                                //     gap: 10,
+                                // },
+                                headerShown: false,
+                            }}
+                        />
+                        <Stack.Screen
                             name="themeDisplay"
                             options={{ presentation: "modal" }}
                         />
                         <Stack.Screen
                             name="settings"
                             options={{
-                                headerTitle: "",
+                                headerTitle: "Settings",
                                 title: "Settings",
                                 presentation: "modal",
                                 headerStyle: {

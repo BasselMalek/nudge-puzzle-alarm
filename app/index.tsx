@@ -40,7 +40,7 @@ export default function Alarms() {
 
     useFocusEffect(
         useCallback(() => {
-            expoAlarmManager.setLinkingScheme("myapp://alarms");
+            expoAlarmManager.setLinkingScheme("nudge://alarms");
             setLoadStale(update === "true" ? true : false);
             return () => {};
         }, [update])
@@ -194,6 +194,30 @@ export default function Alarms() {
                 }}
                 onPress={handleFABPress}
                 onLongPress={handleFABLongPress}
+            />
+            <FAB
+                icon={"pin"}
+                style={{
+                    position: "absolute",
+                    zIndex: 1,
+                    bottom: safeInsets.bottom + 120,
+                    right: safeInsets.right + 20,
+                }}
+                onLongPress={() => {
+                    // router.navigate(`./alarms/${alarms.at(0)?.id}`);
+                }}
+                onPress={() => {
+                    expoAlarmManager
+                        .scheduleAlarm(alarms.at(0)!.id, Date.now() + 10000)
+                        .then(() => {
+                            console.log(
+                                "set" + new Date().toLocaleTimeString()
+                            );
+                        })
+                        .catch((e) => {
+                            console.log(e);
+                        });
+                }}
             />
             <FlatList
                 style={{
