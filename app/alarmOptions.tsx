@@ -75,7 +75,6 @@ export default function AlarmOptions() {
             );
             if (inital === undefined) {
                 router.back();
-                console.log("not loaded");
             } else {
                 setAlarm(parseAlarm(inital!));
             }
@@ -286,9 +285,6 @@ export default function AlarmOptions() {
                 onPress={() => {
                     saveAlarm(id as string, db, alarm);
                     router.navigate("/?update=true");
-                }}
-                onLongPress={() => {
-                    console.log(alarm);
                 }}
             />
         </>

@@ -1,7 +1,7 @@
-import { View, ScrollView } from "react-native";
+import { View, BackHandler } from "react-native";
 import { Button, IconButton, Text, useTheme } from "react-native-paper";
 import { StatusBar } from "expo-status-bar";
-import { useLocalSearchParams } from "expo-router";
+import { router, useLocalSearchParams, useNavigation } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
 import { useEffect, useState } from "react";
 import { parseAlarm } from "@/hooks/useAlarms";
@@ -20,7 +20,17 @@ export default function Settings() {
         );
         setAlarm(parseAlarm(inital!));
     }, []);
+    const nav = useNavigation();
+    // Effect
+    useEffect(() => {
+        const listener = nav.addListener("beforeRemove", (e) => {
+            e.preventDefault();
+        });
 
+        return () => {
+            nav.removeListener("beforeRemove", listener);
+        };
+    }, []);
     return (
         <>
             <StatusBar translucent />
@@ -70,13 +80,14 @@ export default function Settings() {
                         size={52}
                         icon={"close"}
                         mode="outlined"
+                        onPress={() => {}}
                         // containerColor={colors.elevation.level1}
                     />
                     <Button
                         mode="outlined"
                         icon={"sleep"}
                         onPress={() => {
-                            console.log("snoozed");
+                            BackHandler.exitApp();
                         }}
                         textColor={colors.onSurface}
                         labelStyle={{

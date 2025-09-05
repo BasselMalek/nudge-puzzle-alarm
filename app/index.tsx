@@ -151,10 +151,6 @@ export default function Alarms() {
         router.navigate("./alarmOptions?id=new");
     }, []);
 
-    const handleFABLongPress = useCallback(() => {
-        console.log(alarms);
-    }, [alarms]);
-
     const renderAlarmItem = useCallback(
         ({ item }: { item: Alarm }) => (
             <AlarmCard
@@ -230,7 +226,6 @@ export default function Alarms() {
                     right: safeInsets.right + 20,
                 }}
                 onPress={handleFABPress}
-                onLongPress={handleFABLongPress}
             />
             <FAB
                 icon={"pin"}
@@ -244,16 +239,10 @@ export default function Alarms() {
                     router.navigate(`./alarms/${alarms.at(0)?.id}`);
                 }}
                 onLongPress={() => {
-                    expoAlarmManager
-                        .scheduleAlarm(alarms.at(0)!.id, Date.now() + 10000)
-                        .then(() => {
-                            console.log(
-                                "set" + new Date().toLocaleTimeString()
-                            );
-                        })
-                        .catch((e) => {
-                            console.log(e);
-                        });
+                    expoAlarmManager.scheduleAlarm(
+                        alarms.at(0)!.id,
+                        Date.now() + 10000
+                    );
                 }}
             />
             <MaskedView

@@ -3,10 +3,8 @@ package expo.modules.alarmmanager
 import android.annotation.SuppressLint
 import android.app.AlarmManager
 import android.app.PendingIntent
-import android.app.role.RoleManager
 import android.content.Context
 import android.content.Intent
-import android.os.Build
 import expo.modules.kotlin.Promise
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition

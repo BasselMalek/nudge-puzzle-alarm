@@ -1,7 +1,11 @@
 package expo.modules.alarmmanager
 
+import android.Manifest
+import android.R
+import android.annotation.SuppressLint
 import android.app.ActivityOptions
 import android.app.KeyguardManager
+import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
@@ -9,16 +13,16 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.os.Build
-import android.util.Log
 import androidx.annotation.RequiresApi
+import androidx.annotation.RequiresPermission
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.net.toUri
 
 class AlarmReceiver : BroadcastReceiver() {
+    @SuppressLint("NewApi")
+    @RequiresPermission(Manifest.permission.POST_NOTIFICATIONS)
     override fun onReceive(context: Context, intent: Intent) {
-        Log.d("NUDGEEXPO", "AlarmReceiver triggered")
-        
         val alarmId = intent.getStringExtra("alarm_id") ?: return
         val linkingScheme = intent.getStringExtra("linking_scheme") ?: return
         
@@ -43,10 +47,10 @@ class AlarmReceiver : BroadcastReceiver() {
             
             val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             notificationManager.createNotificationChannel(channel)
-            Log.d("NUDGEEXPO", "Notification channel created with HIGH importance")
         }
     }
     
+    @RequiresPermission(Manifest.permission.POST_NOTIFICATIONS)
     @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
     private fun showFullScreenNotification(context: Context, alarmId: String, linkingScheme: String) {
         // Create deep link intent
@@ -80,12 +84,11 @@ class AlarmReceiver : BroadcastReceiver() {
         val keyguardManager = context.getSystemService(Context.KEYGUARD_SERVICE) as KeyguardManager
         val isLocked = keyguardManager.isKeyguardLocked
         
-        Log.d("NUDGEEXPO", "Device locked: $isLocked")
-        
+
         if (isLocked) {
             // For locked device: Use full-screen intent (this should work)
             val notification = NotificationCompat.Builder(context, "alarm_channel")
-                .setSmallIcon(android.R.drawable.ic_lock_idle_alarm)
+                .setSmallIcon(R.drawable.ic_lock_idle_alarm)
                 .setContentTitle("Puzzle Alarm")
                 .setContentText("Time to solve your puzzle!")
                 .setPriority(NotificationCompat.PRIORITY_MAX)
@@ -98,23 +101,17 @@ class AlarmReceiver : BroadcastReceiver() {
             
             // Add flags to ensure it shows over lock screen
             notification.flags = notification.flags or 
-                               android.app.Notification.FLAG_INSISTENT
+                               Notification.FLAG_INSISTENT
             
             NotificationManagerCompat.from(context).notify(alarmId.hashCode(), notification)
-            Log.d("NUDGEEXPO", "Full screen notification created for locked device")
-            
+
         } else {
             // For unlocked device: Launch directly (bypass notification)
-            Log.d("NUDGEEXPO", "Device unlocked - launching app directly")
             try {
                 context.startActivity(deepLinkIntent)
-                Log.d("NUDGEEXPO", "App launched directly for unlocked device")
             } catch (e: Exception) {
-                Log.e("NUDGEEXPO", "Direct launch failed, falling back to notification", e)
-                
-                // Fallback to notification
                 val notification = NotificationCompat.Builder(context, "alarm_channel")
-                    .setSmallIcon(android.R.drawable.ic_lock_idle_alarm)
+                    .setSmallIcon(R.drawable.ic_lock_idle_alarm)
                     .setContentTitle("Puzzle Alarm")
                     .setContentText("Time to solve your puzzle!")
                     .setPriority(NotificationCompat.PRIORITY_MAX)

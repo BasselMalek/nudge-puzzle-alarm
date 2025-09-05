@@ -5,7 +5,6 @@ import android.app.KeyguardManager
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
-import android.util.Log
 import android.view.WindowManager
 
 class AlarmTrampolineActivity : Activity() {
@@ -18,7 +17,6 @@ class AlarmTrampolineActivity : Activity() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
             setShowWhenLocked(true)
             setTurnScreenOn(true)
-            Log.d("NUDGEEXPO", "Using modern wake+unlock APIs")
         } else {
             @Suppress("DEPRECATION")
             window.addFlags(
@@ -30,19 +28,7 @@ class AlarmTrampolineActivity : Activity() {
         // Attempt to dismiss keyguard
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val kg = getSystemService(KeyguardManager::class.java)
-            kg?.requestDismissKeyguard(this, object : KeyguardManager.KeyguardDismissCallback() {
-                override fun onDismissError() {
-                    Log.d("NUDGEEXPO", "Keyguard dismiss failed - error occurred")
-                }
-
-                override fun onDismissSucceeded() {
-                    Log.d("NUDGEEXPO", "Keyguard dismiss succeeded")
-                }
-
-                override fun onDismissCancelled() {
-                    Log.d("NUDGEEXPO", "Keyguard dismiss cancelled by user")
-                }
-            })
+            kg?.requestDismissKeyguard(this, null)
         } else {
             @Suppress("DEPRECATION")
             window.addFlags(WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD)
@@ -54,7 +40,6 @@ class AlarmTrampolineActivity : Activity() {
         wakeAndUnlock()
 
         val deepLinkData = intent?.data
-        Log.d("NUDGEEXPO", "AlarmTrampolineActivity deep link: $deepLinkData")
 
         val deepLinkIntent = Intent(Intent.ACTION_VIEW).apply {
             data = deepLinkData

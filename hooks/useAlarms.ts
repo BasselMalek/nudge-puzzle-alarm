@@ -98,8 +98,6 @@ export const useAlarms = (db: SQLiteDatabase) => {
                 v.lastModified.getTime() >
                 diff!.get(v.id)!.lastModified.getTime()
             ) {
-                console.log("updated");
-
                 db.runAsync(
                     "UPDATE alarms SET name = ?, ring_hours = ?, ring_mins = ?, repeat = ?, repeat_days = ?, puzzles = ?, power_ups = ?, is_enabled = ?, last_modified = ? WHERE id = ?;",
                     [
