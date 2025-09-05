@@ -11,6 +11,7 @@ import * as SQL from "expo-sqlite";
 import { Alarm } from "@/types/Alarm";
 import { preventAutoHideAsync, hide } from "expo-splash-screen";
 import expoAlarmManager from "@/modules/expo-alarm-manager";
+import MaskedView from "@react-native-masked-view/masked-view";
 
 const unixIntToString = (unixMS: number) => {
     if (unixMS >= 86400000) {
@@ -203,10 +204,10 @@ export default function Alarms() {
                     bottom: safeInsets.bottom + 120,
                     right: safeInsets.right + 20,
                 }}
-                onLongPress={() => {
-                    // router.navigate(`./alarms/${alarms.at(0)?.id}`);
-                }}
                 onPress={() => {
+                    router.navigate(`./alarms/${alarms.at(0)?.id}`);
+                }}
+                onLongPress={() => {
                     expoAlarmManager
                         .scheduleAlarm(alarms.at(0)!.id, Date.now() + 10000)
                         .then(() => {
@@ -219,20 +220,44 @@ export default function Alarms() {
                         });
                 }}
             />
-            <FlatList
-                style={{
-                    display: "flex",
-                    marginTop: 5,
-                }}
-                data={alarms}
-                renderItem={renderAlarmItem}
-                keyExtractor={keyExtractor}
-                showsVerticalScrollIndicator={false}
-                ItemSeparatorComponent={() => (
-                    <View style={{ height: 10 }}></View>
-                )}
-                //TODO: add some fade here with gradient + masked view
-            />
+            <MaskedView
+                style={{ height: "100%", flex: 1 }}
+                androidRenderingMode="software"
+                maskElement={
+                    <View
+                        pointerEvents="none"
+                        style={{ flex: 1, backgroundColor: "transparent" }}
+                    >
+                        <LinearGradient
+                            pointerEvents="none"
+                            start={{ x: 0.5, y: 0.9 }}
+                            style={{
+                                flex: 1,
+                                width: "100%",
+                            }}
+                            colors={["#FFFFFF", "#FFFFFF00"]}
+                        />
+                    </View>
+                }
+            >
+                <FlatList
+                    style={{
+                        display: "flex",
+                        flex: 1,
+                        marginTop: 5,
+                    }}
+                    contentContainerStyle={{
+                        paddingBottom: safeInsets.bottom + 10,
+                    }}
+                    data={alarms}
+                    renderItem={renderAlarmItem}
+                    keyExtractor={keyExtractor}
+                    showsVerticalScrollIndicator={false}
+                    ItemSeparatorComponent={() => (
+                        <View style={{ height: 10 }}></View>
+                    )}
+                />
+            </MaskedView>
         </>
     );
 }
