@@ -6,8 +6,7 @@ import {
 import { MD3DarkTheme, MD3LightTheme, PaperProvider } from "react-native-paper";
 import { useColorScheme } from "react-native";
 import { useMaterial3Theme } from "@pchmn/expo-material3-theme";
-import * as SQL from "expo-sqlite";
-
+import { SQLiteProvider } from "expo-sqlite";
 export default function RootLayout() {
     const colorScheme = useColorScheme();
     const safeInsets = useSafeAreaInsets();
@@ -20,14 +19,9 @@ export default function RootLayout() {
     return (
         <SafeAreaProvider>
             <PaperProvider theme={paperTheme}>
-                <SQL.SQLiteProvider
+                <SQLiteProvider
                     databaseName="nudge_alarms.db"
                     //TODO add a "onfirstboot" handler to init the db. or even better make a proper onboarding ux.
-                    // onInit={async (db) => {
-                    //     db.runAsync(
-                    //         "CREATE TABLE IF NOT EXISTS alarms ( id TEXT PRIMARY KEY, name TEXT NOT NULL, ring_hours INT NOT NULL, ring_mins INT NOT NULL, repeat BOOLEAN NOT NULL DEFAULT 0, repeat_days TEXT, puzzles TEXT, power_ups TEXT, is_enabled BOOLEAN NOT NULL DEFAULT 1, last_modified DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP);"
-                    //     );
-                    // }}
                 >
                     <Stack>
                         <Stack.Screen
@@ -113,7 +107,7 @@ export default function RootLayout() {
                             }}
                         />
                     </Stack>
-                </SQL.SQLiteProvider>
+                </SQLiteProvider>
             </PaperProvider>
         </SafeAreaProvider>
     );
