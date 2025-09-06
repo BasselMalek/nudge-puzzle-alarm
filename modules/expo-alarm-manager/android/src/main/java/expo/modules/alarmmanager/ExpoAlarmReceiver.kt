@@ -1,7 +1,6 @@
 package expo.modules.alarmmanager
 
 import android.Manifest
-import android.R
 import android.annotation.SuppressLint
 import android.app.ActivityOptions
 import android.app.KeyguardManager
@@ -19,6 +18,7 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.net.toUri
 
+@Suppress("UsePropertyAccessSyntax")
 class AlarmReceiver : BroadcastReceiver() {
     @SuppressLint("NewApi")
     @RequiresPermission(Manifest.permission.POST_NOTIFICATIONS)
@@ -35,7 +35,7 @@ class AlarmReceiver : BroadcastReceiver() {
             val channel = NotificationChannel(
                 "alarm_channel",
                 "Alarm Notifications",
-                NotificationManager.IMPORTANCE_HIGH  // This is critical!
+                NotificationManager.IMPORTANCE_HIGH
             ).apply {
                 description = "Notifications for alarms"
                 setBypassDnd(true)
@@ -88,7 +88,7 @@ class AlarmReceiver : BroadcastReceiver() {
         if (isLocked) {
             // For locked device: Use full-screen intent (this should work)
             val notification = NotificationCompat.Builder(context, "alarm_channel")
-                .setSmallIcon(R.drawable.ic_lock_idle_alarm)
+                .setSmallIcon(android.R.drawable.ic_lock_idle_alarm)
                 .setContentTitle("Puzzle Alarm")
                 .setContentText("Time to solve your puzzle!")
                 .setPriority(NotificationCompat.PRIORITY_MAX)
@@ -111,7 +111,7 @@ class AlarmReceiver : BroadcastReceiver() {
                 context.startActivity(deepLinkIntent)
             } catch (e: Exception) {
                 val notification = NotificationCompat.Builder(context, "alarm_channel")
-                    .setSmallIcon(R.drawable.ic_lock_idle_alarm)
+                    .setSmallIcon(android.R.drawable.ic_lock_idle_alarm)
                     .setContentTitle("Puzzle Alarm")
                     .setContentText("Time to solve your puzzle!")
                     .setPriority(NotificationCompat.PRIORITY_MAX)
