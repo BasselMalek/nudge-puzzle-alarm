@@ -56,7 +56,7 @@ export default function Alarms() {
             db.runSync(`
       CREATE TABLE IF NOT EXISTS internal_enabled (
         id TEXT PRIMARY KEY,
-        ring_time DATETIME NOT NULL
+        ring_time DATETIME NOT NULL,
         last_modified DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
       )
     `);
@@ -74,6 +74,7 @@ export default function Alarms() {
         useAlarms(db);
     const { update } = useLocalSearchParams();
     const [loadStale, setLoadStale] = useState(true);
+    const [test, setTest] = useState("");
 
     useFocusEffect(
         useCallback(() => {
@@ -82,6 +83,7 @@ export default function Alarms() {
             return () => {};
         }, [update])
     );
+
     useEffect(() => {
         loadAlarms();
         return () => {
@@ -228,7 +230,7 @@ export default function Alarms() {
                 onPress={handleFABPress}
             />
             <FAB
-                icon={"pin"}
+                icon={"alarm"}
                 style={{
                     position: "absolute",
                     zIndex: 1,
@@ -239,10 +241,11 @@ export default function Alarms() {
                     router.navigate(`./alarms/${alarms.at(0)?.id}`);
                 }}
                 onLongPress={() => {
-                    expoAlarmManager.scheduleAlarm(
-                        alarms.at(0)!.id,
-                        Date.now() + 10000
-                    );
+                    expoAlarmManager
+                        .scheduleAlarm(alarms.at(0)!.id, Date.now() + 10000)
+                        .then(() => {
+                            console.log("set");
+                        });
                 }}
             />
             <MaskedView

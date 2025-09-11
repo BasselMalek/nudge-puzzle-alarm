@@ -8,7 +8,7 @@ import { parseAlarm } from "@/hooks/useAlarms";
 import { Alarm, AlarmDto } from "@/types/Alarm";
 import { useSQLiteContext } from "expo-sqlite";
 import ClockText from "@/components/ClockText";
-export default function Settings() {
+export default function AlarmScreen() {
     const { id } = useLocalSearchParams();
     const { colors } = useTheme();
     const [alarm, setAlarm] = useState<Alarm>();
@@ -21,12 +21,10 @@ export default function Settings() {
         setAlarm(parseAlarm(inital!));
     }, []);
     const nav = useNavigation();
-    // Effect
     useEffect(() => {
         const listener = nav.addListener("beforeRemove", (e) => {
             e.preventDefault();
         });
-
         return () => {
             nav.removeListener("beforeRemove", listener);
         };

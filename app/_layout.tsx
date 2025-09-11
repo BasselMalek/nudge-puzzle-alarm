@@ -1,4 +1,5 @@
-import { Stack } from "expo-router";
+import { Stack, useRouter } from "expo-router";
+import { getLinkingURL } from "expo-linking";
 import {
     SafeAreaProvider,
     useSafeAreaInsets,
@@ -7,6 +8,7 @@ import { MD3DarkTheme, MD3LightTheme, PaperProvider } from "react-native-paper";
 import { useColorScheme } from "react-native";
 import { useMaterial3Theme } from "@pchmn/expo-material3-theme";
 import { SQLiteProvider } from "expo-sqlite";
+import { enableScreens } from "react-native-screens";
 export default function RootLayout() {
     const colorScheme = useColorScheme();
     const safeInsets = useSafeAreaInsets();
@@ -19,10 +21,7 @@ export default function RootLayout() {
     return (
         <SafeAreaProvider>
             <PaperProvider theme={paperTheme}>
-                <SQLiteProvider
-                    databaseName="nudge_alarms.db"
-                    //TODO add a "onfirstboot" handler to init the db. or even better make a proper onboarding ux.
-                >
+                <SQLiteProvider databaseName="nudge_alarms.db">
                     <Stack>
                         <Stack.Screen
                             name="index"
