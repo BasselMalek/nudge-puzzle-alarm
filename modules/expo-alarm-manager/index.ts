@@ -19,6 +19,8 @@ export const scheduleAlarm = (
     alarmId: string,
     timestamp: number
 ): Promise<boolean> => {
+    console.log("set alarm " + alarmId);
+
     return ExpoAlarmManagerModule.scheduleAlarm(alarmId, timestamp);
 };
 
@@ -41,6 +43,7 @@ export const modifyAlarm = (
  * @returns Promise<boolean> indicating success
  */
 export const deleteAlarm = (alarmId: string): Promise<boolean> => {
+    console.log("deleted alarm " + alarmId);
     return ExpoAlarmManagerModule.deleteAlarm(alarmId);
 };
 

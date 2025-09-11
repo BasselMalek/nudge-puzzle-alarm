@@ -1,7 +1,7 @@
 import { SQLiteDatabase } from "expo-sqlite";
 import Storage from "expo-sqlite/kv-store";
 
-export const initDatabaseTablesIfFirstBoot = (db: SQLiteDatabase) => {
+export const initDatabaseTableIfFirstBoot = (db: SQLiteDatabase) => {
     try {
         const first = Storage.getItemSync("isFirstBoot");
 
@@ -21,14 +21,9 @@ export const initDatabaseTablesIfFirstBoot = (db: SQLiteDatabase) => {
           )
         `);
 
-            //* this is for the AlarmManager intents. Will be useful when i get around to coding the BOOT_COMPLETED receiver so i can ensure alarms stay consistent on boot.
-            db.runSync(`
-          CREATE TABLE IF NOT EXISTS internal_enabled (
-            id TEXT PRIMARY KEY,
-            ring_time DATETIME NOT NULL,
-            last_modified DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
-          )
-        `);
+            db.runSync(
+                `CREATE INDEX IF NOT EXISTS idx_alarms_enabled ON alarms(is_enabled)`
+            );
 
             Storage.setItemSync("isFirstBoot", "true");
         }

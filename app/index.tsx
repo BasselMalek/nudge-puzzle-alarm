@@ -5,11 +5,11 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import { StatusBar } from "expo-status-bar";
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
-import { useAlarms, unixIntToString } from "@/hooks/useAlarms";
+import { useAlarms, formatDistanceStrictShortend } from "@/hooks/useAlarms";
 import { useSQLiteContext } from "expo-sqlite";
 import { Alarm } from "@/types/Alarm";
 import { preventAutoHideAsync, hide } from "expo-splash-screen";
-import { initDatabaseTablesIfFirstBoot } from "@/utils/databaseHelpers";
+import { initDatabaseTableIfFirstBoot } from "@/utils/databaseHelpers";
 import AlarmCard from "@/components/AlarmCard";
 import MaskedView from "@react-native-masked-view/masked-view";
 import * as AlarmManager from "@/modules/expo-alarm-manager";
@@ -17,19 +17,24 @@ import * as AlarmManager from "@/modules/expo-alarm-manager";
 preventAutoHideAsync();
 export default function Alarms() {
     const db = useSQLiteContext();
-    initDatabaseTablesIfFirstBoot(db);
+    initDatabaseTableIfFirstBoot(db);
     const safeInsets = useSafeAreaInsets();
     const palette = useTheme().colors;
     const [alarmGradientDim, setAlarmGradientDim] = useState(false);
     const [soonestRingTime, setSoonestRingTime] = useState("");
-    const { alarms, updateAlarm, deleteAlarm, loadAlarms, saveAlarms } =
-        useAlarms(db);
+    const {
+        alarms,
+        updateAlarm,
+        deleteAlarm,
+        loadAlarms,
+        saveAlarms,
+        toggleAlarm,
+    } = useAlarms(db, "nudge://alarms");
     const { update } = useLocalSearchParams();
     const [loadStale, setLoadStale] = useState(true);
 
     useFocusEffect(
         useCallback(() => {
-            AlarmManager.setLinkingScheme("nudge://alarms");
             setLoadStale(update === "true" ? true : false);
             return () => {};
         }, [update])
@@ -71,11 +76,14 @@ export default function Alarms() {
             setAlarmGradientDim(true);
             setSoonestRingTime(
                 "Next alarm in " +
-                    unixIntToString(
-                        new Date().setHours(
-                            soonestAlarm.ringHours,
-                            soonestAlarm.ringMins
-                        ) - Date.now()
+                    formatDistanceStrictShortend(
+                        new Date(
+                            new Date().setHours(
+                                soonestAlarm.ringHours,
+                                soonestAlarm.ringMins
+                            )
+                        ),
+                        new Date()
                     )
             );
         } else {
@@ -114,8 +122,8 @@ export default function Alarms() {
                 onPress={() => {
                     router.navigate(`./alarmOptions?id=${item.id}`);
                 }}
-                onToggle={(status) => {
-                    updateAlarm(item.id, { isEnabled: status });
+                onToggle={() => {
+                    toggleAlarm(item.id);
                 }}
             />
         ),

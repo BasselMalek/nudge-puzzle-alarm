@@ -5,6 +5,8 @@ import { DayKey } from "@/types/DayKey";
 import { PowerUp } from "@/types/PowerUp";
 import { Puzzle } from "@/types/Puzzle";
 import { randomUUID } from "expo-crypto";
+import * as AlarmBridge from "@/modules/expo-alarm-manager";
+import { addDays, isFuture } from "date-fns";
 
 type AlarmAction =
     | { type: "UPDATE_ALARM"; payload: Partial<Alarm> & { id: string } }
@@ -12,11 +14,15 @@ type AlarmAction =
     | { type: "ADD_ALARM"; payload: Alarm }
     | { type: "SET_ALARMS"; payload: Alarm[] };
 
-export const unixIntToString = (unixMS: number) => {
-    if (unixMS >= 86400000 || unixMS < 0) {
+export const formatDistanceStrictShortend = (
+    laterDate: Date,
+    earlierDate: Date
+) => {
+    const unixMs = laterDate.getTime() - earlierDate.getTime();
+    if (unixMs >= 86400000 || unixMs < 0) {
         return "24h+";
     } else {
-        const totalMins = Math.floor(unixMS / 1000 / 60);
+        const totalMins = Math.floor(unixMs / 1000 / 60);
         const hrs = Math.floor(totalMins / 60);
         const mins = totalMins % 60;
         if (hrs != 0) {
@@ -125,12 +131,12 @@ export const createAlarm = (params: {
     lastModified: new Date(),
 });
 
-export const useAlarms = (db: SQLiteDatabase) => {
+export const useAlarms = (db: SQLiteDatabase, linkingScheme: string) => {
     const [alarms, dispatch] = useReducer(alarmsReducer, []);
     const [diff, setDiff] = useState<Map<string, Alarm>>(
         new Map<string, Alarm>()
     );
-
+    AlarmBridge.setLinkingScheme(linkingScheme);
     const loadAlarms = useCallback(async () => {
         const inital = await db.getAllAsync<AlarmDto>("SELECT * FROM alarms");
         dispatch({
@@ -172,15 +178,33 @@ export const useAlarms = (db: SQLiteDatabase) => {
         });
     }, [alarms, diff, db]);
 
-    const updateAlarm = useCallback((id: string, updates: Partial<Alarm>) => {
-        dispatch({
-            type: "UPDATE_ALARM",
-            payload: { id, ...updates },
-        });
-    }, []);
+    const updateAlarm = useCallback(
+        (id: string, updates: Partial<Alarm>) => {
+            dispatch({
+                type: "UPDATE_ALARM",
+                payload: { id, ...updates },
+            });
+            if (
+                updates.ringHours !== undefined ||
+                updates.ringMins !== undefined
+            ) {
+                const ringDateToday = new Date(
+                    new Date().setHours(updates.ringHours!, updates.ringMins!)
+                );
+                AlarmBridge.modifyAlarm(
+                    id,
+                    isFuture(ringDateToday)
+                        ? ringDateToday.getTime()
+                        : addDays(ringDateToday, 1).getTime()
+                );
+            }
+        },
+        [alarms]
+    );
 
     const deleteAlarm = useCallback(
         (id: string) => {
+            AlarmBridge.deleteAlarm(id);
             dispatch({
                 type: "DELETE_ALARM",
                 payload: id,
@@ -190,12 +214,35 @@ export const useAlarms = (db: SQLiteDatabase) => {
         [db]
     );
 
+    const toggleAlarm = useCallback(
+        (id: string) => {
+            const alarm = alarms.find((v) => v.id === id);
+            const enableState = alarm!.isEnabled;
+            if (enableState) {
+                AlarmBridge.deleteAlarm(id);
+            } else {
+                const ringDateToday = new Date(
+                    new Date().setHours(alarm!.ringHours, alarm!.ringMins)
+                );
+                AlarmBridge.scheduleAlarm(
+                    id,
+                    isFuture(ringDateToday)
+                        ? ringDateToday.getTime()
+                        : addDays(ringDateToday, 1).getTime()
+                );
+            }
+            updateAlarm(id, { isEnabled: !alarm!.isEnabled });
+        },
+        [alarms]
+    );
+
     return {
         alarms,
         loadAlarms,
         updateAlarm,
         deleteAlarm,
         saveAlarms,
+        toggleAlarm,
         parseAlarm,
         createAlarm,
     };
