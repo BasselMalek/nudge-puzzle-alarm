@@ -20,42 +20,7 @@ import { Alarm, AlarmDto } from "@/types/Alarm";
 import { createAlarm, parseAlarm } from "@/hooks/useAlarms";
 import { SQLiteDatabase, useSQLiteContext } from "expo-sqlite";
 import { StatusBar } from "expo-status-bar";
-
-const saveAlarm = (id: string, db: SQLiteDatabase, alarm: Alarm) => {
-    if (id === "new") {
-        db.runSync(
-            "INSERT INTO alarms (id, name, ring_hours, ring_mins, repeat, repeat_days, puzzles, power_ups, is_enabled, last_modified) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-            [
-                alarm.id,
-                alarm.name,
-                alarm.ringHours,
-                alarm.ringMins,
-                alarm.repeat ? 1 : 0,
-                JSON.stringify(alarm.repeatDays),
-                JSON.stringify(alarm.puzzles),
-                JSON.stringify(alarm.powerUps),
-                alarm.isEnabled ? 1 : 0,
-                new Date().toISOString(),
-            ]
-        );
-    } else {
-        db.runSync(
-            "UPDATE alarms SET name = ?, ring_hours = ?, ring_mins = ?, repeat = ?, repeat_days = ?, puzzles = ?, power_ups = ?, is_enabled = ?, last_modified = ? WHERE id = ?;",
-            [
-                alarm!.name,
-                alarm!.ringHours,
-                alarm!.ringMins,
-                alarm!.repeat ? 1 : 0,
-                JSON.stringify(alarm!.repeatDays),
-                JSON.stringify(alarm!.puzzles),
-                JSON.stringify(alarm!.powerUps),
-                alarm!.isEnabled ? 1 : 0,
-                alarm!.lastModified.toISOString(),
-                alarm.id,
-            ]
-        );
-    }
-};
+import { saveAlarmDirect } from "@/hooks/useAlarms";
 
 export default function AlarmOptions() {
     const insets = useSafeAreaInsets();
@@ -283,7 +248,7 @@ export default function AlarmOptions() {
                     right: insets.right + 20,
                 }}
                 onPress={() => {
-                    saveAlarm(id as string, db, alarm);
+                    saveAlarmDirect(id as string, db, alarm);
                     router.navigate("/?update=true");
                 }}
             />

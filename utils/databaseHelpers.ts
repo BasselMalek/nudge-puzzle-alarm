@@ -1,7 +1,7 @@
 import { SQLiteDatabase } from "expo-sqlite";
 import Storage from "expo-sqlite/kv-store";
 
-export function initDatabaseTablesIfFirstBoot(db: SQLiteDatabase) {
+export const initDatabaseTablesIfFirstBoot = (db: SQLiteDatabase) => {
     try {
         const first = Storage.getItemSync("isFirstBoot");
 
@@ -35,4 +35,4 @@ export function initDatabaseTablesIfFirstBoot(db: SQLiteDatabase) {
     } catch (error) {
         console.error("Database initialization failed:", error);
     }
-}
+};

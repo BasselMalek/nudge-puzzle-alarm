@@ -5,7 +5,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import { StatusBar } from "expo-status-bar";
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
-import { useAlarms } from "@/hooks/useAlarms";
+import { useAlarms, unixIntToString } from "@/hooks/useAlarms";
 import { useSQLiteContext } from "expo-sqlite";
 import { Alarm } from "@/types/Alarm";
 import { preventAutoHideAsync, hide } from "expo-splash-screen";
@@ -240,7 +240,4 @@ export default function Alarms() {
             </MaskedView>
         </>
     );
-}
-function unixIntToString(arg0: number) {
-    throw new Error("Function not implemented.");
 }

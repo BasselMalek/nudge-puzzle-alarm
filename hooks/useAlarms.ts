@@ -12,7 +12,7 @@ type AlarmAction =
     | { type: "ADD_ALARM"; payload: Alarm }
     | { type: "SET_ALARMS"; payload: Alarm[] };
 
-const unixIntToString = (unixMS: number) => {
+export const unixIntToString = (unixMS: number) => {
     if (unixMS >= 86400000 || unixMS < 0) {
         return "24h+";
     } else {
@@ -24,6 +24,46 @@ const unixIntToString = (unixMS: number) => {
         } else {
             return `${mins}m`;
         }
+    }
+};
+
+export const saveAlarmDirect = (
+    id: string,
+    db: SQLiteDatabase,
+    alarm: Alarm
+) => {
+    if (id === "new") {
+        db.runSync(
+            "INSERT INTO alarms (id, name, ring_hours, ring_mins, repeat, repeat_days, puzzles, power_ups, is_enabled, last_modified) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            [
+                alarm.id,
+                alarm.name,
+                alarm.ringHours,
+                alarm.ringMins,
+                alarm.repeat ? 1 : 0,
+                JSON.stringify(alarm.repeatDays),
+                JSON.stringify(alarm.puzzles),
+                JSON.stringify(alarm.powerUps),
+                alarm.isEnabled ? 1 : 0,
+                new Date().toISOString(),
+            ]
+        );
+    } else {
+        db.runSync(
+            "UPDATE alarms SET name = ?, ring_hours = ?, ring_mins = ?, repeat = ?, repeat_days = ?, puzzles = ?, power_ups = ?, is_enabled = ?, last_modified = ? WHERE id = ?;",
+            [
+                alarm!.name,
+                alarm!.ringHours,
+                alarm!.ringMins,
+                alarm!.repeat ? 1 : 0,
+                JSON.stringify(alarm!.repeatDays),
+                JSON.stringify(alarm!.puzzles),
+                JSON.stringify(alarm!.powerUps),
+                alarm!.isEnabled ? 1 : 0,
+                alarm!.lastModified.toISOString(),
+                alarm.id,
+            ]
+        );
     }
 };
 
@@ -158,6 +198,5 @@ export const useAlarms = (db: SQLiteDatabase) => {
         saveAlarms,
         parseAlarm,
         createAlarm,
-        unixIntToString,
     };
 };
