@@ -1,5 +1,4 @@
-import { Stack, useRouter } from "expo-router";
-import { getLinkingURL } from "expo-linking";
+import { Stack } from "expo-router";
 import {
     SafeAreaProvider,
     useSafeAreaInsets,
@@ -8,7 +7,6 @@ import { MD3DarkTheme, MD3LightTheme, PaperProvider } from "react-native-paper";
 import { useColorScheme } from "react-native";
 import { useMaterial3Theme } from "@pchmn/expo-material3-theme";
 import { SQLiteProvider } from "expo-sqlite";
-import { enableScreens } from "react-native-screens";
 export default function RootLayout() {
     const colorScheme = useColorScheme();
     const safeInsets = useSafeAreaInsets();
@@ -43,16 +41,6 @@ export default function RootLayout() {
                         <Stack.Screen
                             name="alarms/[id]"
                             options={{
-                                // contentStyle: {
-                                //     display: "flex",
-                                //     backgroundColor:
-                                //         paperTheme.colors.background,
-                                //     paddingTop: safeInsets.top + 10,
-                                //     paddingLeft: safeInsets.left + 15,
-                                //     paddingRight: safeInsets.right + 15,
-                                //     paddingBottom: safeInsets.bottom + 10,
-                                //     gap: 10,
-                                // },
                                 headerShown: false,
                             }}
                         />

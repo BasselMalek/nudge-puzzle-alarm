@@ -12,6 +12,21 @@ type AlarmAction =
     | { type: "ADD_ALARM"; payload: Alarm }
     | { type: "SET_ALARMS"; payload: Alarm[] };
 
+const unixIntToString = (unixMS: number) => {
+    if (unixMS >= 86400000 || unixMS < 0) {
+        return "24h+";
+    } else {
+        const totalMins = Math.floor(unixMS / 1000 / 60);
+        const hrs = Math.floor(totalMins / 60);
+        const mins = totalMins % 60;
+        if (hrs != 0) {
+            return `${hrs}h ${mins}m`;
+        } else {
+            return `${mins}m`;
+        }
+    }
+};
+
 const alarmsReducer = (state: Alarm[], action: AlarmAction): Alarm[] => {
     switch (action.type) {
         case "UPDATE_ALARM":
@@ -143,5 +158,6 @@ export const useAlarms = (db: SQLiteDatabase) => {
         saveAlarms,
         parseAlarm,
         createAlarm,
+        unixIntToString,
     };
 };

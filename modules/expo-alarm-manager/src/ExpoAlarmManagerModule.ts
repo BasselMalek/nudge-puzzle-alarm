@@ -29,7 +29,7 @@ declare class ExpoAlarmManagerModule extends NativeModule<ExpoAlarmManagerModule
      */
     deleteAlarm(alarmId: string): Promise<boolean>;
 
-    pickAlarmTone(): Promise<String | null>;
+    pickAlarmTone(): Promise<string | null>;
 }
 
 // This call loads the native module object from the JSI.
