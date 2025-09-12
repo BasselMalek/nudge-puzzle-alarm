@@ -15,64 +15,54 @@ import MaskedView from "@react-native-masked-view/masked-view";
 import * as AlarmManager from "@/modules/expo-alarm-manager";
 
 preventAutoHideAsync();
+
 export default function Alarms() {
     const db = useSQLiteContext();
     initDatabaseTableIfFirstBoot(db);
     const safeInsets = useSafeAreaInsets();
     const palette = useTheme().colors;
+
     const [alarmGradientDim, setAlarmGradientDim] = useState(false);
     const [soonestRingTime, setSoonestRingTime] = useState("");
-    const {
-        alarms,
-        updateAlarm,
-        deleteAlarm,
-        loadAlarms,
-        saveAlarms,
-        toggleAlarm,
-    } = useAlarms(db, "nudge://alarms");
+    const { alarms, deleteAlarm, loadAlarms, saveAlarms, toggleAlarm } =
+        useAlarms(db, "nudge://alarms");
+
     const { update } = useLocalSearchParams();
     const [loadStale, setLoadStale] = useState(true);
 
     useFocusEffect(
         useCallback(() => {
-            setLoadStale(update === "true" ? true : false);
+            setLoadStale(update === "true");
             return () => {};
         }, [update])
     );
 
     useEffect(() => {
-        loadAlarms();
+        if (loadStale) {
+            loadAlarms().finally(() => setLoadStale(false));
+        }
         return () => {
-            setLoadStale(false);
             hide();
         };
     }, [loadStale, loadAlarms]);
 
     useEffect(() => {
         saveAlarms();
-        setLoadStale(true);
     }, [alarms, saveAlarms]);
 
     const soonestAlarm = useMemo(() => {
         return alarms
-            .filter((v, k) => v.isEnabled === true)
-            .sort((a, b) => {
-                return (
-                    new Date(
-                        new Date().setHours(a.ringHours, a.ringMins)
-                    ).getTime() -
-                    Date.now() -
-                    (new Date(
-                        new Date().setHours(b.ringHours, b.ringMins)
-                    ).getTime() -
-                        Date.now())
-                );
-            })
+            .filter((v) => v.isEnabled === true)
+            .sort(
+                (a, b) =>
+                    new Date().setHours(a.ringHours, a.ringMins) -
+                    new Date().setHours(b.ringHours, b.ringMins)
+            )
             .at(0);
     }, [alarms]);
 
     useEffect(() => {
-        if (soonestAlarm != undefined) {
+        if (soonestAlarm !== undefined) {
             setAlarmGradientDim(true);
             setSoonestRingTime(
                 "Next alarm in " +
@@ -106,11 +96,11 @@ export default function Alarms() {
 
     const handleSettingsPress = useCallback(() => {
         router.push("/settings");
-    }, []);
+    }, [router]);
 
     const handleFABPress = useCallback(() => {
         router.navigate("./alarmOptions?id=new");
-    }, []);
+    }, [router]);
 
     const renderAlarmItem = useCallback(
         ({ item }: { item: Alarm }) => (
@@ -127,7 +117,7 @@ export default function Alarms() {
                 }}
             />
         ),
-        [updateAlarm]
+        [deleteAlarm, toggleAlarm, router]
     );
 
     const keyExtractor = useCallback((item: Alarm) => item.id, []);
