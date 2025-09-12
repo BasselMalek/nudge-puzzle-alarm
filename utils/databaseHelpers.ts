@@ -14,6 +14,8 @@ export const initDatabaseTableIfFirstBoot = (db: SQLiteDatabase) => {
             ring_mins INTEGER NOT NULL CHECK (ring_mins >= 0 AND ring_mins <= 59),
             repeat BOOLEAN NOT NULL DEFAULT 0,
             repeat_days TEXT,
+            vibrate BOOLEAN NOT NULL DEFAULT 0,
+            ringtone TEXT,
             puzzles TEXT,
             power_ups TEXT,
             is_enabled BOOLEAN NOT NULL DEFAULT 1,

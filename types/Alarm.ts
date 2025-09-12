@@ -10,6 +10,8 @@ export interface Alarm {
     ringMins: number;
     repeat: boolean;
     repeatDays: DayKey[];
+    vibrate: boolean;
+    ringtone: string;
     puzzles: Puzzle[];
     powerUps: PowerUp[];
     isEnabled: boolean;
@@ -22,10 +24,11 @@ export interface AlarmDto {
     ring_hours: number;
     ring_mins: number;
     repeat: number;
+    vibrate: number;
+    ringtone: string;
     power_ups: string | null; // * These are JSON strings
     repeat_days: string | null;
     puzzles: string | null;
-
     is_enabled: number;
     last_modified: string; // * This is an ISO string
 }
