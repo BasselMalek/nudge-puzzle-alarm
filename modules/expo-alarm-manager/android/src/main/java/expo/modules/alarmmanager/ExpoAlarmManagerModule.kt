@@ -66,8 +66,8 @@ class ExpoAlarmManagerModule : Module() {
             try {
                 val intent = Intent(RingtoneManager.ACTION_RINGTONE_PICKER).apply {
                     putExtra(RingtoneManager.EXTRA_RINGTONE_TYPE, RingtoneManager.TYPE_ALARM)
-                    putExtra(RingtoneManager.EXTRA_RINGTONE_TITLE, "Select Ringtone")
-                    putExtra(RingtoneManager.EXTRA_RINGTONE_SHOW_SILENT, false)
+                    putExtra(RingtoneManager.EXTRA_RINGTONE_TITLE, "Select Alarm Sound")
+                    putExtra(RingtoneManager.EXTRA_RINGTONE_SHOW_SILENT, true)
                     putExtra(RingtoneManager.EXTRA_RINGTONE_SHOW_DEFAULT, true)
 
                     existingUri?.let {

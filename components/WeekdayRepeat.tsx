@@ -1,6 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { View } from "react-native";
-import { TouchableRipple, Text, useTheme, Checkbox } from "react-native-paper";
+import {
+    TouchableRipple,
+    Text,
+    useTheme,
+    Checkbox,
+    Switch,
+} from "react-native-paper";
 import { DayKey } from "@/types/DayKey";
 import Tag from "./Tag";
 import { useLocalSearchParams } from "expo-router";
@@ -70,20 +76,29 @@ function WeekdayRepeat(props: {
     if (props.changeable) {
         return (
             <View>
-                <Checkbox.Item
-                    labelVariant="labelLarge"
-                    label="Repeat"
-                    labelStyle={{ textAlign: "left" }}
-                    status={props.enabled === true ? "checked" : "unchecked"}
-                    onPress={() => {
-                        props.onEnableChange(!props.enabled);
+                <View
+                    style={{
+                        paddingLeft: 10,
+                        flexDirection: "row",
+                        justifyContent: "space-between",
+                        alignItems: "center",
                     }}
-                />
+                >
+                    <Text variant="labelLarge">{"Repeat"}</Text>
+                    <Switch
+                        value={props.enabled}
+                        onValueChange={() => {
+                            props.onEnableChange(!props.enabled);
+                        }}
+                    />
+                </View>
                 {(() => {
                     if (props.enabled) {
                         return (
                             <View
                                 style={{
+                                    paddingHorizontal: 5,
+                                    paddingTop: 15,
                                     flexDirection: "row",
                                     justifyContent: "space-around",
                                     alignItems: "center",

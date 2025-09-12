@@ -130,7 +130,10 @@ export default function AlarmCard(props: {
                 </Animated.View>
                 <GestureDetector gesture={panGesture}>
                     <Animated.View style={cardAnimatedStyle}>
-                        <Card onPress={handleCardPress}>
+                        <Card
+                            style={{ elevation: 4 }}
+                            onPress={handleCardPress}
+                        >
                             <Card.Content
                                 style={{
                                     padding: 8,

@@ -8,6 +8,8 @@ import { randomUUID } from "expo-crypto";
 import * as AlarmBridge from "@/modules/expo-alarm-manager";
 import { addDays, isFuture } from "date-fns";
 
+//TODO: using HeadlessJS and a receiver from the module, create a resechduling task using the is_enabled index in the db.
+
 type AlarmAction =
     | { type: "UPDATE_ALARM"; payload: Partial<Alarm> & { id: string } }
     | { type: "DELETE_ALARM"; payload: string }
