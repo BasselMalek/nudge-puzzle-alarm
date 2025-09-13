@@ -96,7 +96,7 @@ class AlarmReceiver : BroadcastReceiver() {
                 .setFullScreenIntent(fullScreenPendingIntent, true)
                 .setAutoCancel(true)
                 .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
-                .setOngoing(true)  // Make it sticky so it doesn't disappear
+                .setOngoing(true)// Make it sticky so it doesn't disappear
                 .build()
             
             // Add flags to ensure it shows over lock screen

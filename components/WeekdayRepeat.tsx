@@ -78,7 +78,7 @@ function WeekdayRepeat(props: {
             <View>
                 <View
                     style={{
-                        paddingLeft: 10,
+                        paddingLeft: 5,
                         flexDirection: "row",
                         justifyContent: "space-between",
                         alignItems: "center",

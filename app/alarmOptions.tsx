@@ -117,26 +117,28 @@ export default function AlarmOptions() {
                 <Card.Content
                     style={{
                         padding: 20,
-                        gap: 10,
+                        gap: 15,
                         justifyContent: "center",
                         alignContent: "center",
                     }}
                 >
                     <Modal
+                        useNativeDriver={false}
+                        useNativeDriverForBackdrop={false}
                         onBackdropPress={() => setSoundsModalVisible(false)}
                         onBackButtonPress={() => setSoundsModalVisible(false)}
                         isVisible={soundsModalVisible}
                         style={{
-                            padding: 0,
                             flex: 1,
-                            marginBottom: 0,
+                            justifyContent: "flex-end",
                             marginHorizontal: 0,
-                            marginTop: "120%",
+                            marginBottom: 0,
                         }}
                     >
                         <View
                             style={{
                                 flex: 1,
+                                maxHeight: "40%",
                                 backgroundColor: colors.background,
                                 borderTopLeftRadius: roundness + 10,
                                 borderTopRightRadius: roundness + 10,
@@ -194,7 +196,7 @@ export default function AlarmOptions() {
                                                 }}
                                             />
                                             <Text variant="labelLarge">
-                                                Vibration
+                                                {"Vibration"}
                                             </Text>
                                         </View>
                                         <Switch
@@ -390,7 +392,7 @@ export default function AlarmOptions() {
                     />
                     <View
                         style={{
-                            paddingLeft: 10,
+                            paddingLeft: 5,
                             flexDirection: "row",
                             alignItems: "center",
                             justifyContent: "space-between",
@@ -399,12 +401,29 @@ export default function AlarmOptions() {
                         <Text variant="labelLarge">Sound & Vibration</Text>
                         <Button
                             compact
-                            icon="alarm-note"
+                            icon={alarm.vibrate ? "vibrate" : "vibrate-off"}
                             mode="contained"
-                            style={{ borderRadius: roundness }}
+                            style={{
+                                borderRadius: roundness,
+                            }}
+                            contentStyle={{
+                                maxWidth: 150,
+                                paddingRight: 10,
+                                paddingLeft: 15,
+                            }}
                             onPress={() => setSoundsModalVisible(true)}
                         >
-                            Silent
+                            <Text
+                                numberOfLines={1}
+                                ellipsizeMode="tail"
+                                style={{
+                                    color: colors.onPrimary,
+                                }}
+                            >
+                                {alarm.ringtone === "none"
+                                    ? "Silent"
+                                    : alarm.ringtone}
+                            </Text>
                         </Button>
                     </View>
                     <WeekdayRepeat
