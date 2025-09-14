@@ -13,15 +13,18 @@ export const setLinkingScheme = (scheme: string): Promise<boolean> => {
  * Schedule a new alarm.
  * @param alarmId A stable string ID (converted to int internally)
  * @param timestamp Unix timestamp in milliseconds
+ * @param vibrate Whether the alarm notification should vibrate
+ * @param ringtone URI of audio file to play as a ringtone
  * @returns Promise<boolean> indicating success
  */
 export const scheduleAlarm = (
     alarmId: string,
-    timestamp: number
+    timestamp: number,
+    vibrate: boolean
 ): Promise<boolean> => {
     console.log("set alarm " + alarmId);
 
-    return ExpoAlarmManagerModule.scheduleAlarm(alarmId, timestamp);
+    return ExpoAlarmManagerModule.scheduleAlarm(alarmId, timestamp, vibrate);
 };
 
 /**

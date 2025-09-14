@@ -192,7 +192,8 @@ export default function Alarms() {
                 onLongPress={() => {
                     AlarmManager.scheduleAlarm(
                         alarms.at(0)!.id,
-                        Date.now() + 10000
+                        Date.now() + 10000,
+                        alarms.at(0)!.vibrate
                     ).then(() => {
                         console.log("set");
                     });

@@ -13,8 +13,13 @@ declare class ExpoAlarmManagerModule extends NativeModule<ExpoAlarmManagerModule
      * Schedule a new alarm.
      * @param alarmId A stable string ID (converted to int internally).
      * @param timestamp Unix timestamp in ms.
+     * @param vibrate Whether the alarm notification should vibrate.
      */
-    scheduleAlarm(alarmId: string, timestamp: number): Promise<boolean>;
+    scheduleAlarm(
+        alarmId: string,
+        timestamp: number,
+        vibrate: boolean
+    ): Promise<boolean>;
 
     /**
      * Modify an existing alarm's time.
