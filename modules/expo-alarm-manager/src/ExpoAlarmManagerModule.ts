@@ -1,6 +1,8 @@
 import { NativeModule, requireNativeModule } from "expo";
-
-import { ExpoAlarmManagerModuleEvents } from "./ExpoAlarmManager.types";
+import {
+    ExpoAlarmManagerModuleEvents,
+    IAlarmPlayer,
+} from "./ExpoAlarmManager.types";
 
 declare class ExpoAlarmManagerModule extends NativeModule<ExpoAlarmManagerModuleEvents> {
     /**
@@ -35,7 +37,103 @@ declare class ExpoAlarmManagerModule extends NativeModule<ExpoAlarmManagerModule
     deleteAlarm(alarmId: string): Promise<boolean>;
 
     pickAlarmTone(): Promise<string | null>;
+
+    // AlarmPlayer native methods
+    /**
+     * Create a new alarm player instance.
+     * @returns playerId for the created player
+     */
+    createPlayer(): Promise<string>;
+
+    /**
+     * Set audio source for a player.
+     * @param src Audio source URI.
+     */
+    setPlayerSource(src: string): Promise<void>;
+
+    /**
+     * Start playback for a player.
+     */
+    playPlayer(): Promise<void>;
+
+    /**
+     * Stop playback for a player.
+     */
+    stopPlayer(): Promise<void>;
+
+    /**
+     * Release a player and free resources.
+     */
+    releasePlayer(): Promise<void>;
+
+    /**
+     * Set volume for a player.
+     * @param volume Volume level (0.0 to 1.0).
+     */
+    setPlayerVolume(volume: number): Promise<void>;
+
+    /**
+     * Check if player has finished playing.
+     */
+    isPlayerFinished(): Promise<boolean>;
 }
 
 // This call loads the native module object from the JSI.
-export default requireNativeModule<ExpoAlarmManagerModule>("ExpoAlarmManager");
+const ExpoAlarmManagerNative =
+    requireNativeModule<ExpoAlarmManagerModule>("ExpoAlarmManager");
+
+export class AlarmPlayer implements IAlarmPlayer {
+    private playerId: string;
+    private _isFinished: boolean = false;
+
+    constructor(playerId: string) {
+        this.playerId = playerId;
+
+        ExpoAlarmManagerNative.addListener("onPlaybackFinished", (event) => {
+            if (event.playerId === this.playerId) {
+                this._isFinished = true;
+            }
+        });
+    }
+
+    /**
+     * Create a new AlarmPlayer instance.
+     */
+    static async create(): Promise<AlarmPlayer | null> {
+        const res = await ExpoAlarmManagerNative.createPlayer();
+        if (res) {
+            return new AlarmPlayer(res);
+        } else {
+            return null;
+        }
+    }
+
+    async setSource(src: string): Promise<void> {
+        await ExpoAlarmManagerNative.setPlayerSource(src);
+        this._isFinished = false;
+    }
+
+    async play(): Promise<void> {
+        this._isFinished = false;
+        return ExpoAlarmManagerNative.playPlayer();
+    }
+
+    stop(): void {
+        ExpoAlarmManagerNative.stopPlayer();
+        this._isFinished = true;
+    }
+
+    release(): void {
+        ExpoAlarmManagerNative.releasePlayer();
+    }
+
+    setVolume(vol: number): void {
+        ExpoAlarmManagerNative.setPlayerVolume(vol);
+    }
+
+    get isFinished(): boolean {
+        return this._isFinished;
+    }
+}
+
+export default ExpoAlarmManagerNative;

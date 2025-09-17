@@ -7,28 +7,41 @@ import { useEffect, useState } from "react";
 import { parseAlarm } from "@/hooks/useAlarms";
 import { Alarm, AlarmDto } from "@/types/Alarm";
 import { useSQLiteContext } from "expo-sqlite";
+import { useAudioPlayer } from "expo-audio";
+import * as AlarmManager from "@/modules/expo-alarm-manager";
 import ClockText from "@/components/ClockText";
+
 export default function AlarmScreen() {
     const { id } = useLocalSearchParams();
     const { colors } = useTheme();
     const [alarm, setAlarm] = useState<Alarm>();
     const db = useSQLiteContext();
+    const alarmAud = AlarmManager.useAlarmPlayer();
+
     useEffect(() => {
-        const inital = db.getFirstSync<AlarmDto>(
+        const initial = db.getFirstSync<AlarmDto>(
             "SELECT * FROM alarms WHERE id = ?",
             [id as string]
         );
-        setAlarm(parseAlarm(inital!));
-    }, []);
+        if (initial) setAlarm(parseAlarm(initial));
+    }, [db, id]);
+
     const nav = useNavigation();
+
     useEffect(() => {
-        const listener = nav.addListener("beforeRemove", (e) => {
-            e.preventDefault();
-        });
-        return () => {
-            nav.removeListener("beforeRemove", listener);
-        };
-    }, []);
+        const listener = nav.addListener("beforeRemove", (e) =>
+            e.preventDefault()
+        );
+        return () => listener();
+    }, [nav]);
+
+    useEffect(() => {
+        if (alarmAud && alarm?.ringtone) {
+            alarmAud.setSource(alarm.ringtone);
+            alarmAud.play();
+        }
+    }, [alarmAud, alarm]);
+
     return (
         <>
             <StatusBar translucent />
@@ -76,22 +89,17 @@ export default function AlarmScreen() {
                 >
                     <IconButton
                         size={52}
-                        icon={"close"}
+                        icon="close"
                         mode="outlined"
                         onPress={() => {}}
                         // containerColor={colors.elevation.level1}
                     />
                     <Button
                         mode="outlined"
-                        icon={"sleep"}
-                        onPress={() => {
-                            BackHandler.exitApp();
-                        }}
+                        icon="sleep"
+                        onPress={() => BackHandler.exitApp()}
                         textColor={colors.onSurface}
-                        labelStyle={{
-                            fontSize: 24,
-                            lineHeight: 24,
-                        }}
+                        labelStyle={{ fontSize: 24, lineHeight: 24 }}
                         contentStyle={{
                             paddingVertical: 8,
                             paddingHorizontal: 12,

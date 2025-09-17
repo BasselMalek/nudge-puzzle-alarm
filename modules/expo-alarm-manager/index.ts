@@ -1,4 +1,7 @@
-import ExpoAlarmManagerModule from "./src/ExpoAlarmManagerModule";
+import { useState, useCallback, useEffect } from "react";
+import ExpoAlarmManagerModule, {
+    AlarmPlayer,
+} from "./src/ExpoAlarmManagerModule";
 
 /**
  * Configure the base deep linking scheme for alarms.
@@ -58,5 +61,30 @@ export const pickAlarmTone = (): Promise<string | null> => {
     return ExpoAlarmManagerModule.pickAlarmTone();
 };
 
+export const addListener = ExpoAlarmManagerModule.addListener;
+
+/**
+ * Hook that creates and returns an AlarmPlayer instance once mounted.
+ * The returned object exposes all of AlarmPlayer's own methods.
+ */
+export function useAlarmPlayer(): AlarmPlayer | null {
+    const [player, setPlayer] = useState<AlarmPlayer | null>(null);
+
+    useEffect(() => {
+        AlarmPlayer.create().then((p) => {
+            if (p) setPlayer(p);
+        });
+        return () => {
+            setPlayer((prev) => {
+                prev?.release();
+                return null;
+            });
+        };
+    }, []);
+
+    return player;
+}
+
+export const nativeModule = ExpoAlarmManagerModule;
 // Re-export types for convenience
 export * from "./src/ExpoAlarmManager.types";
