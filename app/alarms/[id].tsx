@@ -19,6 +19,9 @@ import * as AlarmManager from "@/modules/expo-alarm-manager";
 import ClockText from "@/components/ClockText";
 import TextPuzzleCard from "@/components/puzzle/TextPuzzle";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import PuzzleContainer from "@/components/puzzle/PuzzleContainer";
+import { format } from "date-fns";
+import TextPuzzle from "@/components/puzzle/TextPuzzle";
 
 export default function AlarmScreen() {
     const { id } = useLocalSearchParams();
@@ -27,6 +30,7 @@ export default function AlarmScreen() {
     const db = useSQLiteContext();
     const alarmAud = AlarmManager.useAlarmPlayer();
     const insets = useSafeAreaInsets();
+    const [isPuzzleVisible, setIsPuzzleVisible] = useState(false);
 
     useEffect(() => {
         const initial = db.getFirstSync<AlarmDto>(
@@ -54,146 +58,121 @@ export default function AlarmScreen() {
     }, [alarmAud, alarm]);
 
     return (
-        <>
+        <View
+            style={{
+                flex: 1,
+                padding: 5,
+                experimental_backgroundImage: `linear-gradient(${colors.primary}, ${colors.secondary})`,
+            }}
+        >
             <StatusBar translucent hidden />
             <View
                 style={{
-                    padding: 5,
-                    backgroundColor: "transparent",
-                    experimental_backgroundImage: `linear-gradient(${colors.primary}, ${colors.secondary})`,
+                    display: "flex",
+                    flex: 1,
+                    alignContent: "center",
+                    padding: 20,
+                    gap: 20,
+                    backgroundColor: colors.background,
+                    borderRadius: 35,
                 }}
             >
                 <View
                     style={{
-                        display: "flex",
-                        height: "100%",
-                        alignContent: "center",
-                        justifyContent: "flex-start",
-                        paddingVertical: 150,
-                        paddingHorizontal: 20,
-                        gap: 230,
-                        backgroundColor: colors.background,
-                        borderRadius: 35,
+                        flex: 4,
+                        gap: 15,
+                        alignItems: "center",
+                        justifyContent: "center",
                     }}
                 >
-                    <View style={{ gap: 15 }}>
-                        <ClockText
-                            variant="displayLarge"
-                            style={{
-                                textAlign: "center",
-                            }}
-                            localeOptions={{
-                                locales: [],
-                                options: {
-                                    hour: "2-digit",
-                                    hour12: true,
-                                    minute: "2-digit",
-                                },
-                            }}
-                        />
-                        <Text
-                            variant="displaySmall"
-                            style={{ textAlign: "center" }}
-                        >
-                            {alarm?.name}
-                        </Text>
-                    </View>
-                    <View
+                    <ClockText
+                        variant="displayLarge"
                         style={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 150,
+                            textAlign: "center",
+                        }}
+                        localeOptions={{
+                            locales: [],
+                            options: {
+                                hour: "2-digit",
+                                hour12: true,
+                                minute: "2-digit",
+                            },
+                        }}
+                    />
+                    <Text
+                        variant="headlineMedium"
+                        style={{ textAlign: "center" }}
+                    >
+                        {alarm?.name}
+                    </Text>
+                    {/* <Text variant="titleLarge" style={{ textAlign: "center" }}>
+                        {format(new Date(), "E, LLL d")}
+                    </Text> */}
+                </View>
+                <View
+                    style={{
+                        flex: 5,
+                        justifyContent: "center",
+                    }}
+                >
+                    <IconButton
+                        icon="alarm-off"
+                        size={42}
+                        mode="outlined"
+                        containerColor={colors.background}
+                        iconColor={colors.onBackground}
+                        style={{
+                            alignSelf: "center",
+                            width: 68,
+                            height: 68,
+                            borderRadius: 42,
+                            borderColor: colors.primary,
+                            borderWidth: 2,
+                            display: isPuzzleVisible ? "none" : "flex",
+                        }}
+                        onPress={() => setIsPuzzleVisible(true)}
+                    />
+                    //TODO: a ScrollView with scrollTo on puzzle success will
+                    probably suffice for now.
+                    <PuzzleContainer
+                        style={{ flex: 1 }}
+                        isVisible={isPuzzleVisible}
+                    >
+                        <TextPuzzle />
+                    </PuzzleContainer>
+                </View>
+                <View
+                    style={{
+                        flex: 4,
+                        alignItems: "center",
+                        justifyContent: "center",
+                    }}
+                >
+                    <Button
+                        mode="outlined"
+                        icon="sleep"
+                        buttonColor={colors.background}
+                        textColor={colors.onBackground}
+                        contentStyle={{
+                            paddingVertical: 8,
+                            paddingHorizontal: 16,
+                        }}
+                        labelStyle={{
+                            fontSize: 24,
+                            lineHeight: 24,
+                        }}
+                        style={{
+                            borderWidth: 2,
+                            borderColor: colors.primary,
+                        }}
+                        onPress={() => {
+                            setIsPuzzleVisible(false);
                         }}
                     >
-                        {/* <IconButton
-                            size={52}
-                            icon={"close"}
-                            iconColor={colors.background}
-                            mode="contained"
-                            contentStyle={{
-                                experimental_backgroundImage: `linear-gradient(${colors.primary}, ${colors.secondary})`,
-                            }}
-                        /> */}
-                        <View
-                            style={{
-                                padding: 3,
-                                borderRadius: roundness + 50,
-                                experimental_backgroundImage: `linear-gradient(${colors.primary}, ${colors.secondary})`,
-                                alignItems: "center",
-                                justifyContent: "center",
-                            }}
-                        >
-                            <TouchableOpacity
-                                style={{
-                                    borderRadius: roundness + 50,
-                                    padding: 10,
-                                    backgroundColor: colors.background,
-                                }}
-                                onPress={() => {
-                                    // alarmAud?.stop();
-                                    // router.navigate("/");
-                                }}
-                                onPressOut={() => {}}
-                            >
-                                <Icon size={52} source="close" />
-                            </TouchableOpacity>
-                        </View>
-                        {/* <Button
-                            icon="sleep"
-                            // onPress={() => BackHandler.exitApp()}
-                            mode="outlined"
-                            onPress={() => console.log("l")}
-                            textColor={colors.background}
-                            labelStyle={{ fontSize: 24, lineHeight: 24 }}
-                            contentStyle={{
-                                paddingVertical: 8,
-                                paddingHorizontal: 12,
-                                outlineColor: colors.primary,
-                                experimental_backgroundImage: `linear-gradient(${colors.primary}, ${colors.secondary})`,
-                            }}
-                        >
-                            {"Snooze"}
-                        </Button> */}
-                        <View
-                            style={{
-                                padding: 3,
-                                borderRadius: roundness + 20,
-                                experimental_backgroundImage: `linear-gradient(${colors.primary}, ${colors.secondary})`,
-                                alignItems: "center",
-                                justifyContent: "center",
-                            }}
-                        >
-                            <TouchableOpacity
-                                style={{
-                                    borderRadius: roundness + 20,
-                                    padding: 16,
-                                    backgroundColor: colors.background,
-                                    flexDirection: "row",
-                                    alignItems: "center",
-                                    justifyContent: "center",
-                                }}
-                                onPress={() => console.log("l")}
-                            >
-                                <Icon
-                                    size={24}
-                                    source="sleep"
-                                    color={colors.onBackground}
-                                />
-                                <Text
-                                    style={{
-                                        fontSize: 24,
-                                        lineHeight: 24,
-                                        color: colors.onBackground,
-                                        marginLeft: 8,
-                                    }}
-                                >
-                                    Snooze
-                                </Text>
-                            </TouchableOpacity>
-                        </View>
-                    </View>
+                        Snooze
+                    </Button>
                 </View>
             </View>
-        </>
+        </View>
     );
 }
