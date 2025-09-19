@@ -127,7 +127,6 @@ export default function Alarms() {
             <StatusBar translucent />
             <Card
                 style={{
-                    borderRadius: 20,
                     overflow: "hidden",
                     height: "25%",
                 }}
