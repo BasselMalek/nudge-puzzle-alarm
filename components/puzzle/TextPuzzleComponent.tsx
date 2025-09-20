@@ -1,4 +1,5 @@
-import { useRef, useState } from "react";
+import { TextPuzzle } from "@/types/Puzzles";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { View } from "react-native";
 import { Card, Text, TextInput, useTheme } from "react-native-paper";
 
@@ -8,19 +9,40 @@ const charsets = {
     hard: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()-_=+[]{};:,.<>/?",
 };
 
-const gen = (length: number, charset: string) => {
-    let result = "";
+const generateString = (length: number, charset: string) => {
+    const chars = [];
+    const charsetLength = charset.length;
     for (let i = 0; i < length; i++) {
-        result += charset.charAt(Math.floor(Math.random() * charset.length));
+        chars.push(charset[Math.floor(Math.random() * charsetLength)]);
     }
-    return result;
+    return chars.join("");
 };
 
-export default function TextPuzzle() {
-    //TODO: implement some sort of success return mechanism.
-    const solveTarget = useRef(gen(5, charsets.medium));
+export default function TextPuzzleComponent(props: {
+    puzzle: TextPuzzle;
+    onSuccess: () => void;
+}) {
+    const { onSuccess, puzzle } = props;
+    const solveTarget = useMemo(
+        () =>
+            generateString(
+                puzzle.params.length,
+                puzzle.difficulty === 1
+                    ? charsets.easy
+                    : puzzle.difficulty === 2
+                    ? charsets.medium
+                    : charsets.hard
+            ),
+        [puzzle.params.length, puzzle.difficulty]
+    );
     const [inputValue, setInputValue] = useState("");
     const { colors, roundness } = useTheme();
+
+    useEffect(() => {
+        if (inputValue === solveTarget) {
+            onSuccess();
+        }
+    }, [inputValue, onSuccess]);
 
     return (
         <View
@@ -30,7 +52,7 @@ export default function TextPuzzle() {
             }}
         >
             <Text variant="displayMedium" style={{ textAlign: "center" }}>
-                {solveTarget.current}
+                {solveTarget}
             </Text>
             <TextInput
                 mode="outlined"

@@ -4,47 +4,10 @@ import Animated, {
     useSharedValue,
     useAnimatedStyle,
     withSpring,
-    withTiming,
-    runOnJS,
 } from "react-native-reanimated";
 import { ReactNode, useEffect, useState } from "react";
-
-const MyBallsWasHot = (
-    props: {
-        balls: number;
-        hot: number;
-        colors: {
-            primary: string;
-            secondary: string;
-            off: string;
-        };
-    } & ViewProps
-) => {
-    const { balls, hot, colors, style, ...viewProps } = props;
-
-    return (
-        <View
-            style={[{ flexDirection: "row", gap: "5" }, style]}
-            {...viewProps}
-        >
-            {Array.from({ length: balls }).map((_, index) => (
-                <View
-                    key={index}
-                    style={{
-                        elevation: 5,
-                        borderRadius: 100,
-                        height: 14,
-                        width: 14,
-                        backgroundColor: index < hot ? undefined : colors.off,
-                        ...(index < hot && {
-                            experimental_backgroundImage: `linear-gradient(${colors.primary}, ${colors.secondary})`,
-                        }),
-                    }}
-                />
-            ))}
-        </View>
-    );
-};
+import IndicatorDots from "@/components/IndicatorDots";
+import { Puzzle } from "@/types/Puzzles";
 
 const AnimatedCard = Animated.createAnimatedComponent(Card);
 
@@ -52,6 +15,7 @@ export default function PuzzleContainer(
     props: {
         isVisible: boolean;
         children: ReactNode;
+        puzzles?: Puzzle[];
     } & ViewProps
 ) {
     const { isVisible, children } = props;
@@ -61,19 +25,23 @@ export default function PuzzleContainer(
     const [shouldDisplay, setShouldDisplay] = useState(isVisible);
 
     useEffect(() => {
-        setShouldDisplay(true);
-        scale.value = 0;
-        borderRadius.value = 1000;
-        scale.value = withSpring(1, {
-            damping: 15,
-            stiffness: 150,
-            mass: 1,
-        });
-        borderRadius.value = withSpring(roundness, {
-            damping: 15,
-            stiffness: 150,
-            mass: 1,
-        });
+        if (isVisible) {
+            setShouldDisplay(true);
+            scale.value = 0;
+            borderRadius.value = 1000;
+            scale.value = withSpring(1, {
+                damping: 20,
+                stiffness: 150,
+                mass: 1,
+            });
+            borderRadius.value = withSpring(roundness, {
+                damping: 15,
+                stiffness: 150,
+                mass: 1,
+            });
+        } else {
+            setShouldDisplay(false);
+        }
     }, [isVisible, roundness]);
 
     const animatedStyle = useAnimatedStyle(() => {
@@ -105,10 +73,10 @@ export default function PuzzleContainer(
                     }}
                 >
                     <Text>{"Text • Eazy"}</Text>
-                    <MyBallsWasHot
+                    <IndicatorDots
                         style={{ justifyContent: "flex-end" }}
-                        balls={5}
-                        hot={3}
+                        total={5}
+                        enabled={3}
                         colors={{
                             off: colors.elevation.level5,
                             primary: colors.primary,

@@ -10,18 +10,14 @@ import {
 } from "react-native-paper";
 import { StatusBar } from "expo-status-bar";
 import { router, useLocalSearchParams, useNavigation } from "expo-router";
-import { LinearGradient } from "expo-linear-gradient";
 import { useEffect, useState } from "react";
 import { parseAlarm } from "@/hooks/useAlarms";
 import { Alarm, AlarmDto } from "@/types/Alarm";
 import { useSQLiteContext } from "expo-sqlite";
 import * as AlarmManager from "@/modules/expo-alarm-manager";
 import ClockText from "@/components/ClockText";
-import TextPuzzleCard from "@/components/puzzle/TextPuzzle";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import PuzzleContainer from "@/components/puzzle/PuzzleContainer";
-import { format } from "date-fns";
-import TextPuzzle from "@/components/puzzle/TextPuzzle";
+import TextPuzzleComponent from "@/components/puzzle/TextPuzzleComponent";
 
 export default function AlarmScreen() {
     const { id } = useLocalSearchParams();
@@ -29,7 +25,6 @@ export default function AlarmScreen() {
     const [alarm, setAlarm] = useState<Alarm>();
     const db = useSQLiteContext();
     const alarmAud = AlarmManager.useAlarmPlayer();
-    const insets = useSafeAreaInsets();
     const [isPuzzleVisible, setIsPuzzleVisible] = useState(false);
 
     useEffect(() => {
@@ -105,9 +100,6 @@ export default function AlarmScreen() {
                     >
                         {alarm?.name}
                     </Text>
-                    {/* <Text variant="titleLarge" style={{ textAlign: "center" }}>
-                        {format(new Date(), "E, LLL d")}
-                    </Text> */}
                 </View>
                 <View
                     style={{
@@ -132,13 +124,21 @@ export default function AlarmScreen() {
                         }}
                         onPress={() => setIsPuzzleVisible(true)}
                     />
-                    //TODO: a ScrollView with scrollTo on puzzle success will
-                    probably suffice for now.
+                    {/* //TODO: a ScrollView with scrollTo on puzzle success will. */}
                     <PuzzleContainer
                         style={{ flex: 1 }}
                         isVisible={isPuzzleVisible}
                     >
-                        <TextPuzzle />
+                        <TextPuzzleComponent
+                            puzzle={{
+                                type: "text",
+                                difficulty: 1,
+                                params: { length: 3 },
+                            }}
+                            onSuccess={() => {
+                                console.log("success");
+                            }}
+                        />
                     </PuzzleContainer>
                 </View>
                 <View
@@ -169,7 +169,7 @@ export default function AlarmScreen() {
                             setIsPuzzleVisible(false);
                         }}
                     >
-                        Snooze
+                        {"Snooze"}
                     </Button>
                 </View>
             </View>
