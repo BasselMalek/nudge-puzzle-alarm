@@ -1,5 +1,5 @@
 import { DayKey } from "@/types/DayKey";
-import { Puzzle } from "@/types/Puzzle";
+import { Puzzle } from "@/types/Puzzles";
 import { PowerUp } from "@/types/PowerUp";
 import { randomUUID } from "expo-crypto";
 

@@ -3,7 +3,7 @@ import { Alarm, AlarmDto } from "@/types/Alarm";
 import { SQLiteDatabase } from "expo-sqlite";
 import { DayKey } from "@/types/DayKey";
 import { PowerUp } from "@/types/PowerUp";
-import { Puzzle } from "@/types/Puzzle";
+import { Puzzle } from "@/types/Puzzles";
 import { randomUUID } from "expo-crypto";
 import * as AlarmBridge from "@/modules/expo-alarm-manager";
 import { addDays, isFuture } from "date-fns";
