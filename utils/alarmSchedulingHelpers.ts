@@ -1,0 +1,81 @@
+import { Alarm } from "@/types/Alarm";
+import {
+    scheduleAlarm,
+    modifyAlarm,
+    deleteAlarm,
+} from "@/modules/expo-alarm-manager";
+import { add, isFuture, isPast, nextDay, set } from "date-fns";
+import { DaySet } from "@/types/DaySet";
+
+const findNextDay = (startingDate: Date, repeatDays: DaySet) => {
+    let candidateDate = startingDate;
+    let daysToAdd = 1;
+    while (daysToAdd <= 6) {
+        const nextDate = add(candidateDate, { days: daysToAdd });
+        const nextDayIndex = nextDate.getDay() as keyof DaySet;
+        if (repeatDays[nextDayIndex].enabled) {
+            candidateDate = nextDate;
+            break;
+        }
+        daysToAdd++;
+    }
+    return candidateDate;
+};
+
+const getNextInstanceTimeStamp = (alarm: Alarm) => {
+    let candidateDate = set(new Date(), {
+        hours: alarm.ringHours,
+        minutes: alarm.ringMins,
+        seconds: 0,
+        milliseconds: 0,
+    });
+
+    if (alarm.repeat) {
+        if (alarm.repeatDays[candidateDate.getDay() as keyof DaySet].enabled) {
+            if (isPast(candidateDate)) {
+                candidateDate = add(candidateDate, { days: 7 });
+            }
+        } else {
+            candidateDate = findNextDay(candidateDate, alarm.repeatDays);
+        }
+    } else {
+        if (isPast(candidateDate)) {
+            candidateDate = add(candidateDate, { days: 1 });
+        }
+    }
+    return candidateDate.getTime();
+};
+
+const disableNextInstance = async (alarm: Alarm) => {
+    await deleteAlarm(alarm.id, alarm.vibrate);
+};
+
+const modifyNextInstance = async (alarm: Alarm) => {
+    await modifyAlarm(alarm.id, getNextInstanceTimeStamp(alarm), alarm.vibrate);
+};
+
+const handleDaisyChainAfterRing = async (alarm: Alarm) => {
+    if (!alarm.repeat) {
+        return { ...alarm, isEnabled: false };
+    }
+    await scheduleNextInstance(alarm);
+    return alarm;
+};
+
+const rescheduleAllForOnBoot = async (alarms: Alarm[]) => {};
+
+const scheduleNextInstance = async (alarm: Alarm) => {
+    await scheduleAlarm(
+        alarm.id,
+        getNextInstanceTimeStamp(alarm),
+        alarm.vibrate
+    );
+};
+
+export {
+    disableNextInstance,
+    scheduleNextInstance,
+    modifyNextInstance,
+    handleDaisyChainAfterRing,
+    rescheduleAllForOnBoot,
+};

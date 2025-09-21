@@ -11,7 +11,7 @@ import {
 import { StatusBar } from "expo-status-bar";
 import { router, useLocalSearchParams, useNavigation } from "expo-router";
 import { useEffect, useState } from "react";
-import { parseAlarm } from "@/hooks/useAlarms";
+import { parseAlarm, saveAlarmDirect } from "@/hooks/useAlarms";
 import { Alarm, AlarmDto } from "@/types/Alarm";
 import { useSQLiteContext } from "expo-sqlite";
 import * as AlarmManager from "@/modules/expo-alarm-manager";
@@ -19,6 +19,7 @@ import ClockText from "@/components/ClockText";
 import PuzzleContainer from "@/components/puzzle/PuzzleContainer";
 import TextPuzzleComponent from "@/components/puzzle/TextPuzzleComponent";
 import NFCPuzzleComponent from "@/components/puzzle/NFCPuzzleComponent";
+import { handleDaisyChainAfterRing } from "@/utils/alarmSchedulingHelpers";
 
 export default function AlarmScreen() {
     const { id } = useLocalSearchParams();
@@ -26,7 +27,9 @@ export default function AlarmScreen() {
     const [alarm, setAlarm] = useState<Alarm>();
     const db = useSQLiteContext();
     const alarmAud = AlarmManager.useAlarmPlayer();
+
     const [isPuzzleVisible, setIsPuzzleVisible] = useState(false);
+    const [puzzlesComplete, setPuzzlesComplete] = useState(false);
 
     useEffect(() => {
         const initial = db.getFirstSync<AlarmDto>(
@@ -35,6 +38,21 @@ export default function AlarmScreen() {
         );
         if (initial) setAlarm(parseAlarm(initial));
     }, [db, id]);
+
+    useEffect(() => {
+        if (puzzlesComplete) {
+            handleDaisyChainAfterRing(alarm!).then((newAlarm) => {
+                saveAlarmDirect(newAlarm.id, db, newAlarm);
+            });
+        }
+
+        return () => {
+            alarmAud?.stop();
+            alarmAud?.release();
+            db.closeSync();
+            BackHandler.exitApp();
+        };
+    }, [puzzlesComplete, alarm]);
 
     const nav = useNavigation();
 
@@ -49,7 +67,7 @@ export default function AlarmScreen() {
         if (alarmAud && alarm?.ringtone) {
             //TODO: make it so it plays on all audio outputs. i.e if earbuds are connected it plays on both speaker/earbuds
             alarmAud.setSource(alarm.ringtone);
-            // alarmAud.play();
+            alarmAud.play();
         }
     }, [alarmAud, alarm]);
 
@@ -126,41 +144,12 @@ export default function AlarmScreen() {
                         onPress={() => setIsPuzzleVisible(true)}
                     />
                     {/* //TODO: a ScrollView with scrollTo on puzzle success will. */}
-                    <PuzzleContainer
+                    {/* <PuzzleContainer
                         style={{ flex: 1 }}
                         isVisible={isPuzzleVisible}
                     >
-                        {/* <TextPuzzleComponent
-                            puzzle={{
-                                type: "text",
-                                difficulty: 1,
-                                params: { length: 3 },
-                            }}
-                            onSuccess={() => {
-                                console.log("success");
-                            }}
-                        /> */}
-                        <NFCPuzzleComponent
-                            puzzle={{
-                                type: "nfc",
-                                difficulty: 2,
-                                params: {
-                                    tagCount: 1,
-                                    sequence: [
-                                        {
-                                            tech: "ultralight",
-                                            name: "Kitchen",
-                                            id: "04BE68F2343580",
-                                        },
-                                    ],
-                                    timeLimit: 0,
-                                },
-                            }}
-                            onSuccess={() => {
-                                console.log("sucess");
-                            }}
                         />
-                    </PuzzleContainer>
+                    </PuzzleContainer> */}
                 </View>
                 <View
                     style={{
@@ -187,7 +176,7 @@ export default function AlarmScreen() {
                             borderColor: colors.primary,
                         }}
                         onPress={() => {
-                            setIsPuzzleVisible(false);
+                            BackHandler.exitApp();
                         }}
                     >
                         {"Snooze"}

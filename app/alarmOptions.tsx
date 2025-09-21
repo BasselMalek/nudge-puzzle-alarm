@@ -24,6 +24,7 @@ import Modal from "react-native-modal";
 import { pickAlarmTone } from "@/modules/expo-alarm-manager";
 import { pickAudioFile } from "@/utils/audioPickerHelpers";
 import { DaySet } from "@/types/DaySet";
+import { scheduleNextInstance } from "@/utils/alarmSchedulingHelpers";
 
 export default function AlarmOptions() {
     const insets = useSafeAreaInsets();
@@ -449,7 +450,51 @@ export default function AlarmOptions() {
                     right: insets.right + 20,
                 }}
                 onPress={() => {
+                    setAlarm({ ...alarm, isEnabled: true });
+                    if (!alarm.repeat) {
+                        setAlarm({
+                            ...alarm,
+                            repeatDays: {
+                                0: {
+                                    dayName: "Sunday",
+                                    letter: "S",
+                                    enabled: false,
+                                },
+                                1: {
+                                    dayName: "Monday",
+                                    letter: "M",
+                                    enabled: false,
+                                },
+                                2: {
+                                    dayName: "Tuesday",
+                                    letter: "T",
+                                    enabled: false,
+                                },
+                                3: {
+                                    dayName: "Wednesday",
+                                    letter: "W",
+                                    enabled: false,
+                                },
+                                4: {
+                                    dayName: "Thursday",
+                                    letter: "T",
+                                    enabled: false,
+                                },
+                                5: {
+                                    dayName: "Friday",
+                                    letter: "F",
+                                    enabled: false,
+                                },
+                                6: {
+                                    dayName: "Saturday",
+                                    letter: "S",
+                                    enabled: false,
+                                },
+                            },
+                        });
+                    }
                     saveAlarmDirect(id as string, db, alarm);
+                    scheduleNextInstance(alarm);
                     router.navigate("/?update=true");
                 }}
                 onLongPress={() => console.log(alarm)}

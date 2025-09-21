@@ -5,7 +5,12 @@ import { DaySet } from "@/types/DaySet";
 import { PowerUp } from "@/types/PowerUp";
 import { Puzzle } from "@/types/Puzzles";
 import { randomUUID } from "expo-crypto";
-import * as AlarmBridge from "@/modules/expo-alarm-manager";
+import {
+    scheduleNextInstance,
+    modifyNextInstance,
+    disableNextInstance,
+} from "@/utils/alarmSchedulingHelpers";
+import { setLinkingScheme } from "@/modules/expo-alarm-manager";
 import { addDays, isFuture } from "date-fns";
 
 type AlarmAction =
@@ -150,7 +155,7 @@ export const useAlarms = (db: SQLiteDatabase, linkingScheme: string) => {
     const [alarms, dispatch] = useReducer(alarmsReducer, []);
     const [diff, setDiff] = useState<Map<string, Alarm>>(new Map());
 
-    AlarmBridge.setLinkingScheme(linkingScheme);
+    setLinkingScheme(linkingScheme);
 
     const loadAlarms = useCallback(async () => {
         const rows = await db.getAllAsync<AlarmDto>("SELECT * FROM alarms");
@@ -160,7 +165,6 @@ export const useAlarms = (db: SQLiteDatabase, linkingScheme: string) => {
     }, [db]);
 
     const saveAlarms = useCallback(async () => {
-        // Transaction for batch updates
         await db.withTransactionAsync(async () => {
             for (const v of alarms) {
                 const old = diff.get(v.id);
@@ -196,55 +200,41 @@ export const useAlarms = (db: SQLiteDatabase, linkingScheme: string) => {
 
     const updateAlarm = useCallback(
         (id: string, updates: Partial<Alarm>) => {
-            dispatch({ type: "UPDATE_ALARM", payload: { id, ...updates } });
-            if (
-                updates.ringHours !== undefined ||
-                updates.ringMins !== undefined
-            ) {
-                const ringDateToday = new Date(
-                    new Date().setHours(updates.ringHours!, updates.ringMins!)
-                );
-                AlarmBridge.modifyAlarm(
-                    id,
-                    isFuture(ringDateToday)
-                        ? ringDateToday.getTime()
-                        : addDays(ringDateToday, 1).getTime()
-                );
-            }
+            dispatch({
+                type: "UPDATE_ALARM",
+                payload: { id, isEnabled: true, ...updates },
+            });
+            modifyNextInstance({
+                ...alarms.find((v) => v.id === id)!,
+                ...updates,
+            });
         },
-        [dispatch]
+        [dispatch, alarms]
     );
 
     const deleteAlarm = useCallback(
         (id: string) => {
-            AlarmBridge.deleteAlarm(id);
+            disableNextInstance(alarms.find((v) => v.id === id)!);
             dispatch({ type: "DELETE_ALARM", payload: id });
             db.runAsync("DELETE FROM alarms WHERE id = ?", [id]);
         },
         [db, dispatch]
     );
 
-    const toggleAlarm = useCallback(
-        (id: string) => {
-            const alarm = alarms.find((v) => v.id === id);
-            if (!alarm) return;
-            if (alarm.isEnabled) {
-                AlarmBridge.deleteAlarm(id);
-            } else {
-                const ringDateToday = new Date(
-                    new Date().setHours(alarm.ringHours, alarm.ringMins)
-                );
-                // AlarmBridge.scheduleAlarm(
-                //     id,
-                //     isFuture(ringDateToday)
-                //         ? ringDateToday.getTime()
-                //         : addDays(ringDateToday, 1).getTime()
-                // );
-            }
-            updateAlarm(id, { isEnabled: !alarm.isEnabled });
-        },
-        [alarms, updateAlarm]
-    );
+    const toggleAlarm = (id: string, nextEnabled: boolean) => {
+        const alarm = alarms.find((v) => v.id === id);
+        if (!alarm) return;
+
+        if (nextEnabled) {
+            scheduleNextInstance(alarm);
+        } else {
+            disableNextInstance(alarm);
+        }
+        dispatch({
+            type: "UPDATE_ALARM",
+            payload: { id, ...{ isEnabled: nextEnabled } },
+        });
+    };
 
     return {
         alarms,
