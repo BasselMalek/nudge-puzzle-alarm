@@ -11,7 +11,7 @@ import {
     Surface,
 } from "react-native-paper";
 import Tag from "./Tag";
-import { DayKey, WeekdayRepeat } from "./WeekdayRepeat";
+import WeekdayRepeat from "./WeekdayRepeat";
 import {
     GestureDetector,
     Gesture,
@@ -24,6 +24,7 @@ import Animated, {
     interpolate,
 } from "react-native-reanimated";
 import { Alarm } from "@/types/Alarm";
+import { DaySet } from "@/types/DaySet";
 
 export default function AlarmCard(props: {
     alarm: Alarm;
@@ -177,19 +178,10 @@ export default function AlarmCard(props: {
                                     {props.alarm.name}
                                 </Text>
                                 <WeekdayRepeat
-                                    enabled={props.alarm.repeat}
-                                    onSelectionChange={(
-                                        selectedDays: DayKey[]
-                                    ) => {}}
-                                    startDay={"sunday"}
-                                    selectedDays={props.alarm.repeatDays}
-                                    onEnableChange={function (
-                                        enabled: boolean
-                                    ): void {
-                                        throw new Error(
-                                            "Function not implemented."
-                                        );
-                                    }}
+                                    changeable={false}
+                                    repeatEnabled={props.alarm.repeat}
+                                    startDay={0}
+                                    dayMap={props.alarm.repeatDays}
                                 />
                                 <View
                                     style={{
@@ -201,7 +193,7 @@ export default function AlarmCard(props: {
                                     {props.alarm.puzzles.map((puzz) => {
                                         return (
                                             <Tag
-                                                name={puzz.icon}
+                                                name={"d"}
                                                 size="small"
                                                 tagColor={
                                                     colors.secondaryContainer

@@ -1,4 +1,4 @@
-import { DayKey } from "@/types/DayKey";
+import { DaySet } from "@/types/DaySet";
 import { Puzzle } from "@/types/Puzzles";
 import { PowerUp } from "@/types/PowerUp";
 import { randomUUID } from "expo-crypto";
@@ -9,7 +9,7 @@ export interface Alarm {
     ringHours: number;
     ringMins: number;
     repeat: boolean;
-    repeatDays: DayKey[];
+    repeatDays: DaySet;
     vibrate: boolean;
     ringtone: string;
     puzzles: Puzzle[];

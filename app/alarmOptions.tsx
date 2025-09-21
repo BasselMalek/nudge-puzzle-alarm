@@ -11,7 +11,7 @@ import {
 } from "react-native-paper";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
-import { WeekdayRepeat } from "@/components/WeekdayRepeat";
+import WeekdayRepeat from "@/components/WeekdayRepeat";
 import { useEffect, useState } from "react";
 import { router, useLocalSearchParams } from "expo-router";
 import { TimePickerModal } from "react-native-paper-dates";
@@ -23,6 +23,7 @@ import { View } from "react-native";
 import Modal from "react-native-modal";
 import { pickAlarmTone } from "@/modules/expo-alarm-manager";
 import { pickAudioFile } from "@/utils/audioPickerHelpers";
+import { DaySet } from "@/types/DaySet";
 
 export default function AlarmOptions() {
     const insets = useSafeAreaInsets();
@@ -428,15 +429,15 @@ export default function AlarmOptions() {
                     </View>
                     <WeekdayRepeat
                         changeable
-                        enabled={alarm?.repeat}
-                        onEnableChange={(enabled) =>
+                        repeatEnabled={alarm?.repeat}
+                        onRepeatEnableChange={(enabled: boolean) =>
                             setAlarm({ ...alarm, repeat: enabled })
                         }
-                        selectedDays={alarm.repeatDays}
-                        onSelectionChange={(selected) =>
+                        dayMap={alarm.repeatDays}
+                        onDayMapChange={(selected: DaySet) =>
                             setAlarm({ ...alarm, repeatDays: selected })
                         }
-                        startDay="sunday"
+                        startDay={0}
                     />
                 </Card.Content>
             </Card>

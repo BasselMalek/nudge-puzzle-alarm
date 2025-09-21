@@ -1,77 +1,45 @@
 import React, { useEffect, useState } from "react";
 import { View } from "react-native";
-import {
-    TouchableRipple,
-    Text,
-    useTheme,
-    Checkbox,
-    Switch,
-} from "react-native-paper";
-import { DayKey } from "@/types/DayKey";
+import { TouchableRipple, Text, useTheme, Switch } from "react-native-paper";
 import Tag from "./Tag";
-import { useLocalSearchParams } from "expo-router";
+import { DaySet } from "@/types/DaySet";
 
-const dayConfigs: Record<DayKey, { letter: string; full: string }> = {
-    sunday: { letter: "S", full: "Sunday" },
-    monday: { letter: "M", full: "Monday" },
-    tuesday: { letter: "T", full: "Tuesday" },
-    wednesday: { letter: "W", full: "Wednesday" },
-    thursday: { letter: "T", full: "Thursday" },
-    friday: { letter: "F", full: "Friday" },
-    saturday: { letter: "S", full: "Saturday" },
-};
+//? while refactoring this code i remembered the time i laught at that one code base where all the type
+//? annotations are :any and i understand those devs now.
+type DayIndex = 0 | 1 | 2 | 3 | 4 | 5 | 6;
+type StartDay = 0 | 1 | 6;
 
-const weekOrders: Record<"sunday" | "monday" | "saturday", DayKey[]> = {
-    sunday: [
-        "sunday",
-        "monday",
-        "tuesday",
-        "wednesday",
-        "thursday",
-        "friday",
-        "saturday",
-    ],
-    monday: [
-        "monday",
-        "tuesday",
-        "wednesday",
-        "thursday",
-        "friday",
-        "saturday",
-        "sunday",
-    ],
-    saturday: [
-        "saturday",
-        "sunday",
-        "monday",
-        "tuesday",
-        "wednesday",
-        "thursday",
-        "friday",
-    ],
-};
-
-function WeekdayRepeat(props: {
-    changeable?: boolean;
-    enabled: boolean;
-    onEnableChange: (enabled: boolean) => void;
-    selectedDays: DayKey[];
-    onSelectionChange: (selectedDays: DayKey[]) => void;
-    startDay: "sunday" | "monday" | "saturday";
+export default function WeekdayRepeat(props: {
+    changeable: boolean;
+    repeatEnabled: boolean;
+    onRepeatEnableChange?: (enabled: boolean) => void;
+    dayMap: DaySet;
+    onDayMapChange?: (dayMap: DaySet) => void;
+    startDay: StartDay;
 }) {
-    const toggleDay = (day: DayKey) => {
-        const updated = selected.includes(day)
-            ? selected.filter((d) => d !== day)
-            : [...selected, day];
-        setSelected(updated);
-        props.onSelectionChange(updated);
-    };
     const { colors } = useTheme();
-    const [selected, setSelected] = useState<DayKey[]>([]);
+    const [localDaySet, setLocalDaySet] = useState<DaySet>(props.dayMap);
+
     useEffect(() => {
-        setSelected(props.selectedDays);
-        return () => {};
-    }, [selected]);
+        setLocalDaySet(props.dayMap);
+    }, [props.dayMap]);
+
+    const toggleDay = (dayIndex: DayIndex) => {
+        const updated: DaySet = {
+            ...localDaySet,
+            [dayIndex]: {
+                ...localDaySet![dayIndex],
+                enabled: !localDaySet![dayIndex].enabled,
+            },
+        };
+        setLocalDaySet(updated);
+        props.onDayMapChange!(updated);
+    };
+
+    const weekOrder: DayIndex[] = Array.from(
+        { length: 7 },
+        (_, i) => ((props.startDay + i) % 7) as DayIndex
+    );
 
     if (props.changeable) {
         return (
@@ -84,67 +52,61 @@ function WeekdayRepeat(props: {
                         alignItems: "center",
                     }}
                 >
-                    <Text variant="labelLarge">{"Repeat"}</Text>
+                    <Text variant="labelLarge">Repeat</Text>
                     <Switch
-                        value={props.enabled}
+                        value={props.repeatEnabled}
                         onValueChange={() => {
-                            props.onEnableChange(!props.enabled);
+                            props.onRepeatEnableChange!(!props.repeatEnabled);
                         }}
                     />
                 </View>
-                {(() => {
-                    if (props.enabled) {
-                        return (
-                            <View
-                                style={{
-                                    paddingHorizontal: 5,
-                                    paddingTop: 15,
-                                    flexDirection: "row",
-                                    justifyContent: "space-around",
-                                    alignItems: "center",
-                                }}
-                            >
-                                {(
-                                    weekOrders[props.startDay] ||
-                                    weekOrders.saturday
-                                ).map((day: DayKey) => {
-                                    const isSelected = selected.includes(day);
-                                    const { letter, full } = dayConfigs[day];
-                                    return (
-                                        <TouchableRipple
-                                            key={day}
-                                            onPress={() => toggleDay(day)}
-                                            style={{
-                                                width: 32,
-                                                height: 32,
-                                                borderRadius: 6,
-                                                backgroundColor: isSelected
-                                                    ? colors.primaryContainer
-                                                    : colors.surface,
-                                                justifyContent: "center",
-                                                alignItems: "center",
-                                                marginHorizontal: 2,
-                                                elevation: 5,
-                                            }}
-                                        >
-                                            <Text
-                                                style={{
-                                                    fontSize: 14,
-                                                    fontWeight: "500",
-                                                    color: isSelected
-                                                        ? colors.onPrimaryContainer
-                                                        : colors.onSurface,
-                                                }}
-                                            >
-                                                {letter}
-                                            </Text>
-                                        </TouchableRipple>
-                                    );
-                                })}
-                            </View>
-                        );
-                    }
-                })()}
+                {props.repeatEnabled && (
+                    <View
+                        style={{
+                            paddingHorizontal: 5,
+                            paddingTop: 15,
+                            flexDirection: "row",
+                            justifyContent: "space-around",
+                            alignItems: "center",
+                        }}
+                    >
+                        {weekOrder.map((dayIndex) => {
+                            const dayData = localDaySet[dayIndex];
+                            const isSelected = dayData.enabled;
+
+                            return (
+                                <TouchableRipple
+                                    key={dayIndex}
+                                    onPress={() => toggleDay(dayIndex)}
+                                    style={{
+                                        width: 32,
+                                        height: 32,
+                                        borderRadius: 6,
+                                        backgroundColor: isSelected
+                                            ? colors.primaryContainer
+                                            : colors.surface,
+                                        justifyContent: "center",
+                                        alignItems: "center",
+                                        marginHorizontal: 2,
+                                        elevation: 5,
+                                    }}
+                                >
+                                    <Text
+                                        style={{
+                                            fontSize: 14,
+                                            fontWeight: "500",
+                                            color: isSelected
+                                                ? colors.onPrimaryContainer
+                                                : colors.onSurface,
+                                        }}
+                                    >
+                                        {dayData.letter}
+                                    </Text>
+                                </TouchableRipple>
+                            );
+                        })}
+                    </View>
+                )}
             </View>
         );
     } else {
@@ -157,34 +119,29 @@ function WeekdayRepeat(props: {
                     columnGap: 8,
                 }}
             >
-                {(weekOrders[props.startDay] || weekOrders.saturday).map(
-                    (day: DayKey) => {
-                        const isSelected =
-                            selected.includes(day) && props.enabled;
-                        const { letter, full } = dayConfigs[day];
+                {weekOrder.map((dayIndex) => {
+                    const dayData = localDaySet[dayIndex];
+                    const isSelected = dayData.enabled && props.repeatEnabled;
 
-                        return (
-                            <Tag
-                                key={full}
-                                size="small"
-                                name={letter}
-                                tagColor={
-                                    isSelected
-                                        ? colors.secondaryContainer
-                                        : colors.surfaceDisabled
-                                }
-                                iconColor={
-                                    isSelected
-                                        ? colors.onSecondaryContainer
-                                        : colors.onSurfaceDisabled
-                                }
-                            />
-                        );
-                    }
-                )}
+                    return (
+                        <Tag
+                            key={dayIndex}
+                            size="small"
+                            name={dayData.letter}
+                            tagColor={
+                                isSelected
+                                    ? colors.secondaryContainer
+                                    : colors.surfaceDisabled
+                            }
+                            iconColor={
+                                isSelected
+                                    ? colors.onSecondaryContainer
+                                    : colors.onSurfaceDisabled
+                            }
+                        />
+                    );
+                })}
             </View>
         );
     }
 }
-
-export { WeekdayRepeat, DayKey };

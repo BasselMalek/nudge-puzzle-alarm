@@ -1,7 +1,7 @@
 import { useReducer, useState, useCallback } from "react";
 import { Alarm, AlarmDto } from "@/types/Alarm";
 import { SQLiteDatabase } from "expo-sqlite";
-import { DayKey } from "@/types/DayKey";
+import { DaySet } from "@/types/DaySet";
 import { PowerUp } from "@/types/PowerUp";
 import { Puzzle } from "@/types/Puzzles";
 import { randomUUID } from "expo-crypto";
@@ -118,7 +118,7 @@ export const createAlarm = (p: {
     ringHours?: number;
     ringMins?: number;
     repeat?: boolean;
-    repeatDays?: DayKey[];
+    repeatDays?: DaySet;
     vibrate?: boolean;
     ringtone?: string;
     puzzles?: Puzzle[];
@@ -131,7 +131,15 @@ export const createAlarm = (p: {
     vibrate: p.vibrate ?? false,
     ringtone: p.ringtone ?? "none",
     repeat: p.repeat ?? false,
-    repeatDays: p.repeatDays ?? [],
+    repeatDays: p.repeatDays ?? {
+        0: { dayName: "Sunday", letter: "S", enabled: false },
+        1: { dayName: "Monday", letter: "M", enabled: false },
+        2: { dayName: "Tuesday", letter: "T", enabled: false },
+        3: { dayName: "Wednesday", letter: "W", enabled: false },
+        4: { dayName: "Thursday", letter: "T", enabled: false },
+        5: { dayName: "Friday", letter: "F", enabled: false },
+        6: { dayName: "Saturday", letter: "S", enabled: false },
+    },
     puzzles: p.puzzles ?? [],
     powerUps: p.powerUps ?? [],
     isEnabled: true,
@@ -226,12 +234,12 @@ export const useAlarms = (db: SQLiteDatabase, linkingScheme: string) => {
                 const ringDateToday = new Date(
                     new Date().setHours(alarm.ringHours, alarm.ringMins)
                 );
-                AlarmBridge.scheduleAlarm(
-                    id,
-                    isFuture(ringDateToday)
-                        ? ringDateToday.getTime()
-                        : addDays(ringDateToday, 1).getTime()
-                );
+                // AlarmBridge.scheduleAlarm(
+                //     id,
+                //     isFuture(ringDateToday)
+                //         ? ringDateToday.getTime()
+                //         : addDays(ringDateToday, 1).getTime()
+                // );
             }
             updateAlarm(id, { isEnabled: !alarm.isEnabled });
         },
