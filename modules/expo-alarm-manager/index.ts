@@ -25,8 +25,6 @@ export const scheduleAlarm = (
     timestamp: number,
     vibrate: boolean
 ): Promise<boolean> => {
-    console.log("set alarm " + alarmId);
-
     return ExpoAlarmManagerModule.scheduleAlarm(alarmId, timestamp, vibrate);
 };
 
@@ -38,19 +36,23 @@ export const scheduleAlarm = (
  */
 export const modifyAlarm = (
     alarmId: string,
-    newTimestamp: number
+    newTimestamp: number,
+    vibrate: boolean
 ): Promise<boolean> => {
-    return ExpoAlarmManagerModule.modifyAlarm(alarmId, newTimestamp);
+    return ExpoAlarmManagerModule.modifyAlarm(alarmId, newTimestamp, vibrate);
 };
 
 /**
  * Delete a scheduled alarm.
  * @param alarmId The alarm ID
+ * @param vibrate Whether the alarm notification should vibrate.
  * @returns Promise<boolean> indicating success
  */
-export const deleteAlarm = (alarmId: string): Promise<boolean> => {
-    console.log("deleted alarm " + alarmId);
-    return ExpoAlarmManagerModule.deleteAlarm(alarmId);
+export const deleteAlarm = (
+    alarmId: string,
+    vibrate: boolean
+): Promise<boolean> => {
+    return ExpoAlarmManagerModule.deleteAlarm(alarmId, vibrate);
 };
 
 /**

@@ -64,9 +64,16 @@ class ExpoAlarmManagerModule : Module() {
                     ?: return@AsyncFunction promise.reject("E_NO_ALARM_MANAGER", "AlarmManager not available", null)
 
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && !mgr.canScheduleExactAlarms()) {
-                    return@AsyncFunction promise.reject("E_NO_EXACT_ALARM_PERMISSION", "SCHEDULE_EXACT_ALARM permission required", null)
+                    return@AsyncFunction promise.reject(
+                        "E_NO_EXACT_ALARM_PERMISSION",
+                        "SCHEDULE_EXACT_ALARM permission required",
+                        null
+                    )
                 }
-                mgr.setAlarmClock(AlarmManager.AlarmClockInfo(timestamp, createShowIntent()), createAlarmIntent(alarmId, vibrate))
+                mgr.setAlarmClock(
+                    AlarmManager.AlarmClockInfo(timestamp, createShowIntent()),
+                    createAlarmIntent(alarmId, vibrate)
+                )
                 promise.resolve(true)
             } catch (e: Exception) {
                 promise.reject("E_SCHEDULE_ALARM", "Failed to schedule alarm", e)
@@ -89,7 +96,8 @@ class ExpoAlarmManagerModule : Module() {
                     existingUri?.takeIf { it.isNotEmpty() }?.let {
                         try {
                             putExtra(RingtoneManager.EXTRA_RINGTONE_EXISTING_URI, it.toUri())
-                        } catch (_: Exception) { }
+                        } catch (_: Exception) {
+                        }
                     }
                 }
                 uriSelectionPendingPromise = promise
@@ -133,28 +141,36 @@ class ExpoAlarmManagerModule : Module() {
                 } catch (e: IllegalArgumentException) {
                     return@AsyncFunction promise.reject("E_INVALID_ALARM_ID", "Invalid alarm ID format", e)
                 }
-                deleteScheduledAlarmInternal(alarmId)
+                deleteScheduledAlarmInternal(alarmId, vibrate)
 
                 val mgr = getAlarmManager()
                     ?: return@AsyncFunction promise.reject("E_NO_ALARM_MANAGER", "AlarmManager not available", null)
 
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && !mgr.canScheduleExactAlarms()) {
-                    return@AsyncFunction promise.reject("E_NO_EXACT_ALARM_PERMISSION", "SCHEDULE_EXACT_ALARM permission required", null)
+                    return@AsyncFunction promise.reject(
+                        "E_NO_EXACT_ALARM_PERMISSION",
+                        "SCHEDULE_EXACT_ALARM permission required",
+                        null
+                    )
                 }
-                mgr.setAlarmClock(AlarmManager.AlarmClockInfo(newTimestamp, createShowIntent()), createAlarmIntent(alarmId, vibrate))
+                mgr.setAlarmClock(
+                    AlarmManager.AlarmClockInfo(newTimestamp, createShowIntent()),
+                    createAlarmIntent(alarmId, vibrate)
+                )
                 promise.resolve(true)
             } catch (e: Exception) {
                 promise.reject("E_MODIFY_ALARM", "Failed to modify alarm", e)
             }
         }
 
-        AsyncFunction("deleteAlarm") { alarmId: String, promise: Promise ->
+        AsyncFunction("deleteAlarm") { alarmId: String, vibrate: Boolean, promise: Promise ->
             try {
-                try { UUID.fromString(alarmId) }
-                catch (e: IllegalArgumentException) {
+                try {
+                    UUID.fromString(alarmId)
+                } catch (e: IllegalArgumentException) {
                     return@AsyncFunction promise.reject("E_INVALID_ALARM_ID", "Invalid alarm ID format", e)
                 }
-                deleteScheduledAlarmInternal(alarmId)
+                deleteScheduledAlarmInternal(alarmId, vibrate)
                 promise.resolve(true)
             } catch (e: Exception) {
                 promise.reject("E_DELETE_ALARM", "Failed to delete alarm", e)
@@ -254,7 +270,9 @@ class ExpoAlarmManagerModule : Module() {
         }
 
         OnDestroy {
-            try { alarmPlayer?.release() } finally {
+            try {
+                alarmPlayer?.release()
+            } finally {
                 alarmPlayer = null
                 uriSelectionPendingPromise = null
             }
@@ -262,16 +280,24 @@ class ExpoAlarmManagerModule : Module() {
     }
 
     fun sendPlaybackFinished(playerId: String) {
-        try { sendEvent("onPlaybackFinished", mapOf("playerId" to playerId)) } catch (_: Exception) { }
+        try {
+            sendEvent("onPlaybackFinished", mapOf("playerId" to playerId))
+        } catch (_: Exception) {
+        }
     }
 
     fun sendPlaybackError(playerId: String, error: String) {
-        try { sendEvent("onPlaybackError", mapOf("playerId" to playerId, "error" to error)) } catch (_: Exception) { }
+        try {
+            sendEvent("onPlaybackError", mapOf("playerId" to playerId, "error" to error))
+        } catch (_: Exception) {
+        }
     }
 
-    private fun createAlarmIntent(alarmId: String, vibrate: Boolean = false): PendingIntent {
+    private fun createAlarmIntent(alarmId: String, vibrate: Boolean): PendingIntent {
         val context = appContext.reactContext ?: throw IllegalStateException("React context is null")
         val intent = Intent(context, AlarmReceiver::class.java).apply {
+            action = "expo.modules.alarmmanager.ACTION_ALARM"
+            data = null
             putExtra("alarm_id", alarmId)
             putExtra("linking_scheme", LINKING_SCHEME)
             putExtra("vibrate", vibrate)
@@ -301,9 +327,31 @@ class ExpoAlarmManagerModule : Module() {
     private fun getAlarmManager(): AlarmManager? =
         appContext.reactContext?.getSystemService(Context.ALARM_SERVICE) as? AlarmManager
 
-    private fun deleteScheduledAlarmInternal(alarmId: String) {
-        try { getAlarmManager()?.cancel(createAlarmIntent(alarmId)) } catch (_: Exception) { }
+
+    private fun deleteScheduledAlarmInternal(alarmId: String, vibrate: Boolean) {
+        val ctx = appContext.reactContext ?: return
+        val mgr = getAlarmManager() ?: return
+
+        val intent = Intent(ctx, AlarmReceiver::class.java).apply {
+            action = "expo.modules.alarmmanager.ACTION_ALARM"
+            data = null
+            putExtra("alarm_id", alarmId)
+            putExtra("vibrate", vibrate)
+            putExtra("linking_scheme", LINKING_SCHEME)
+        }
+
+        val req = uuidToInt(alarmId)
+        val existing = PendingIntent.getBroadcast(
+            ctx.applicationContext,
+            req,
+            intent,
+            PendingIntent.FLAG_NO_CREATE or PendingIntent.FLAG_IMMUTABLE
+        )
+        mgr.cancel(existing)
+        existing.cancel()
+
     }
+
 
     private fun uuidToInt(id: String): Int {
         val u = UUID.fromString(id)
@@ -340,9 +388,11 @@ class AlarmPlayerInstance(
                             finished = true
                             module.sendPlaybackFinished(playerId)
                         }
+
                         Player.STATE_READY -> finished = false
                     }
                 }
+
                 override fun onPlayerError(error: PlaybackException) {
                     if (!isReleased) {
                         module.sendPlaybackError(playerId, error.message ?: "Unknown playback error")
