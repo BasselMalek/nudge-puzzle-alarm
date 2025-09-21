@@ -4,9 +4,6 @@ import {
     Text,
     Switch,
     useTheme,
-    Button,
-    FAB,
-    IconButton,
     Icon,
     Surface,
 } from "react-native-paper";
@@ -24,7 +21,6 @@ import Animated, {
     interpolate,
 } from "react-native-reanimated";
 import { Alarm } from "@/types/Alarm";
-import { DaySet } from "@/types/DaySet";
 
 export default function AlarmCard(props: {
     alarm: Alarm;
@@ -163,10 +159,10 @@ export default function AlarmCard(props: {
                                         </Text>
                                         <Switch
                                             value={props.alarm.isEnabled}
-                                            onValueChange={() => {
-                                                props.onToggle(
-                                                    !props.alarm.isEnabled
-                                                );
+                                            onValueChange={(
+                                                nextVal: boolean
+                                            ) => {
+                                                props.onToggle(nextVal);
                                             }}
                                         />
                                     </View>

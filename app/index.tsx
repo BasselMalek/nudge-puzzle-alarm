@@ -12,7 +12,6 @@ import { preventAutoHideAsync, hide } from "expo-splash-screen";
 import { initDatabaseTableIfFirstBoot } from "@/utils/databaseHelpers";
 import AlarmCard from "@/components/AlarmCard";
 import MaskedView from "@react-native-masked-view/masked-view";
-import * as AlarmManager from "@/modules/expo-alarm-manager";
 
 preventAutoHideAsync();
 
@@ -112,8 +111,8 @@ export default function Alarms() {
                 onPress={() => {
                     router.navigate(`./alarmOptions?id=${item.id}`);
                 }}
-                onToggle={() => {
-                    toggleAlarm(item.id);
+                onToggle={(nextVal: boolean) => {
+                    toggleAlarm(item.id, nextVal);
                 }}
             />
         ),
@@ -187,15 +186,6 @@ export default function Alarms() {
                 }}
                 onPress={() => {
                     router.navigate(`./alarms/${alarms.at(0)?.id}`);
-                }}
-                onLongPress={() => {
-                    AlarmManager.scheduleAlarm(
-                        alarms.at(0)!.id,
-                        Date.now() + 10000,
-                        alarms.at(0)!.vibrate
-                    ).then(() => {
-                        console.log("set");
-                    });
                 }}
             />
             <MaskedView
