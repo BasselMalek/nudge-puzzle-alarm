@@ -8410,6 +8410,11 @@ react-native-modal@^14.0.0-rc.1:
   dependencies:
     react-native-animatable "1.4.0"
 
+react-native-nfc-manager@4.0.0-beta.4:
+  version "4.0.0-beta.4"
+  resolved "https://registry.yarnpkg.com/react-native-nfc-manager/-/react-native-nfc-manager-4.0.0-beta.4.tgz#af4f8e884b19faf1eaa1013a0312549857473e68"
+  integrity sha512-iXmx1EPKG1V/VBaq6Hkh5OdV5jVwIoSpJe2IloKovVk8wz885elpFqy8E3WjvyavsD+WJckEY2X1+U+/MdOtJA==
+
 react-native-paper-dates@^0.22.49:
   version "0.22.49"
   resolved "https://registry.yarnpkg.com/react-native-paper-dates/-/react-native-paper-dates-0.22.49.tgz#c2817a53fd85cbf376e61030d23dc528d19daa88"

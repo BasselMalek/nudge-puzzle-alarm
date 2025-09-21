@@ -72,7 +72,7 @@ export default function PuzzleContainer(
                         alignItems: "center",
                     }}
                 >
-                    <Text>{"Text • Eazy"}</Text>
+                    <Text>{"Text"}</Text>
                     <IndicatorDots
                         style={{ justifyContent: "flex-end" }}
                         total={5}

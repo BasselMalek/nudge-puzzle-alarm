@@ -18,6 +18,7 @@ import * as AlarmManager from "@/modules/expo-alarm-manager";
 import ClockText from "@/components/ClockText";
 import PuzzleContainer from "@/components/puzzle/PuzzleContainer";
 import TextPuzzleComponent from "@/components/puzzle/TextPuzzleComponent";
+import NFCPuzzleComponent from "@/components/puzzle/NFCPuzzleComponent";
 
 export default function AlarmScreen() {
     const { id } = useLocalSearchParams();
@@ -129,7 +130,7 @@ export default function AlarmScreen() {
                         style={{ flex: 1 }}
                         isVisible={isPuzzleVisible}
                     >
-                        <TextPuzzleComponent
+                        {/* <TextPuzzleComponent
                             puzzle={{
                                 type: "text",
                                 difficulty: 1,
@@ -137,6 +138,26 @@ export default function AlarmScreen() {
                             }}
                             onSuccess={() => {
                                 console.log("success");
+                            }}
+                        /> */}
+                        <NFCPuzzleComponent
+                            puzzle={{
+                                type: "nfc",
+                                difficulty: 2,
+                                params: {
+                                    tagCount: 1,
+                                    sequence: [
+                                        {
+                                            tech: "ultralight",
+                                            name: "Kitchen",
+                                            id: "04BE68F2343580",
+                                        },
+                                    ],
+                                    timeLimit: 0,
+                                },
+                            }}
+                            onSuccess={() => {
+                                console.log("sucess");
                             }}
                         />
                     </PuzzleContainer>
