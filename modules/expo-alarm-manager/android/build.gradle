@@ -10,7 +10,7 @@ useCoreDependencies()
 useExpoPublishing()
 
 // If you want to use the managed Android SDK versions from expo-modules-core, set this to true.
-def useManagedAndroidSdkVersions = false
+def useManagedAndroidSdkVersions = true
 if (useManagedAndroidSdkVersions) {
     useDefaultAndroidSdkVersions()
 } else {

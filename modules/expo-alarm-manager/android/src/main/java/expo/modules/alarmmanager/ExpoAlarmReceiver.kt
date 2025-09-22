@@ -16,6 +16,11 @@ import com.facebook.react.HeadlessJsTaskService
 
 @Suppress("UsePropertyAccessSyntax")
 class AlarmReceiver : BroadcastReceiver() {
+
+    companion object {
+        private var channelsCreated = false
+    }
+
     @RequiresPermission(Manifest.permission.POST_NOTIFICATIONS)
     @SuppressLint("NewApi")
     override fun onReceive(context: Context, intent: Intent) {
@@ -23,11 +28,13 @@ class AlarmReceiver : BroadcastReceiver() {
             Intent.ACTION_BOOT_COMPLETED -> {
                 handleBootCompleted(context, intent)
             }
+
             else -> {
                 handleAlarmTrigger(context, intent)
             }
         }
     }
+
     private fun handleBootCompleted(context: Context, intent: Intent) {
         val rescheduleRequest = androidx.work.OneTimeWorkRequest.Builder(WorkManagerHeadlessJSWorker::class.java)
             .build()
@@ -38,20 +45,18 @@ class AlarmReceiver : BroadcastReceiver() {
         )
     }
 
-
-    @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
     @RequiresPermission(Manifest.permission.POST_NOTIFICATIONS)
     private fun handleAlarmTrigger(context: Context, intent: Intent) {
         val alarmId = intent.getStringExtra("alarm_id") ?: return
         val linkingScheme = intent.getStringExtra("linking_scheme") ?: return
         val shouldVibrate = intent.getBooleanExtra("vibrate", false)
 
-        createNotificationChannels(context)
+        ensureNotificationChannelsExist(context)
         showFullScreenNotification(context, alarmId, linkingScheme, shouldVibrate)
     }
 
-    private fun createNotificationChannels(context: Context) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+    private fun ensureNotificationChannelsExist(context: Context) {
+        if (!channelsCreated && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channelWithVibration = NotificationChannel(
                 "alarm_channel_vibrate",
                 "Alarm Notifications",
@@ -80,11 +85,11 @@ class AlarmReceiver : BroadcastReceiver() {
 
             val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             notificationManager.createNotificationChannels(listOf(channelWithVibration, channelWithoutVibration))
+            channelsCreated = true
         }
     }
 
     @RequiresPermission(Manifest.permission.POST_NOTIFICATIONS)
-    @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
     private fun showFullScreenNotification(
         context: Context,
         alarmId: String,
@@ -104,7 +109,7 @@ class AlarmReceiver : BroadcastReceiver() {
         if (Build.VERSION.SDK_INT == 34) {
             options.pendingIntentBackgroundActivityStartMode =
                 ActivityOptions.MODE_BACKGROUND_ACTIVITY_START_ALLOWED
-        } else {
+        } else if (Build.VERSION.SDK_INT > 34) {
             options.setPendingIntentCreatorBackgroundActivityStartMode(
                 ActivityOptions.MODE_BACKGROUND_ACTIVITY_START_ALLOWED
             )
@@ -118,46 +123,24 @@ class AlarmReceiver : BroadcastReceiver() {
             options.toBundle()
         )
 
-        val keyguardManager = context.getSystemService(Context.KEYGUARD_SERVICE) as KeyguardManager
-        val isLocked = keyguardManager.isKeyguardLocked
-
         val channelId = if (vibrate) "alarm_channel_vibrate" else "alarm_channel_no_vibrate"
 
-        if (isLocked) {
-            val notification = NotificationCompat.Builder(context, channelId)
-                .setSmallIcon(android.R.drawable.ic_lock_idle_alarm)
-                .setContentTitle("Nudge")
-                .setContentText("Time to wake up!")
-                .setPriority(NotificationCompat.PRIORITY_MAX)
-                .setCategory(NotificationCompat.CATEGORY_ALARM)
-                .setFullScreenIntent(fullScreenPendingIntent, true)
-                .setAutoCancel(true)
-                .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
-                .setOngoing(true)
-                .build()
+        // Unified behavior - always use full screen intent regardless of lock state
+        val notification = NotificationCompat.Builder(context, channelId)
+            .setSmallIcon(android.R.drawable.ic_lock_idle_alarm)
+            .setContentTitle("Nudge")
+            .setContentText("Time to wake up!")
+            .setPriority(NotificationCompat.PRIORITY_MAX)
+            .setCategory(NotificationCompat.CATEGORY_ALARM)
+            .setFullScreenIntent(fullScreenPendingIntent, true)
+            .setContentIntent(fullScreenPendingIntent)
+            .setAutoCancel(true)
+            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+            .setOngoing(true)
+            .build()
 
-            notification.flags = notification.flags or Notification.FLAG_INSISTENT
+        notification.flags = notification.flags or Notification.FLAG_INSISTENT
 
-            NotificationManagerCompat.from(context).notify(alarmId.hashCode(), notification)
-        } else {
-            try {
-                val notification = NotificationCompat.Builder(context, channelId)
-                    .setSmallIcon(android.R.drawable.ic_lock_idle_alarm)
-                    .setContentTitle("Nudge")
-                    .setContentText("Time to wake up!")
-                    .setPriority(NotificationCompat.PRIORITY_MAX)
-                    .setCategory(NotificationCompat.CATEGORY_ALARM)
-                    .setContentIntent(fullScreenPendingIntent)
-                    .setAutoCancel(true)
-                    .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
-                    .setOngoing(true)
-                    .build()
-                NotificationManagerCompat.from(context).notify(alarmId.hashCode(), notification)
-
-                context.startActivity(deepLinkIntent)
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-        }
+        NotificationManagerCompat.from(context).notify(alarmId.hashCode(), notification)
     }
 }
