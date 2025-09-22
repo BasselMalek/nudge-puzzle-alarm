@@ -9,7 +9,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import { StatusBar } from "expo-status-bar";
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
-import { useAlarms, formatDistanceStrictShortend } from "@/hooks/useAlarms";
+import { useAlarms, formatDistanceStrictShortened } from "@/hooks/useAlarms";
 import { useSQLiteContext } from "expo-sqlite";
 import { Alarm } from "@/types/Alarm";
 import { preventAutoHideAsync, hide } from "expo-splash-screen";
@@ -69,7 +69,7 @@ export default function Alarms() {
             setAlarmGradientDim(true);
             setSoonestRingTime(
                 "Next alarm in " +
-                    formatDistanceStrictShortend(
+                    formatDistanceStrictShortened(
                         new Date(
                             new Date().setHours(
                                 soonestAlarm.ringHours,

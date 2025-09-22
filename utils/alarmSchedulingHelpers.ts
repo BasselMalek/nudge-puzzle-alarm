@@ -47,25 +47,35 @@ const getNextInstanceTimeStamp = (alarm: Alarm) => {
 };
 
 const disableNextInstance = async (alarm: Alarm) => {
-    await deleteAlarm(alarm.id, alarm.vibrate);
+    return deleteAlarm(alarm.id, alarm.vibrate);
 };
 
 const modifyNextInstance = async (alarm: Alarm) => {
-    await modifyAlarm(alarm.id, getNextInstanceTimeStamp(alarm), alarm.vibrate);
+    return modifyAlarm(
+        alarm.id,
+        getNextInstanceTimeStamp(alarm),
+        alarm.vibrate
+    );
 };
 
 const handleDaisyChainAfterRing = async (alarm: Alarm) => {
     if (!alarm.repeat) {
         return { ...alarm, isEnabled: false };
     }
-    await scheduleNextInstance(alarm);
-    return alarm;
+    return scheduleNextInstance(alarm);
 };
 
-const rescheduleAllForOnBoot = async (alarms: Alarm[]) => {};
+const rescheduleAllForOnBoot = async (alarms: Alarm[]): Promise<boolean> => {
+    const results = await Promise.all(
+        alarms.map(async (alarm) => {
+            return scheduleNextInstance(alarm);
+        })
+    );
+    return results.every((bool) => bool === true);
+};
 
 const scheduleNextInstance = async (alarm: Alarm) => {
-    await scheduleAlarm(
+    return scheduleAlarm(
         alarm.id,
         getNextInstanceTimeStamp(alarm),
         alarm.vibrate

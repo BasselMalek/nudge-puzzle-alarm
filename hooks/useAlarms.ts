@@ -1,4 +1,4 @@
-import { useReducer, useState, useCallback } from "react";
+import { useReducer, useState, useCallback, useEffect } from "react";
 import { Alarm, AlarmDto } from "@/types/Alarm";
 import { SQLiteDatabase } from "expo-sqlite";
 import { DaySet } from "@/types/DaySet";
@@ -19,7 +19,7 @@ type AlarmAction =
     | { type: "ADD_ALARM"; payload: Alarm }
     | { type: "SET_ALARMS"; payload: Alarm[] };
 
-export const formatDistanceStrictShortend = (
+export const formatDistanceStrictShortened = (
     laterDate: Date,
     earlierDate: Date
 ) => {
@@ -49,7 +49,7 @@ export const saveAlarmDirect = async (
                 alarm.ringMins,
                 alarm.repeat ? 1 : 0,
                 JSON.stringify(alarm.repeatDays),
-                alarm.ringtone,
+                JSON.stringify(alarm.ringtone),
                 alarm.vibrate ? 1 : 0,
                 JSON.stringify(alarm.puzzles),
                 JSON.stringify(alarm.powerUps),
@@ -71,7 +71,7 @@ export const saveAlarmDirect = async (
                 alarm.ringMins,
                 alarm.repeat ? 1 : 0,
                 JSON.stringify(alarm.repeatDays),
-                alarm.ringtone,
+                JSON.stringify(alarm.ringtone),
                 alarm.vibrate ? 1 : 0,
                 JSON.stringify(alarm.puzzles),
                 JSON.stringify(alarm.powerUps),
@@ -110,7 +110,7 @@ export const parseAlarm = (r: AlarmDto): Alarm => ({
     repeat: r.repeat === 1,
     repeatDays: r.repeat_days ? JSON.parse(r.repeat_days) : [],
     vibrate: r.vibrate === 1,
-    ringtone: r.ringtone,
+    ringtone: JSON.parse(r.ringtone),
     puzzles: r.puzzles ? JSON.parse(r.puzzles) : [],
     powerUps: r.power_ups ? JSON.parse(r.power_ups) : [],
     ringHours: r.ring_hours,
@@ -125,7 +125,7 @@ export const createAlarm = (p: {
     repeat?: boolean;
     repeatDays?: DaySet;
     vibrate?: boolean;
-    ringtone?: string;
+    ringtone?: { name: string; uri: string };
     puzzles?: Puzzle[];
     powerUps?: PowerUp[];
 }): Alarm => ({
@@ -134,7 +134,7 @@ export const createAlarm = (p: {
     ringHours: p.ringHours ?? 12,
     ringMins: p.ringMins ?? 0,
     vibrate: p.vibrate ?? false,
-    ringtone: p.ringtone ?? "none",
+    ringtone: p.ringtone ?? { name: "Silent", uri: "none" },
     repeat: p.repeat ?? false,
     repeatDays: p.repeatDays ?? {
         0: { dayName: "Sunday", letter: "S", enabled: false },
@@ -155,7 +155,9 @@ export const useAlarms = (db: SQLiteDatabase, linkingScheme: string) => {
     const [alarms, dispatch] = useReducer(alarmsReducer, []);
     const [diff, setDiff] = useState<Map<string, Alarm>>(new Map());
 
-    setLinkingScheme(linkingScheme);
+    useEffect(() => {
+        setLinkingScheme(linkingScheme);
+    }, [linkingScheme]);
 
     const loadAlarms = useCallback(async () => {
         const rows = await db.getAllAsync<AlarmDto>("SELECT * FROM alarms");
@@ -184,7 +186,7 @@ export const useAlarms = (db: SQLiteDatabase, linkingScheme: string) => {
                             v.ringMins,
                             v.repeat ? 1 : 0,
                             JSON.stringify(v.repeatDays),
-                            v.ringtone,
+                            JSON.stringify(v.ringtone),
                             v.vibrate ? 1 : 0,
                             JSON.stringify(v.puzzles),
                             JSON.stringify(v.powerUps),

@@ -215,9 +215,32 @@ export default function AlarmOptions() {
                             </Card>
                             <Card
                                 onPress={async () => {
-                                    const uri = await pickAlarmTone();
-                                    if (uri)
-                                        setAlarm({ ...alarm, ringtone: uri });
+                                    const uri = await pickAlarmTone(
+                                        alarm.ringtone.uri === "none"
+                                            ? undefined
+                                            : alarm.ringtone.uri
+                                    );
+                                    console.log("URI is " + uri);
+
+                                    if (uri !== null)
+                                        if (uri.name === "") {
+                                            setAlarm({
+                                                ...alarm,
+                                                ringtone: {
+                                                    name: "Silent",
+                                                    uri: "none",
+                                                },
+                                            });
+                                        } else {
+                                            setAlarm({
+                                                ...alarm,
+                                                ringtone: {
+                                                    name: uri.name,
+                                                    uri: uri.uri,
+                                                },
+                                            });
+                                        }
+                                    setSoundsModalVisible(false);
                                 }}
                                 style={{
                                     borderRadius: roundness + 10,
@@ -272,7 +295,10 @@ export default function AlarmOptions() {
                                 onPress={async () => {
                                     const uri = await pickAudioFile();
                                     if (uri)
-                                        setAlarm({ ...alarm, ringtone: uri });
+                                        setAlarm({
+                                            ...alarm,
+                                            ringtone: { name: "Music", uri },
+                                        });
                                 }}
                                 style={{
                                     borderRadius: roundness + 10,
@@ -422,9 +448,7 @@ export default function AlarmOptions() {
                                     color: colors.onPrimary,
                                 }}
                             >
-                                {alarm.ringtone === "none"
-                                    ? "Silent"
-                                    : alarm.ringtone}
+                                {alarm.ringtone.name}
                             </Text>
                         </Button>
                     </View>

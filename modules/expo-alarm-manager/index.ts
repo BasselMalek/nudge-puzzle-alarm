@@ -8,8 +8,8 @@ import ExpoAlarmManagerModule, {
  * @param scheme Base URL scheme (e.g. "myapp://alarm")
  * @returns Promise<boolean> indicating success
  */
-export const setLinkingScheme = (scheme: string): Promise<boolean> => {
-    return ExpoAlarmManagerModule.setLinkingScheme(scheme);
+export const setLinkingScheme = (scheme: string) => {
+    ExpoAlarmManagerModule.setLinkingScheme(scheme);
 };
 
 /**
@@ -57,10 +57,14 @@ export const deleteAlarm = (
 
 /**
  * Open native alarm tone picker.
- * @returns Promise<string | null> Selected alarm tone URI or null if cancelled
+ * @param existingUri optional: previously uri selected.
+ * @returns selected URI. Will be null if called with no existing URI and the user cancels.
  */
-export const pickAlarmTone = (): Promise<string | null> => {
-    return ExpoAlarmManagerModule.pickAlarmTone();
+export const pickAlarmTone = async (
+    existingUri?: string
+): Promise<{ name: string; uri: string } | null> => {
+    const a = await ExpoAlarmManagerModule.pickAlarmTone(existingUri);
+    return a !== null ? { name: a.at(1)!, uri: a.at(0)! } : null;
 };
 
 export const addListener = ExpoAlarmManagerModule.addListener;

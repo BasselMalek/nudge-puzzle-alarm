@@ -9,7 +9,7 @@ declare class ExpoAlarmManagerModule extends NativeModule<ExpoAlarmManagerModule
      * Configure the base deep linking scheme for alarms.
      * @param scheme (e.g. "myapp://alarm").
      */
-    setLinkingScheme(scheme: string): Promise<boolean>;
+    setLinkingScheme(scheme: string): void;
 
     /**
      * Schedule a new alarm.
@@ -40,11 +40,15 @@ declare class ExpoAlarmManagerModule extends NativeModule<ExpoAlarmManagerModule
      * Delete a scheduled alarm.
      * @param alarmId The alarm ID.
      * @param vibrate Whether the alarm notification should vibrate.
-     *
      */
     deleteAlarm(alarmId: string, vibrate: boolean): Promise<boolean>;
 
-    pickAlarmTone(): Promise<string | null>;
+    /**
+     * Open native alarm tone picker.
+     * @param existingUri optional: previously uri selected.
+     * @returns selected URI. Will be null if called with no existing URI and the user cancels.
+     */
+    pickAlarmTone(existingUri?: string): Promise<string[] | null>;
 
     // AlarmPlayer native methods
     /**
