@@ -47,10 +47,13 @@ repositories {
 
 dependencies {
     implementation project(':expo-modules-core')
-dependencies {
+    implementation 'androidx.work:work-runtime-ktx:2.10.4'
+    dependencies {
     implementation "androidx.media3:media3-exoplayer:1.4.1"
     implementation "androidx.media3:media3-common:1.4.1"
     implementation "androidx.media3:media3-datasource:1.4.1"
     implementation "androidx.media3:media3-extractor:1.4.1"
+    implementation "com.facebook.react:react-native"
+    implementation "androidx.work:work-runtime-ktx"
 }
 }

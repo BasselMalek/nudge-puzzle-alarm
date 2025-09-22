@@ -26,7 +26,8 @@
                 "android.permission.WAKE_LOCK",
                 "android.permission.DISABLE_KEYGUARD",
                 "android.permission.POST_NOTIFICATIONS",
-                "android.permission.NFC"
+                "android.permission.NFC",
+                "android.permission.RECEIVE_BOOT_COMPLETED"
             ],
             "adaptiveIcon": {
                 "foregroundImage": "./assets/images/adaptive-icon.png",

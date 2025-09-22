@@ -8,21 +8,46 @@ const withAlarmReceiver = (config) => {
         const app = config.modResults.manifest.application?.[0];
         if (app) {
             app.receiver = app.receiver || [];
-            const receiverExists = app.receiver.some(
-                (r) =>
-                    r.$["android:name"] ===
-                    "expo.modules.alarmmanager.AlarmReceiver"
-            );
-            if (!receiverExists) {
-                app.receiver.push({
-                    $: {
-                        "android:name":
-                            "expo.modules.alarmmanager.AlarmReceiver",
-                        "android:enabled": "true",
-                        "android:exported": "false",
+            app.service = app.service || [];
+            app.service.push({
+                $: {
+                    "android:name":
+                        "expo.modules.alarmmanager.BootHeadlessTaskService",
+                    "android:enabled": "true",
+                    "android:exported": "true",
+                    // "android:foregroundServiceType": "shortService",
+                },
+            });
+            app.receiver.push({
+                $: {
+                    "android:name": "expo.modules.alarmmanager.AlarmReceiver",
+                    "android:enabled": "true",
+                    "android:exported": "true",
+                },
+                "intent-filter": [
+                    {
+                        $: {
+                            "android:priority": "1000",
+                        },
+                        action: [
+                            {
+                                $: {
+                                    "android:name":
+                                        "android.intent.action.BOOT_COMPLETED",
+                                },
+                            },
+                        ],
+                        category: [
+                            {
+                                $: {
+                                    "android:name":
+                                        "android.intent.category.DEFAULT",
+                                },
+                            },
+                        ],
                     },
-                });
-            }
+                ],
+            });
         }
         return config;
     });
@@ -36,7 +61,6 @@ const withScreenWake = (config) => {
                 "import android.os.Build",
                 "import android.view.WindowManager",
             ];
-
             imports.forEach((importStatement) => {
                 if (!config.modResults.contents.includes(importStatement)) {
                     const lastImportMatch = config.modResults.contents.match(
@@ -53,22 +77,21 @@ const withScreenWake = (config) => {
                     }
                 }
             });
-
             const screenWakeCode = `
+        val reactNativeHost = getReactNativeHost();
+        val reactInstanceManager = reactNativeHost.reactInstanceManager;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
-            // API 27+
-            setShowWhenLocked(true)
-            setTurnScreenOn(true)
+          // API 27+
+          setShowWhenLocked(true)
+          setTurnScreenOn(true)
         } else {
-            // API < 27
-            window.addFlags(
-                WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED or
-                WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON
-            )
+          // API < 27
+          window.addFlags(
+            WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED or
+            WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON
+          )
         }`;
-
             const superOnCreateRegex = /(super\.onCreate\(null\))/;
-
             if (superOnCreateRegex.test(config.modResults.contents)) {
                 config.modResults.contents = config.modResults.contents.replace(
                     superOnCreateRegex,

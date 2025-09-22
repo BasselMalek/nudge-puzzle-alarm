@@ -2,28 +2,46 @@ package expo.modules.alarmmanager
 
 import android.Manifest
 import android.annotation.SuppressLint
-import android.app.ActivityOptions
-import android.app.KeyguardManager
-import android.app.Notification
-import android.app.NotificationChannel
-import android.app.NotificationManager
-import android.app.PendingIntent
+import android.app.*
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import android.net.Uri
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.annotation.RequiresPermission
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.net.toUri
+import com.facebook.react.HeadlessJsTaskService
 
 @Suppress("UsePropertyAccessSyntax")
 class AlarmReceiver : BroadcastReceiver() {
-    @SuppressLint("NewApi")
     @RequiresPermission(Manifest.permission.POST_NOTIFICATIONS)
+    @SuppressLint("NewApi")
     override fun onReceive(context: Context, intent: Intent) {
+        when (intent.action) {
+            Intent.ACTION_BOOT_COMPLETED -> {
+                handleBootCompleted(context, intent)
+            }
+            else -> {
+                handleAlarmTrigger(context, intent)
+            }
+        }
+    }
+    private fun handleBootCompleted(context: Context, intent: Intent) {
+        val rescheduleRequest = androidx.work.OneTimeWorkRequest.Builder(WorkManagerHeadlessJSWorker::class.java)
+            .build()
+        androidx.work.WorkManager.getInstance(context).enqueueUniqueWork(
+            "RescheduleAlarmsWork",
+            androidx.work.ExistingWorkPolicy.REPLACE,
+            rescheduleRequest
+        )
+    }
+
+
+    @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
+    @RequiresPermission(Manifest.permission.POST_NOTIFICATIONS)
+    private fun handleAlarmTrigger(context: Context, intent: Intent) {
         val alarmId = intent.getStringExtra("alarm_id") ?: return
         val linkingScheme = intent.getStringExtra("linking_scheme") ?: return
         val shouldVibrate = intent.getBooleanExtra("vibrate", false)

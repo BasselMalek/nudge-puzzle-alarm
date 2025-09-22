@@ -31,13 +31,13 @@ export const formatDistanceStrictShortend = (
     return hrs !== 0 ? `${hrs}h ${mins}m` : `${mins}m`;
 };
 
-export const saveAlarmDirect = (
+export const saveAlarmDirect = async (
     id: string,
     db: SQLiteDatabase,
     alarm: Alarm
 ) => {
     if (id === "new") {
-        db.runSync(
+        const result = await db.runAsync(
             `INSERT INTO alarms
        (id, name, ring_hours, ring_mins, repeat, repeat_days,
         ringtone, vibrate, puzzles, power_ups, is_enabled, last_modified)
@@ -57,30 +57,30 @@ export const saveAlarmDirect = (
                 new Date().toISOString(),
             ]
         );
+        return result;
     } else {
-        db.withTransactionSync(() => {
-            db.runSync(
-                `UPDATE alarms
+        const result = await db.runAsync(
+            `UPDATE alarms
          SET name = ?, ring_hours = ?, ring_mins = ?, repeat = ?, repeat_days = ?,
              ringtone = ?, vibrate = ?, puzzles = ?, power_ups = ?,
              is_enabled = ?, last_modified = ?
          WHERE id = ?`,
-                [
-                    alarm.name,
-                    alarm.ringHours,
-                    alarm.ringMins,
-                    alarm.repeat ? 1 : 0,
-                    JSON.stringify(alarm.repeatDays),
-                    alarm.ringtone,
-                    alarm.vibrate ? 1 : 0,
-                    JSON.stringify(alarm.puzzles),
-                    JSON.stringify(alarm.powerUps),
-                    alarm.isEnabled ? 1 : 0,
-                    alarm.lastModified.toISOString(),
-                    alarm.id,
-                ]
-            );
-        });
+            [
+                alarm.name,
+                alarm.ringHours,
+                alarm.ringMins,
+                alarm.repeat ? 1 : 0,
+                JSON.stringify(alarm.repeatDays),
+                alarm.ringtone,
+                alarm.vibrate ? 1 : 0,
+                JSON.stringify(alarm.puzzles),
+                JSON.stringify(alarm.powerUps),
+                alarm.isEnabled ? 1 : 0,
+                alarm.lastModified.toISOString(),
+                alarm.id,
+            ]
+        );
+        return result;
     }
 };
 
