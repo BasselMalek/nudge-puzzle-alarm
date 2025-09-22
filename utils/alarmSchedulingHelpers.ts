@@ -62,12 +62,14 @@ const handleDaisyChainAfterRing = async (alarm: Alarm) => {
     if (!alarm.repeat) {
         return { ...alarm, isEnabled: false };
     }
-    return scheduleNextInstance(alarm);
+    return alarm;
 };
 
 const rescheduleAllForOnBoot = async (alarms: Alarm[]): Promise<boolean> => {
     const results = await Promise.all(
         alarms.map(async (alarm) => {
+            console.log(alarm);
+
             return scheduleNextInstance(alarm);
         })
     );

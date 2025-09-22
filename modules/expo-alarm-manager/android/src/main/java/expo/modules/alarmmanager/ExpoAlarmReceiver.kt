@@ -36,6 +36,7 @@ class AlarmReceiver : BroadcastReceiver() {
     }
 
     private fun handleBootCompleted(context: Context, intent: Intent) {
+
         val rescheduleRequest = androidx.work.OneTimeWorkRequest.Builder(WorkManagerHeadlessJSWorker::class.java)
             .build()
         androidx.work.WorkManager.getInstance(context).enqueueUniqueWork(
@@ -106,10 +107,7 @@ class AlarmReceiver : BroadcastReceiver() {
         }
 
         val options = ActivityOptions.makeBasic()
-        if (Build.VERSION.SDK_INT == 34) {
-            options.pendingIntentBackgroundActivityStartMode =
-                ActivityOptions.MODE_BACKGROUND_ACTIVITY_START_ALLOWED
-        } else if (Build.VERSION.SDK_INT > 34) {
+        if (Build.VERSION.SDK_INT >= 34) {
             options.setPendingIntentCreatorBackgroundActivityStartMode(
                 ActivityOptions.MODE_BACKGROUND_ACTIVITY_START_ALLOWED
             )
@@ -125,22 +123,45 @@ class AlarmReceiver : BroadcastReceiver() {
 
         val channelId = if (vibrate) "alarm_channel_vibrate" else "alarm_channel_no_vibrate"
 
-        // Unified behavior - always use full screen intent regardless of lock state
-        val notification = NotificationCompat.Builder(context, channelId)
-            .setSmallIcon(android.R.drawable.ic_lock_idle_alarm)
-            .setContentTitle("Nudge")
-            .setContentText("Time to wake up!")
-            .setPriority(NotificationCompat.PRIORITY_MAX)
-            .setCategory(NotificationCompat.CATEGORY_ALARM)
-            .setFullScreenIntent(fullScreenPendingIntent, true)
-            .setContentIntent(fullScreenPendingIntent)
-            .setAutoCancel(true)
-            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
-            .setOngoing(true)
-            .build()
+        val keyguardManager = context.getSystemService(Context.KEYGUARD_SERVICE) as KeyguardManager
+        val isLocked = keyguardManager.isKeyguardLocked
 
-        notification.flags = notification.flags or Notification.FLAG_INSISTENT
 
-        NotificationManagerCompat.from(context).notify(alarmId.hashCode(), notification)
+        if (isLocked) {
+            val notification = NotificationCompat.Builder(context, channelId)
+                .setSmallIcon(android.R.drawable.ic_lock_idle_alarm)
+                .setContentTitle("Nudge")
+                .setContentText("Time to wake up!")
+                .setPriority(NotificationCompat.PRIORITY_MAX)
+                .setCategory(NotificationCompat.CATEGORY_ALARM)
+                .setFullScreenIntent(fullScreenPendingIntent, true)
+                .setAutoCancel(true)
+                .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+                .setOngoing(true)
+                .build()
+
+            notification.flags = notification.flags or Notification.FLAG_INSISTENT
+
+            NotificationManagerCompat.from(context).notify(alarmId.hashCode(), notification)
+        } else {
+            try {
+                val notification = NotificationCompat.Builder(context, channelId)
+                    .setSmallIcon(android.R.drawable.ic_lock_idle_alarm)
+                    .setContentTitle("Nudge")
+                    .setContentText("Time to wake up!")
+                    .setPriority(NotificationCompat.PRIORITY_MAX)
+                    .setCategory(NotificationCompat.CATEGORY_ALARM)
+                    .setContentIntent(fullScreenPendingIntent)
+                    .setAutoCancel(true)
+                    .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+                    .setOngoing(true)
+                    .build()
+                NotificationManagerCompat.from(context).notify(alarmId.hashCode(), notification)
+
+                context.startActivity(deepLinkIntent)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
     }
 }

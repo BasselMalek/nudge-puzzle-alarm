@@ -183,7 +183,7 @@ class ExpoAlarmManagerModule : Module() {
             }
         }
 
-
+        //TODO: this is working fine for now but i'm thinking of using Ringtone instead tbh.
         AsyncFunction("createPlayer") { promise: Promise ->
             try {
                 val playerId = UUID.randomUUID().toString()

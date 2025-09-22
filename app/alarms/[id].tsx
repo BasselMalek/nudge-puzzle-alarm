@@ -49,10 +49,9 @@ export default function AlarmScreen() {
         return () => {
             alarmAud?.stop();
             alarmAud?.release();
-            db.closeSync();
             BackHandler.exitApp();
         };
-    }, [puzzlesComplete, alarm]);
+    }, [puzzlesComplete]);
 
     const nav = useNavigation();
 
@@ -66,7 +65,7 @@ export default function AlarmScreen() {
     useEffect(() => {
         if (alarmAud && alarm?.ringtone) {
             //TODO: make it so it plays on all audio outputs. i.e if earbuds are connected it plays on both speaker/earbuds
-            alarmAud.setSource(alarm.ringtone);
+            alarmAud.setSource(alarm.ringtone.uri);
             alarmAud.play();
         }
     }, [alarmAud, alarm]);
