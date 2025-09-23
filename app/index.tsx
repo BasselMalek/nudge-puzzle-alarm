@@ -29,12 +29,9 @@ export default function Alarms() {
     const { update } = useLocalSearchParams();
     const [loadStale, setLoadStale] = useState(true);
 
-    useFocusEffect(
-        useCallback(() => {
-            setLoadStale(update === "true");
-            return () => {};
-        }, [update])
-    );
+    useFocusEffect(() => {
+        setLoadStale(update === "true");
+    });
 
     useEffect(() => {
         if (loadStale) {

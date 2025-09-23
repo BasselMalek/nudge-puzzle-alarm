@@ -517,9 +517,10 @@ export default function AlarmOptions() {
                             },
                         });
                     }
-                    saveAlarmDirect(id as string, db, alarm);
-                    scheduleNextInstance(alarm);
-                    router.navigate("/?update=true");
+                    saveAlarmDirect(id as string, db, alarm).then(() => {
+                        scheduleNextInstance(alarm);
+                        router.navigate("/?update=true");
+                    });
                 }}
                 onLongPress={() => console.log(alarm)}
             />
