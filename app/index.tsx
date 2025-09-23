@@ -1,7 +1,3 @@
-import { AppRegistry } from "react-native";
-import { BootTask } from "@/utils/BootTask";
-AppRegistry.registerHeadlessTask("BootTask", () => BootTask);
-
 import { useCallback, useEffect, useState, useMemo } from "react";
 import { FlatList, View } from "react-native";
 import { Text, Card, useTheme, FAB, IconButton } from "react-native-paper";
