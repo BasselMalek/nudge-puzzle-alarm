@@ -20,24 +20,15 @@ export default function NFCPuzzleComponent(props: {
 
     const onTagRead = useCallback(
         (tagId: string) => {
-            console.log(tagId + " " + currentTagTarget.current);
-
             if (
                 tagId ===
                 puzzle?.params.sequence.at(currentTagTarget.current)?.id
             ) {
-                iconRef.current?.triggerAnimation();
                 currentTagTarget.current = currentTagTarget.current + 1;
+                iconRef.current?.triggerAnimation();
             } else {
                 setIsError(true);
                 iconRef.current?.triggerAnimation();
-            }
-            if (currentTagTarget.current >= puzzle!.params.tagCount) {
-                onSuccess();
-            } else {
-                setCurrentTagName(
-                    puzzle.params.sequence.at(currentTagTarget.current)?.name
-                );
             }
         },
         [puzzle, currentTagTarget]
@@ -79,6 +70,14 @@ export default function NFCPuzzleComponent(props: {
                 //? this is 5am code tho i'm sure its fine.
                 onAnimationComplete={() => {
                     setIsError(false);
+                    if (currentTagTarget.current >= puzzle!.params.tagCount) {
+                        onSuccess();
+                    } else {
+                        setCurrentTagName(
+                            puzzle.params.sequence.at(currentTagTarget.current)
+                                ?.name
+                        );
+                    }
                 }}
             />
             <Text variant="displayMedium" style={{ textAlign: "center" }}>

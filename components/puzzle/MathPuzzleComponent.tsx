@@ -1,40 +1,14 @@
-import { TextPuzzle } from "@/types/Puzzles";
+import { MathPuzzle, TextPuzzle } from "@/types/Puzzles";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { View } from "react-native";
 import { Card, Text, TextInput, useTheme } from "react-native-paper";
 
-const charsets = {
-    easy: "abcdefghijklmnopqrstuvwxyz0123456789",
-    medium: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789",
-    hard: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()-_=+[]{};:,.<>/?",
-};
-
-const generateString = (length: number, charset: string) => {
-    const chars = [];
-    const charsetLength = charset.length;
-    for (let i = 0; i < length; i++) {
-        chars.push(charset[Math.floor(Math.random() * charsetLength)]);
-    }
-    return chars.join("");
-};
-
-export default function TextPuzzleComponent(props: {
-    puzzle: TextPuzzle;
+export default function MathPuzzleComponent(props: {
+    puzzle: MathPuzzle;
     onSuccess: () => void;
 }) {
     const { onSuccess, puzzle } = props;
-    const solveTarget = useMemo(
-        () =>
-            generateString(
-                puzzle.params.length,
-                puzzle.difficulty === 1
-                    ? charsets.easy
-                    : puzzle.difficulty === 2
-                    ? charsets.medium
-                    : charsets.hard
-            ),
-        [puzzle.params.length, puzzle.difficulty]
-    );
+    const solveTarget = useMemo(() => "hi", []);
     const [inputValue, setInputValue] = useState("");
     const { colors, roundness } = useTheme();
 
@@ -49,7 +23,6 @@ export default function TextPuzzleComponent(props: {
             style={{
                 paddingVertical: 20,
                 gap: 30,
-                flex: 1,
             }}
         >
             <Text variant="displayMedium" style={{ textAlign: "center" }}>
@@ -64,7 +37,7 @@ export default function TextPuzzleComponent(props: {
                 style={{ backgroundColor: colors.elevation.level1 }}
                 outlineColor={colors.onSecondaryContainer}
                 outlineStyle={{ borderRadius: roundness + 5 }}
-                onSubmitEditing={(e) => setInputValue(e.nativeEvent.text)}
+                onChange={(e) => setInputValue(e.nativeEvent.text)}
             />
         </View>
     );

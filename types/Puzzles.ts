@@ -22,8 +22,8 @@ export type NFCPuzzle = {
     };
 };
 
-export type PatternPuzzle = {
-    type: "pattern";
+export type MathPuzzle = {
+    type: "math";
     difficulty: 1 | 2 | 3;
     params: {
         //? WIP
@@ -54,6 +54,6 @@ export type MemoryPuzzle = {
 export type Puzzle =
     | TextPuzzle
     | NFCPuzzle
-    | PatternPuzzle
+    | MathPuzzle
     | BarcodePuzzle
     | MemoryPuzzle;

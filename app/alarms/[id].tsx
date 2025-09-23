@@ -16,9 +16,7 @@ import { Alarm, AlarmDto } from "@/types/Alarm";
 import { useSQLiteContext } from "expo-sqlite";
 import * as AlarmManager from "@/modules/expo-alarm-manager";
 import ClockText from "@/components/ClockText";
-import PuzzleContainer from "@/components/puzzle/PuzzleContainer";
-import TextPuzzleComponent from "@/components/puzzle/TextPuzzleComponent";
-import NFCPuzzleComponent from "@/components/puzzle/NFCPuzzleComponent";
+import PuzzleContainer from "@/components/PuzzleContainer";
 import { handleDaisyChainAfterRing } from "@/utils/alarmSchedulingHelpers";
 
 export default function AlarmScreen() {
@@ -39,19 +37,15 @@ export default function AlarmScreen() {
         if (initial) setAlarm(parseAlarm(initial));
     }, [db, id]);
 
-    useEffect(() => {
-        if (puzzlesComplete) {
-            handleDaisyChainAfterRing(alarm!).then((newAlarm) => {
-                saveAlarmDirect(newAlarm.id, db, newAlarm);
+    const dismissAlarm = () => {
+        handleDaisyChainAfterRing(alarm!).then((newAlarm) => {
+            saveAlarmDirect(newAlarm.id, db, newAlarm).then(() => {
+                alarmAud?.stop();
+                alarmAud?.release();
+                BackHandler.exitApp();
             });
-        }
-
-        return () => {
-            alarmAud?.stop();
-            alarmAud?.release();
-            BackHandler.exitApp();
-        };
-    }, [puzzlesComplete]);
+        });
+    };
 
     const nav = useNavigation();
 
@@ -63,8 +57,7 @@ export default function AlarmScreen() {
     }, [nav]);
 
     useEffect(() => {
-        if (alarmAud && alarm?.ringtone) {
-            //TODO: make it so it plays on all audio outputs. i.e if earbuds are connected it plays on both speaker/earbuds
+        if (alarmAud && alarm?.ringtone && alarm.ringtone.uri != "none") {
             alarmAud.setSource(alarm.ringtone.uri);
             alarmAud.play();
         }
@@ -140,15 +133,44 @@ export default function AlarmScreen() {
                             borderWidth: 2,
                             display: isPuzzleVisible ? "none" : "flex",
                         }}
-                        onPress={() => setIsPuzzleVisible(true)}
+                        onPress={() => {
+                            if (puzzlesComplete) {
+                                dismissAlarm();
+                            } else {
+                                setIsPuzzleVisible(true);
+                            }
+                        }}
                     />
-                    {/* //TODO: a ScrollView with scrollTo on puzzle success will. */}
-                    {/* <PuzzleContainer
+                    <PuzzleContainer
                         style={{ flex: 1 }}
                         isVisible={isPuzzleVisible}
-                    >
-                        />
-                    </PuzzleContainer> */}
+                        onSucessAll={() => {
+                            setIsPuzzleVisible(false);
+                            setPuzzlesComplete(true);
+                        }}
+                        puzzles={[
+                            {
+                                type: "text",
+                                difficulty: 1,
+                                params: { length: 5 },
+                            },
+                            {
+                                type: "nfc",
+                                difficulty: 1,
+                                params: {
+                                    tagCount: 1,
+                                    timeLimit: 1,
+                                    sequence: [
+                                        {
+                                            name: "Coffee Maker",
+                                            id: "04BE68F2343580",
+                                            tech: "ndef",
+                                        },
+                                    ],
+                                },
+                            },
+                        ]}
+                    />
                 </View>
                 <View
                     style={{
