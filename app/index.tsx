@@ -9,18 +9,16 @@ import { useAlarms, formatDistanceStrictShortened } from "@/hooks/useAlarms";
 import { useSQLiteContext } from "expo-sqlite";
 import { Alarm } from "@/types/Alarm";
 import { preventAutoHideAsync, hide } from "expo-splash-screen";
-import { initDatabaseTableIfFirstBoot } from "@/utils/databaseHelpers";
 import AlarmCard from "@/components/AlarmCard";
 import MaskedView from "@react-native-masked-view/masked-view";
+import Storage from "expo-sqlite/kv-store";
 
 preventAutoHideAsync();
 
 export default function Alarms() {
     const db = useSQLiteContext();
-    initDatabaseTableIfFirstBoot(db);
     const safeInsets = useSafeAreaInsets();
-    const palette = useTheme().colors;
-
+    const { colors } = useTheme();
     const [alarmGradientDim, setAlarmGradientDim] = useState(false);
     const [soonestRingTime, setSoonestRingTime] = useState("");
     const { alarms, deleteAlarm, loadAlarms, saveAlarms, toggleAlarm } =
@@ -28,6 +26,13 @@ export default function Alarms() {
 
     const { update } = useLocalSearchParams();
     const [loadStale, setLoadStale] = useState(true);
+
+    useEffect(() => {
+        const first = Storage.getItemSync("isFirstBoot");
+        if (first === null) {
+            router.navigate("/onboard/welcome");
+        }
+    }, []);
 
     useFocusEffect(() => {
         setLoadStale(update === "true");
@@ -80,14 +85,14 @@ export default function Alarms() {
 
     const gradientColors = useMemo(() => {
         return alarmGradientDim
-            ? ([palette.primary, palette.inversePrimary] as const)
-            : ([palette.onSecondary, palette.onPrimary] as const);
+            ? ([colors.primary, colors.inversePrimary] as const)
+            : ([colors.onSecondary, colors.onPrimary] as const);
     }, [
         alarmGradientDim,
-        palette.primary,
-        palette.inversePrimary,
-        palette.onSecondary,
-        palette.onPrimary,
+        colors.primary,
+        colors.inversePrimary,
+        colors.onSecondary,
+        colors.onPrimary,
     ]);
 
     const handleSettingsPress = useCallback(() => {
@@ -183,6 +188,9 @@ export default function Alarms() {
                 }}
                 onPress={() => {
                     router.navigate(`./alarms/${alarms.at(0)?.id}`);
+                }}
+                onLongPress={() => {
+                    router.push("/onboard/welcome");
                 }}
             />
             <MaskedView

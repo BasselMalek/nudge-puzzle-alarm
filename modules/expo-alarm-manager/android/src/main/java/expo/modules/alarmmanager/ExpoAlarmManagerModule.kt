@@ -285,9 +285,7 @@ class ExpoAlarmManagerModule : Module() {
         }
 
         Function("requestOverlayPerm") {
-            
             try {
-                Log.d("NUDGE", "we tring")
                 val currentActivity = appContext.currentActivity;
                 if (!Settings.canDrawOverlays(currentActivity)) {
                     val intent = Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION)
