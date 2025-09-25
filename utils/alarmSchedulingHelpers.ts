@@ -84,10 +84,16 @@ const scheduleNextInstance = async (alarm: Alarm) => {
     );
 };
 
+const scheduleSnoozedAlarm = async (alarm: Alarm, snoozeDuration: number) => {
+    const snoozedRing = add(new Date(), { minutes: snoozeDuration });
+    return scheduleAlarm(alarm.id, snoozedRing.getTime(), alarm.vibrate);
+};
+
 export {
     disableNextInstance,
     scheduleNextInstance,
     modifyNextInstance,
     handleDaisyChainAfterRing,
     rescheduleAllForOnBoot,
+    scheduleSnoozedAlarm,
 };

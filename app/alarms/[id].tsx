@@ -17,7 +17,12 @@ import { useSQLiteContext } from "expo-sqlite";
 import * as AlarmManager from "@/modules/expo-alarm-manager";
 import ClockText from "@/components/ClockText";
 import PuzzleContainer from "@/components/PuzzleContainer";
-import { handleDaisyChainAfterRing } from "@/utils/alarmSchedulingHelpers";
+import {
+    handleDaisyChainAfterRing,
+    scheduleNextInstance,
+    scheduleSnoozedAlarm,
+} from "@/utils/alarmSchedulingHelpers";
+import { add } from "date-fns";
 
 export default function AlarmScreen() {
     const { id } = useLocalSearchParams();
@@ -197,7 +202,9 @@ export default function AlarmScreen() {
                             borderColor: colors.primary,
                         }}
                         onPress={() => {
-                            BackHandler.exitApp();
+                            scheduleSnoozedAlarm(alarm!, 5).then(() => {
+                                BackHandler.exitApp();
+                            });
                         }}
                     >
                         {"Snooze"}
