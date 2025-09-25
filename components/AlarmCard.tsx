@@ -21,6 +21,7 @@ import Animated, {
     interpolate,
 } from "react-native-reanimated";
 import { Alarm } from "@/types/Alarm";
+import { useState } from "react";
 
 export default function AlarmCard(props: {
     alarm: Alarm;
@@ -28,6 +29,7 @@ export default function AlarmCard(props: {
     onToggle: (enabled: boolean) => void;
     onDelete?: () => void;
 }) {
+    const [isAlarmEnabled, setIsAlarmEnabled] = useState(props.alarm.isEnabled);
     const { colors, roundness } = useTheme();
     const translateX = useSharedValue(0);
     const DELETE_BUTTON_WIDTH = 100;
@@ -158,10 +160,11 @@ export default function AlarmCard(props: {
                                             })}
                                         </Text>
                                         <Switch
-                                            value={props.alarm.isEnabled}
+                                            value={isAlarmEnabled}
                                             onValueChange={(
                                                 nextVal: boolean
                                             ) => {
+                                                setIsAlarmEnabled(nextVal);
                                                 props.onToggle(nextVal);
                                             }}
                                         />

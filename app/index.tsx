@@ -10,7 +10,6 @@ import { useSQLiteContext } from "expo-sqlite";
 import { Alarm } from "@/types/Alarm";
 import { preventAutoHideAsync, hide } from "expo-splash-screen";
 import AlarmCard from "@/components/AlarmCard";
-import MaskedView from "@react-native-masked-view/masked-view";
 import Storage from "expo-sqlite/kv-store";
 
 preventAutoHideAsync();
@@ -23,7 +22,6 @@ export default function Alarms() {
     const [soonestRingTime, setSoonestRingTime] = useState("");
     const { alarms, deleteAlarm, loadAlarms, saveAlarms, toggleAlarm } =
         useAlarms(db, "nudge://alarms");
-
     const { update } = useLocalSearchParams();
     const [loadStale, setLoadStale] = useState(true);
 
@@ -34,9 +32,11 @@ export default function Alarms() {
         }
     }, []);
 
-    useFocusEffect(() => {
-        setLoadStale(update === "true");
-    });
+    useFocusEffect(
+        useCallback(() => {
+            setLoadStale(update === "true");
+        }, [])
+    );
 
     useEffect(() => {
         if (loadStale) {
@@ -193,44 +193,24 @@ export default function Alarms() {
                     router.push("/onboard/welcome");
                 }}
             />
-            <MaskedView
-                style={{ height: "100%", flex: 1 }}
-                androidRenderingMode="software"
-                maskElement={
-                    <View
-                        pointerEvents="none"
-                        style={{ flex: 1, backgroundColor: "transparent" }}
-                    >
-                        <LinearGradient
-                            pointerEvents="none"
-                            start={{ x: 0.5, y: 0.9 }}
-                            style={{
-                                flex: 1,
-                                width: "100%",
-                            }}
-                            colors={["#FFFFFF", "#FFFFFF00"]}
-                        />
-                    </View>
-                }
-            >
-                <FlatList
-                    style={{
-                        display: "flex",
-                        flex: 1,
-                        marginTop: 5,
-                    }}
-                    contentContainerStyle={{
-                        paddingBottom: safeInsets.bottom + 10,
-                    }}
-                    data={alarms}
-                    renderItem={renderAlarmItem}
-                    keyExtractor={keyExtractor}
-                    showsVerticalScrollIndicator={false}
-                    ItemSeparatorComponent={() => (
-                        <View style={{ height: 10 }}></View>
-                    )}
-                />
-            </MaskedView>
+            <FlatList
+                style={{
+                    display: "flex",
+                    flex: 1,
+                    marginTop: 5,
+                }}
+                contentContainerStyle={{
+                    paddingBottom: safeInsets.bottom + 10,
+                }}
+                data={alarms}
+                renderItem={renderAlarmItem}
+                keyExtractor={keyExtractor}
+                showsVerticalScrollIndicator={false}
+                fadingEdgeLength={40}
+                ItemSeparatorComponent={() => (
+                    <View style={{ height: 10 }}></View>
+                )}
+            />
         </>
     );
 }

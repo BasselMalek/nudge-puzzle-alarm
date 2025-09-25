@@ -163,6 +163,7 @@ export const useAlarms = (db: SQLiteDatabase, linkingScheme: string) => {
         const rows = await db.getAllAsync<AlarmDto>("SELECT * FROM alarms");
         const parsed = rows.map(parseAlarm);
         dispatch({ type: "SET_ALARMS", payload: parsed });
+        //TODO: not sure what stroke of genius led me to creating this abomination of code instead of just recording a timestamp here. fix it please.
         setDiff(new Map(parsed.map((a) => [a.id, a])));
     }, [db]);
 
@@ -223,14 +224,14 @@ export const useAlarms = (db: SQLiteDatabase, linkingScheme: string) => {
         [db, dispatch]
     );
 
-    const toggleAlarm = (id: string, nextEnabled: boolean) => {
+    const toggleAlarm = async (id: string, nextEnabled: boolean) => {
         const alarm = alarms.find((v) => v.id === id);
         if (!alarm) return;
 
         if (nextEnabled) {
-            scheduleNextInstance(alarm);
+            await scheduleNextInstance(alarm);
         } else {
-            disableNextInstance(alarm);
+            await disableNextInstance(alarm);
         }
         dispatch({
             type: "UPDATE_ALARM",
