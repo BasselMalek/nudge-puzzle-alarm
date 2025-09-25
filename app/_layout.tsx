@@ -93,6 +93,24 @@ export default function RootLayout() {
                                 },
                             }}
                         />
+                        <Stack.Screen
+                            name="onboard"
+                            options={{
+                                headerShown: false,
+                                presentation: "modal",
+                                contentStyle: {
+                                    display: "flex",
+                                    flex: 1,
+                                    backgroundColor:
+                                        paperTheme.colors.background,
+                                    paddingTop: safeInsets.top + 10,
+                                    paddingLeft: safeInsets.left + 10,
+                                    paddingRight: safeInsets.right + 10,
+                                    paddingBottom: safeInsets.bottom + 10,
+                                    gap: 10,
+                                },
+                            }}
+                        />
                     </Stack>
                 </SQLiteProvider>
             </PaperProvider>
