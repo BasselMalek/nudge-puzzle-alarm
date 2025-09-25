@@ -5,6 +5,7 @@ export type RegisteredTag = {
 };
 
 export type TextPuzzle = {
+    id: string;
     type: "text";
     title: "Text";
     icon: "text-box";
@@ -15,6 +16,7 @@ export type TextPuzzle = {
 };
 
 export type NFCPuzzle = {
+    id: string;
     type: "nfc";
     title: "NFC";
     icon: "nfc";
@@ -27,9 +29,10 @@ export type NFCPuzzle = {
 };
 
 export type MathPuzzle = {
+    id: string;
     type: "math";
     title: "Math";
-    icon: "abacus";
+    icon: "calculator";
     difficulty: 1 | 2 | 3;
     params: {
         //? WIP
@@ -37,26 +40,28 @@ export type MathPuzzle = {
 };
 
 export type ScannerPuzzle = {
+    id: string;
     type: "scanner";
     title: "Scanner";
     icon: "line-scan";
     difficulty: 1 | 2 | 3;
     params: {
         codeType: "qr" | "code128" | "ean13";
-        codeCount: number;
-        dataLength: number;
+        tagCount: number;
         timeLimit: number;
+        sequence: RegisteredTag[];
     };
 };
 
 export type MemoryPuzzle = {
+    id: string;
     type: "memory";
     title: "Memory";
-    icon: "gamepad-up";
+    icon: "brain";
     difficulty: 1 | 2 | 3;
     params: {
         speed: number;
-        recallTime: number;
+        timeLimit: number;
         repetitions?: number;
     };
 };

@@ -192,7 +192,8 @@ export default function AlarmCard(props: {
                                     {props.alarm.puzzles.map((puzz) => {
                                         return (
                                             <Tag
-                                                name={"d"}
+                                                key={puzz.id}
+                                                name={puzz.icon}
                                                 size="small"
                                                 tagColor={
                                                     colors.secondaryContainer
