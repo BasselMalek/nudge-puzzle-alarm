@@ -8,6 +8,7 @@ import {
     TouchableRipple,
     Switch,
     Button,
+    IconButton,
 } from "react-native-paper";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
@@ -19,10 +20,13 @@ import { Alarm, AlarmDto } from "@/types/Alarm";
 import { createAlarm, parseAlarm, saveAlarmDirect } from "@/hooks/useAlarms";
 import { useSQLiteContext } from "expo-sqlite";
 import { StatusBar } from "expo-status-bar";
-import { View } from "react-native";
+import { FlatList, TouchableOpacity, View } from "react-native";
 import { DaySet } from "@/types/DaySet";
 import { scheduleNextInstance } from "@/utils/alarmSchedulingHelpers";
 import SoundOptionsModal from "@/components/SoundOptionsModal";
+import CarouselCard from "@/components/ListItem";
+import ListItem from "@/components/ListItem";
+import PuzzleSelectionModal from "@/components/PuzzleSelectionModal";
 
 const blankRepeat = {
     0: {
@@ -69,6 +73,7 @@ export default function AlarmOptions() {
     const db = useSQLiteContext();
     const [timePickerModalVisible, setTimePickerModalVisible] = useState(false);
     const [soundsModalVisible, setSoundsModalVisible] = useState(false);
+    const [puzzlesModalVisible, setPuzzlesModalVisible] = useState(false);
     const [alarm, setAlarm] = useState<Alarm>(createAlarm({ name: "" }));
 
     useFocusEffect(
@@ -91,7 +96,10 @@ export default function AlarmOptions() {
         <>
             <StatusBar translucent />
             <Card
-                style={{ borderRadius: roundness + 15, overflow: "hidden" }}
+                style={{
+                    borderRadius: roundness + 15,
+                    overflow: "hidden",
+                }}
                 elevation={4}
             >
                 <LinearGradient
@@ -189,16 +197,13 @@ export default function AlarmOptions() {
                             setIsVisible={setSoundsModalVisible}
                         />
                         <Button
-                            compact
                             icon={alarm.vibrate ? "vibrate" : "vibrate-off"}
                             mode="contained"
                             style={{
                                 borderRadius: roundness,
                             }}
                             contentStyle={{
-                                maxWidth: 150,
-                                paddingRight: 10,
-                                paddingLeft: 15,
+                                maxWidth: 200,
                             }}
                             onPress={() => setSoundsModalVisible(true)}
                         >
@@ -224,6 +229,49 @@ export default function AlarmOptions() {
                             setAlarm({ ...alarm, repeatDays: selected })
                         }
                         startDay={0}
+                    />
+                </Card.Content>
+            </Card>
+            <Card style={{ flex: 1, borderRadius: 20 }} elevation={3}>
+                <Card.Content
+                    style={{ paddingVertical: 15, gap: 10, height: "100%" }}
+                >
+                    <Text variant="titleMedium">{"Puzzles"}</Text>
+                    <PuzzleSelectionModal
+                        alarm={alarm}
+                        setAlarm={setAlarm}
+                        isVisible={puzzlesModalVisible}
+                        setIsVisible={setPuzzlesModalVisible}
+                    />
+                    <FlatList
+                        contentContainerStyle={{ gap: 10 }}
+                        data={alarm.puzzles}
+                        renderItem={({ item }) => (
+                            <ListItem
+                                title={item.title}
+                                icon={item.icon}
+                                buttons
+                            />
+                        )}
+                        ListFooterComponent={() => {
+                            return (
+                                <Card
+                                    style={{ flex: 1 }}
+                                    onPress={() => {
+                                        setPuzzlesModalVisible(true);
+                                    }}
+                                >
+                                    <Card.Content
+                                        style={{
+                                            justifyContent: "center",
+                                            alignItems: "center",
+                                        }}
+                                    >
+                                        <Icon source={"plus"} size={24} />
+                                    </Card.Content>
+                                </Card>
+                            );
+                        }}
                     />
                 </Card.Content>
             </Card>
