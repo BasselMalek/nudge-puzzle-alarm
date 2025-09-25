@@ -67,6 +67,15 @@ export const pickAlarmTone = async (
     return a !== null ? { name: a.at(1)!, uri: a.at(0)! } : null;
 };
 
+/**
+ * Opens the "Draw over other apps" options screen.
+ * @Platform android
+ */
+export const requestOverlayPerm = () => {
+    console.log("hi");
+    ExpoAlarmManagerModule.requestOverlayPerm();
+};
+
 export const addListener = ExpoAlarmManagerModule.addListener;
 
 /**

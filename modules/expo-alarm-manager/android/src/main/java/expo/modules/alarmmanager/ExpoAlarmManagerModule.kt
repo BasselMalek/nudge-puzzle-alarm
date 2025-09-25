@@ -9,6 +9,8 @@ import android.content.Intent
 import android.media.RingtoneManager
 import android.net.Uri
 import android.os.Build
+import android.provider.Settings
+import android.util.Log
 import androidx.core.net.toUri
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.MediaItem
@@ -281,6 +283,21 @@ class ExpoAlarmManagerModule : Module() {
                 uriSelectionPendingPromise = null
             }
         }
+
+        Function("requestOverlayPerm") {
+            
+            try {
+                Log.d("NUDGE", "we tring")
+                val currentActivity = appContext.currentActivity;
+                if (!Settings.canDrawOverlays(currentActivity)) {
+                    val intent = Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION)
+                    currentActivity?.startActivity(intent)
+                }
+            } catch (e: Exception) {
+                e.message?.let { Log.e("NUDGE", it) }
+            }
+
+        }
     }
 
     fun sendPlaybackFinished(playerId: String) {
@@ -296,6 +313,7 @@ class ExpoAlarmManagerModule : Module() {
         } catch (_: Exception) {
         }
     }
+
 
     //--------------------------------------------------------------------------------------------------------------
     //Helpers

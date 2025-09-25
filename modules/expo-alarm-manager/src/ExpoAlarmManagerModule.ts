@@ -88,6 +88,12 @@ declare class ExpoAlarmManagerModule extends NativeModule<ExpoAlarmManagerModule
      * Check if player has finished playing.
      */
     isPlayerFinished(): Promise<boolean>;
+
+    /**
+     * Opens the "Draw over other apps" options screen.
+     * @Platform android
+     */
+    requestOverlayPerm(): void;
 }
 
 // This call loads the native module object from the JSI.
