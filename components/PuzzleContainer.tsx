@@ -135,6 +135,7 @@ export default function PuzzleContainer(
                         <IndicatorDots
                             style={{ justifyContent: "flex-end" }}
                             total={puzzles.length}
+                            size={14}
                             enabled={indicatorDotProgress}
                             colors={{
                                 off: colors.elevation.level5,

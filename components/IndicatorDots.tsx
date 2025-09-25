@@ -4,6 +4,7 @@ export default function IndicatorDots(
     props: {
         total: number;
         enabled: number;
+        size: number;
         colors: {
             primary: string;
             secondary: string;
@@ -11,23 +12,24 @@ export default function IndicatorDots(
         };
     } & ViewProps
 ) {
-    const { total: balls, enabled: hot, colors, style, ...viewProps } = props;
+    const { total, enabled, colors, size, style, ...viewProps } = props;
 
     return (
         <View
             style={[{ flexDirection: "row", gap: "5" }, style]}
             {...viewProps}
         >
-            {Array.from({ length: balls }).map((_, index) => (
+            {Array.from({ length: total }).map((_, index) => (
                 <View
                     key={index}
                     style={{
                         elevation: 5,
                         borderRadius: 100,
-                        height: 14,
-                        width: 14,
-                        backgroundColor: index < hot ? undefined : colors.off,
-                        ...(index < hot && {
+                        height: size,
+                        width: size,
+                        backgroundColor:
+                            index < enabled ? undefined : colors.off,
+                        ...(index < enabled && {
                             experimental_backgroundImage: `linear-gradient(${colors.primary}, ${colors.secondary})`,
                         }),
                     }}
