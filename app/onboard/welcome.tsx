@@ -3,9 +3,13 @@ import { Button, Text, useTheme } from "react-native-paper";
 import { StatusBar } from "expo-status-bar";
 import IndicatorDots from "@/components/IndicatorDots";
 import { router } from "expo-router";
+import { useSQLiteContext } from "expo-sqlite";
+import { initDatabaseTableIfFirstBoot } from "@/utils/databaseHelpers";
 const imgSrc = require("@/assets/images/hourglass.png");
 
-export default function Settings() {
+export default function Welcome() {
+    const db = useSQLiteContext();
+    initDatabaseTableIfFirstBoot(db);
     const { colors } = useTheme();
     return (
         <View

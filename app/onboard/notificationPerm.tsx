@@ -3,9 +3,12 @@ import { Button, Icon, Text, useTheme } from "react-native-paper";
 import { StatusBar } from "expo-status-bar";
 import IndicatorDots from "@/components/IndicatorDots";
 import { router } from "expo-router";
+import { requestPermissionsAsync } from "expo-notifications";
+import { useState } from "react";
 
-export default function Settings() {
+export default function Notification() {
     const { colors } = useTheme();
+    const [permsGranted, setPermsGranted] = useState(false);
     return (
         <View
             style={{
@@ -33,22 +36,36 @@ export default function Settings() {
                     {"Notfication Permission"}
                 </Text>
                 <Text variant="labelLarge" style={{ textAlign: "center" }}>
-                    {"This is needed to trigger the alarm."}
+                    {"Needed to trigger alarms."}
                 </Text>
                 <Button
                     style={{ marginTop: 50 }}
                     contentStyle={{
                         flexDirection: "row-reverse",
-                        height: 50,
-                        width: 100,
+                        minHeight: 50,
+                        minWidth: 100,
                     }}
                     icon={"arrow-right"}
                     mode="elevated"
-                    onPress={() => {
-                        router.push("/onboard/displayOverPerm");
+                    onPress={async () => {
+                        if (permsGranted) {
+                            router.push("/onboard/displayOverPerm");
+                        } else {
+                            const result = await requestPermissionsAsync({
+                                ios: {
+                                    allowAlert: true,
+                                    allowBadge: true,
+                                    allowCriticalAlerts: true,
+                                    allowSound: true,
+                                },
+                            });
+                            if (result) {
+                                setPermsGranted(true);
+                            }
+                        }
                     }}
                 >
-                    {"Request"}
+                    {permsGranted ? "Continue" : "Request"}
                 </Button>
             </View>
             <View

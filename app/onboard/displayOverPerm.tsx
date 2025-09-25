@@ -3,8 +3,11 @@ import { Button, Icon, Text, useTheme } from "react-native-paper";
 import { StatusBar } from "expo-status-bar";
 import IndicatorDots from "@/components/IndicatorDots";
 import { router } from "expo-router";
+import { useState } from "react";
+import { requestOverlayPerm } from "@/modules/expo-alarm-manager";
 
-export default function Settings() {
+export default function DisplayOver() {
+    const [permsGranted, setPermsGranted] = useState(false);
     const { colors } = useTheme();
     return (
         <View
@@ -33,22 +36,27 @@ export default function Settings() {
                     {"Overlay Permission"}
                 </Text>
                 <Text variant="labelLarge" style={{ textAlign: "center" }}>
-                    {"This is need to show the alarm screen."}
+                    {"Needed to show alarms when triggered."}
                 </Text>
                 <Button
                     style={{ marginTop: 50 }}
                     contentStyle={{
                         flexDirection: "row-reverse",
-                        height: 50,
-                        width: 100,
+                        minHeight: 50,
+                        minWidth: 100,
                     }}
                     icon={"arrow-right"}
                     mode="elevated"
                     onPress={() => {
-                        router.dismissTo("/");
+                        if (permsGranted) {
+                            router.dismissTo("/");
+                        } else {
+                            requestOverlayPerm();
+                            setPermsGranted(true);
+                        }
                     }}
                 >
-                    {"Request"}
+                    {permsGranted ? "Done" : "Request"}
                 </Button>
             </View>
             <View
