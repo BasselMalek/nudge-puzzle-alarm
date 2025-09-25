@@ -14,7 +14,7 @@ import { Puzzle } from "@/types/Puzzles";
 import LottieView from "lottie-react-native";
 import TextPuzzleComponent from "./puzzle/TextPuzzleComponent";
 import NFCPuzzleComponent from "./puzzle/NFCPuzzleComponent";
-import BarcodePuzzleComponent from "./puzzle/BarcodePuzzleComponent";
+import BarcodePuzzleComponent from "./puzzle/ScannerPuzzleComponent";
 import MathPuzzleComponent from "./puzzle/MathPuzzleComponent";
 import MemoryPuzzleComponent from "./puzzle/MemoryPuzzleComponent";
 
@@ -206,7 +206,7 @@ export default function PuzzleContainer(
                                             />
                                         )
                                     );
-                                case "barcode":
+                                case "scanner":
                                     return (
                                         !showAnimation &&
                                         currentPuzzle.index === k && (

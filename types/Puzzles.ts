@@ -6,6 +6,8 @@ export type RegisteredTag = {
 
 export type TextPuzzle = {
     type: "text";
+    title: "Text";
+    icon: "text-box";
     difficulty: 1 | 2 | 3;
     params: {
         length: number;
@@ -14,6 +16,8 @@ export type TextPuzzle = {
 
 export type NFCPuzzle = {
     type: "nfc";
+    title: "NFC";
+    icon: "nfc";
     difficulty: 1 | 2 | 3;
     params: {
         tagCount: number;
@@ -24,14 +28,18 @@ export type NFCPuzzle = {
 
 export type MathPuzzle = {
     type: "math";
+    title: "Math";
+    icon: "abacus";
     difficulty: 1 | 2 | 3;
     params: {
         //? WIP
     };
 };
 
-export type BarcodePuzzle = {
-    type: "barcode";
+export type ScannerPuzzle = {
+    type: "scanner";
+    title: "Scanner";
+    icon: "line-scan";
     difficulty: 1 | 2 | 3;
     params: {
         codeType: "qr" | "code128" | "ean13";
@@ -43,6 +51,8 @@ export type BarcodePuzzle = {
 
 export type MemoryPuzzle = {
     type: "memory";
+    title: "Memory";
+    icon: "gamepad-up";
     difficulty: 1 | 2 | 3;
     params: {
         speed: number;
@@ -55,5 +65,5 @@ export type Puzzle =
     | TextPuzzle
     | NFCPuzzle
     | MathPuzzle
-    | BarcodePuzzle
+    | ScannerPuzzle
     | MemoryPuzzle;
