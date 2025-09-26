@@ -6,25 +6,22 @@ import {
     TextInput,
     FAB,
     TouchableRipple,
-    Switch,
     Button,
-    IconButton,
 } from "react-native-paper";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import WeekdayRepeat from "@/components/WeekdayRepeat";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState, useMemo } from "react";
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { TimePickerModal } from "react-native-paper-dates";
 import { Alarm, AlarmDto } from "@/types/Alarm";
 import { createAlarm, parseAlarm, saveAlarmDirect } from "@/hooks/useAlarms";
 import { useSQLiteContext } from "expo-sqlite";
 import { StatusBar } from "expo-status-bar";
-import { FlatList, TouchableOpacity, View } from "react-native";
+import { View } from "react-native";
 import { DaySet } from "@/types/DaySet";
 import { scheduleNextInstance } from "@/utils/alarmSchedulingHelpers";
 import SoundOptionsModal from "@/components/SoundOptionsModal";
-import CarouselCard from "@/components/ListItem";
 import ListItem from "@/components/ListItem";
 import PuzzleSelectionModal from "@/components/PuzzleSelectionModal";
 import { Puzzle } from "@/types/Puzzles";
@@ -32,7 +29,6 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import ReorderableList, {
     ReorderableListReorderEvent,
     reorderItems,
-    useReorderableDrag,
 } from "react-native-reorderable-list";
 
 const blankRepeat: DaySet = {
@@ -81,10 +77,7 @@ export default function AlarmOptions() {
     const [timePickerModalVisible, setTimePickerModalVisible] = useState(false);
     const [soundsModalVisible, setSoundsModalVisible] = useState(false);
     const [puzzlesModalVisible, setPuzzlesModalVisible] = useState(false);
-    const [editPuzzleAtIndex, setEditPuzzleAtIndex] = useState<
-        number | undefined
-    >(undefined);
-    const [puzzles, setPuzzles] = useState<Puzzle[]>([]);
+    const editPuzzleAtIndex = useRef<number | undefined>(undefined);
     const [alarm, setAlarm] = useState<Alarm>(createAlarm({ name: "" }));
 
     useFocusEffect(
@@ -104,7 +97,7 @@ export default function AlarmOptions() {
     );
 
     const cleanUpAlarm = useCallback(() => {
-        let cleanedUpAlarm = { ...alarm, isEnabled: true, puzzles: puzzles };
+        let cleanedUpAlarm = { ...alarm, isEnabled: true };
         if (!alarm.repeat) {
             cleanedUpAlarm = {
                 ...cleanedUpAlarm,
@@ -126,9 +119,14 @@ export default function AlarmOptions() {
         return cleanedUpAlarm;
     }, [alarm]);
 
-    useEffect(() => {
-        setPuzzles(alarm.puzzles);
-    }, [alarm]);
+    const handlePuzzleUpdate = useCallback((newPuzzles: Puzzle[]) => {
+        setAlarm((prevAlarm) => ({ ...prevAlarm, puzzles: newPuzzles }));
+    }, []);
+
+    const handleModalClose = useCallback((vis: boolean) => {
+        editPuzzleAtIndex.current = undefined;
+        setPuzzlesModalVisible(vis);
+    }, []);
 
     return (
         <GestureHandlerRootView
@@ -282,27 +280,28 @@ export default function AlarmOptions() {
                     <Text variant="titleMedium">{"Puzzles"}</Text>
                     <PuzzleSelectionModal
                         alarm={alarm}
-                        setAlarm={setAlarm}
+                        setAlarm={handlePuzzleUpdate}
                         isVisible={puzzlesModalVisible}
-                        setIsVisible={(vis) => {
-                            setEditPuzzleAtIndex(undefined);
-                            setPuzzlesModalVisible(vis);
-                        }}
-                        //TODO: fix stale index here.
-                        editIndex={editPuzzleAtIndex}
+                        setIsVisible={handleModalClose}
+                        editIndex={editPuzzleAtIndex.current}
                     />
                     <ReorderableList
                         ItemSeparatorComponent={() => (
                             <View style={{ height: 10 }} />
                         )}
-                        data={puzzles}
+                        data={alarm.puzzles}
                         onReorder={({
                             from,
                             to,
                         }: ReorderableListReorderEvent) => {
-                            setPuzzles((value) =>
-                                reorderItems(value, from, to)
-                            );
+                            setAlarm((prevAlarm) => ({
+                                ...prevAlarm,
+                                puzzles: reorderItems(
+                                    prevAlarm.puzzles,
+                                    from,
+                                    to
+                                ),
+                            }));
                         }}
                         keyExtractor={(item) => item.id}
                         renderItem={({ item, index }) => {
@@ -312,15 +311,17 @@ export default function AlarmOptions() {
                                     icon={item.icon}
                                     buttons
                                     buttonOneAction={() => {
-                                        setEditPuzzleAtIndex(index);
+                                        editPuzzleAtIndex.current = index;
                                         setPuzzlesModalVisible(true);
                                     }}
                                     buttonTwoAction={() => {
-                                        setPuzzles(
-                                            puzzles.filter(
-                                                (value) => value.id !== item.id
-                                            )
-                                        );
+                                        setAlarm((prevAlarm) => ({
+                                            ...prevAlarm,
+                                            puzzles: prevAlarm.puzzles.filter(
+                                                (puzzle) =>
+                                                    puzzle.id !== item.id
+                                            ),
+                                        }));
                                     }}
                                 />
                             );
@@ -332,6 +333,8 @@ export default function AlarmOptions() {
                                     <Card
                                         style={{ flex: 1 }}
                                         onPress={() => {
+                                            editPuzzleAtIndex.current =
+                                                undefined;
                                             setPuzzlesModalVisible(true);
                                         }}
                                     >
