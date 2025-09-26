@@ -13,22 +13,37 @@ import { useReorderableDrag } from "react-native-reorderable-list";
 export default function ListItem(
     props: {
         title: String;
-        icon: String;
+        size?: number;
+        icon?: String;
         desc?: String;
         buttons?: boolean;
+        draggable?: boolean;
         buttonOneAction?: () => void;
         buttonTwoAction?: () => void;
     } & Omit<CardProps, "children">
 ) {
     const { colors, roundness } = useTheme();
-    const { title, icon, desc, buttons, buttonOneAction, buttonTwoAction } =
-        props;
-    const drag = useReorderableDrag();
+    const {
+        title,
+        icon,
+        desc,
+        buttons,
+        buttonOneAction,
+        buttonTwoAction,
+        draggable,
+        size = 24,
+    } = props;
+    let drag = () => {};
+    if (draggable) {
+        drag = useReorderableDrag();
+    }
 
     return (
-        <Card onPressIn={drag}>
+        <Card onPressIn={drag} onPress={props.onPress} style={props.style}>
             <Card.Content
                 style={{
+                    height: "100%",
+                    alignItems: "center",
                     paddingVertical: 10,
                     flexDirection: "row",
                     justifyContent: "space-between",
@@ -41,16 +56,27 @@ export default function ListItem(
                         gap: 10,
                     }}
                 >
-                    <Icon source={icon} size={24} />
-                    <View
-                        style={{
-                            width: 1,
-                            height: 24,
-                            backgroundColor: colors.onSurface,
-                            opacity: 0.2,
-                        }}
-                    />
-                    <Text>{title}</Text>
+                    {icon !== undefined && (
+                        <>
+                            <Icon source={icon} size={size} />
+                            <View
+                                style={{
+                                    width: 1,
+                                    height: size,
+                                    backgroundColor: colors.onSurface,
+                                    opacity: 0.2,
+                                }}
+                            />
+                        </>
+                    )}
+                    <View>
+                        <Text variant="labelLarge">{title}</Text>
+                        {desc !== undefined && (
+                            <Text variant="bodySmall" style={{ opacity: 0.85 }}>
+                                {desc}
+                            </Text>
+                        )}
+                    </View>
                 </View>
                 <View
                     style={{

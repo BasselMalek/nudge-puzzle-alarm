@@ -61,6 +61,7 @@ export default function RootLayout() {
                                 headerTintColor: paperTheme.colors.onBackground,
                                 contentStyle: {
                                     display: "flex",
+                                    flex: 1,
                                     backgroundColor:
                                         paperTheme.colors.background,
                                     paddingTop: 10,
