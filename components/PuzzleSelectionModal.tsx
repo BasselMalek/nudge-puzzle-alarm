@@ -1,24 +1,45 @@
 import { pickAlarmTone } from "@/modules/expo-alarm-manager";
 import { Alarm } from "@/types/Alarm";
 import { pickAudioFile } from "@/utils/audioPickerHelpers";
-import { View } from "react-native";
-import { useTheme, SegmentedButtons, Card, Text } from "react-native-paper";
+import { View, ScrollView } from "react-native";
+import {
+    useTheme,
+    SegmentedButtons,
+    Card,
+    Text,
+    Button,
+} from "react-native-paper";
 import Modal from "react-native-modal";
 import { useCallback, useEffect, useState } from "react";
+import PuzzleTypeChips from "@/components/PuzzleSelectorChips";
+import { Puzzle } from "@/types/Puzzles";
+import { createPuzzle } from "@/utils/puzzleFactory";
+
 export default function PuzzleSelectionModal(props: {
     alarm: Alarm;
     setAlarm: (alarm: Alarm) => void;
     isVisible: boolean;
     setIsVisible: (visibility: boolean) => void;
+    editIndex?: number;
 }) {
     const { colors, roundness } = useTheme();
-    const { alarm, setAlarm, isVisible, setIsVisible } = props;
-    const [puzzleType, setPuzzleType] = useState("text");
+    const { alarm, setAlarm, isVisible, setIsVisible, editIndex } = props;
+    const [puzzle, setPuzzle] = useState<Puzzle>(createPuzzle("text", 1));
     const [modalVisible, setModalVisible] = useState(isVisible);
 
     useEffect(() => {
-        setModalVisible(isVisible);
-    }, [isVisible]);
+        if (isVisible) {
+            setPuzzle(
+                editIndex
+                    ? alarm.puzzles.at(editIndex)!
+                    : createPuzzle("text", 1)
+            );
+            setModalVisible(isVisible);
+        } else {
+            setModalVisible(isVisible);
+            setPuzzle(createPuzzle("text", 1));
+        }
+    }, [isVisible, editIndex, alarm]);
 
     const setVis = useCallback(
         (vis: boolean) => {
@@ -26,6 +47,20 @@ export default function PuzzleSelectionModal(props: {
         },
         [setIsVisible]
     );
+
+    const handleSave = () => {
+        const newPuzzles = alarm.puzzles;
+        if (editIndex) {
+            setAlarm({ ...alarm, puzzles: newPuzzles.with(editIndex, puzzle) });
+        } else {
+            newPuzzles.push(puzzle);
+            setAlarm({
+                ...alarm,
+                puzzles: newPuzzles,
+            });
+        }
+        setVis(false);
+    };
 
     return (
         <Modal
@@ -44,7 +79,7 @@ export default function PuzzleSelectionModal(props: {
             <View
                 style={{
                     flex: 1,
-                    maxHeight: "45%",
+                    maxHeight: "50%",
                     backgroundColor: colors.background,
                     borderTopLeftRadius: roundness + 10,
                     borderTopRightRadius: roundness + 10,
@@ -64,31 +99,57 @@ export default function PuzzleSelectionModal(props: {
                         marginBottom: 10,
                     }}
                 />
-                <SegmentedButtons
-                    value={puzzleType}
-                    onValueChange={setPuzzleType}
-                    buttons={[
-                        {
-                            value: "text",
-                            label: "Text",
-                        },
-                        {
-                            value: "nfc",
-                            label: "NFC",
-                        },
-                        {
-                            value: "math",
-                            label: "Math",
-                        },
-                        { value: "scanner", label: "Scanner" },
-                        { value: "memory", label: "Memory" },
-                    ]}
-                />
-                <Card style={{ flex: 1 }}>
-                    <Card.Content>
-                        <Text>{"Text"}</Text>
-                    </Card.Content>
-                </Card>
+                <View style={{}}>
+                    <PuzzleTypeChips
+                        value={puzzle.type}
+                        onValueChange={(newType) => {
+                            setPuzzle(createPuzzle(newType, 1));
+                        }}
+                    />
+                </View>
+
+                <ScrollView style={{ flex: 5 }}>
+                    <Card style={{ marginBottom: 10 }}>
+                        <Card.Content style={{ gap: 15 }}>
+                            <View>
+                                <Text variant="titleSmall">Difficulty</Text>
+                                <SegmentedButtons
+                                    value={puzzle.difficulty.toString()}
+                                    onValueChange={(value) => {
+                                        setPuzzle({
+                                            ...puzzle,
+                                            difficulty: parseInt(
+                                                value
+                                            ) as Puzzle["difficulty"],
+                                        });
+                                    }}
+                                    buttons={[
+                                        { value: "1", label: "Easy" },
+                                        { value: "2", label: "Medium" },
+                                        { value: "3", label: "Hard" },
+                                    ]}
+                                />
+                            </View>
+                            <View>
+                                <Text variant="titleSmall">Repetitions</Text>
+                                <SegmentedButtons
+                                    //TODO: implement repititons.
+                                    value={"1"}
+                                    onValueChange={(params) => {}}
+                                    buttons={[
+                                        { value: "1", label: "1" },
+                                        { value: "2", label: "2" },
+                                        { value: "3", label: "3" },
+                                    ]}
+                                />
+                            </View>
+                        </Card.Content>
+                    </Card>
+                </ScrollView>
+
+                <Button mode="contained" onPress={handleSave}>
+                    Save Puzzle Settings
+                </Button>
             </View>
         </Modal>
     );

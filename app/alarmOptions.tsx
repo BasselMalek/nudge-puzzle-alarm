@@ -27,8 +27,15 @@ import SoundOptionsModal from "@/components/SoundOptionsModal";
 import CarouselCard from "@/components/ListItem";
 import ListItem from "@/components/ListItem";
 import PuzzleSelectionModal from "@/components/PuzzleSelectionModal";
+import { Puzzle } from "@/types/Puzzles";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
+import ReorderableList, {
+    ReorderableListReorderEvent,
+    reorderItems,
+    useReorderableDrag,
+} from "react-native-reorderable-list";
 
-const blankRepeat = {
+const blankRepeat: DaySet = {
     0: {
         dayName: "Sunday",
         letter: "S",
@@ -74,6 +81,10 @@ export default function AlarmOptions() {
     const [timePickerModalVisible, setTimePickerModalVisible] = useState(false);
     const [soundsModalVisible, setSoundsModalVisible] = useState(false);
     const [puzzlesModalVisible, setPuzzlesModalVisible] = useState(false);
+    const [editPuzzleAtIndex, setEditPuzzleAtIndex] = useState<
+        number | undefined
+    >(undefined);
+    const [puzzles, setPuzzles] = useState<Puzzle[]>([]);
     const [alarm, setAlarm] = useState<Alarm>(createAlarm({ name: "" }));
 
     useFocusEffect(
@@ -92,8 +103,40 @@ export default function AlarmOptions() {
         }, [id])
     );
 
+    const cleanUpAlarm = useCallback(() => {
+        let cleanedUpAlarm = { ...alarm, isEnabled: true, puzzles: puzzles };
+        if (!alarm.repeat) {
+            cleanedUpAlarm = {
+                ...cleanedUpAlarm,
+                repeatDays: blankRepeat,
+            };
+        } else {
+            cleanedUpAlarm = {
+                ...cleanedUpAlarm,
+                repeat:
+                    cleanedUpAlarm.repeatDays[0].enabled ||
+                    cleanedUpAlarm.repeatDays[1].enabled ||
+                    cleanedUpAlarm.repeatDays[2].enabled ||
+                    cleanedUpAlarm.repeatDays[3].enabled ||
+                    cleanedUpAlarm.repeatDays[4].enabled ||
+                    cleanedUpAlarm.repeatDays[5].enabled ||
+                    cleanedUpAlarm.repeatDays[6].enabled,
+            };
+        }
+        return cleanedUpAlarm;
+    }, [alarm]);
+
+    useEffect(() => {
+        setPuzzles(alarm.puzzles);
+    }, [alarm]);
+
     return (
-        <>
+        <GestureHandlerRootView
+            style={{
+                gap: 10,
+                flex: 1,
+            }}
+        >
             <StatusBar translucent />
             <Card
                 style={{
@@ -241,35 +284,67 @@ export default function AlarmOptions() {
                         alarm={alarm}
                         setAlarm={setAlarm}
                         isVisible={puzzlesModalVisible}
-                        setIsVisible={setPuzzlesModalVisible}
+                        setIsVisible={(vis) => {
+                            setEditPuzzleAtIndex(undefined);
+                            setPuzzlesModalVisible(vis);
+                        }}
+                        //TODO: fix stale index here.
+                        editIndex={editPuzzleAtIndex}
                     />
-                    <FlatList
-                        contentContainerStyle={{ gap: 10 }}
-                        data={alarm.puzzles}
-                        renderItem={({ item }) => (
-                            <ListItem
-                                title={item.title}
-                                icon={item.icon}
-                                buttons
-                            />
+                    <ReorderableList
+                        ItemSeparatorComponent={() => (
+                            <View style={{ height: 10 }} />
                         )}
-                        ListFooterComponent={() => {
+                        data={puzzles}
+                        onReorder={({
+                            from,
+                            to,
+                        }: ReorderableListReorderEvent) => {
+                            setPuzzles((value) =>
+                                reorderItems(value, from, to)
+                            );
+                        }}
+                        keyExtractor={(item) => item.id}
+                        renderItem={({ item, index }) => {
                             return (
-                                <Card
-                                    style={{ flex: 1 }}
-                                    onPress={() => {
+                                <ListItem
+                                    title={item.title}
+                                    icon={item.icon}
+                                    buttons
+                                    buttonOneAction={() => {
+                                        setEditPuzzleAtIndex(index);
                                         setPuzzlesModalVisible(true);
                                     }}
-                                >
-                                    <Card.Content
-                                        style={{
-                                            justifyContent: "center",
-                                            alignItems: "center",
+                                    buttonTwoAction={() => {
+                                        setPuzzles(
+                                            puzzles.filter(
+                                                (value) => value.id !== item.id
+                                            )
+                                        );
+                                    }}
+                                />
+                            );
+                        }}
+                        ListFooterComponent={() => {
+                            return (
+                                <>
+                                    <View style={{ height: 10 }} />
+                                    <Card
+                                        style={{ flex: 1 }}
+                                        onPress={() => {
+                                            setPuzzlesModalVisible(true);
                                         }}
                                     >
-                                        <Icon source={"plus"} size={24} />
-                                    </Card.Content>
-                                </Card>
+                                        <Card.Content
+                                            style={{
+                                                justifyContent: "center",
+                                                alignItems: "center",
+                                            }}
+                                        >
+                                            <Icon source={"plus"} size={24} />
+                                        </Card.Content>
+                                    </Card>
+                                </>
                             );
                         }}
                     />
@@ -283,20 +358,14 @@ export default function AlarmOptions() {
                     right: insets.right + 20,
                 }}
                 onPress={() => {
-                    setAlarm({ ...alarm, isEnabled: true });
-                    if (!alarm.repeat) {
-                        setAlarm({
-                            ...alarm,
-                            repeatDays: blankRepeat,
-                        });
-                    }
-                    saveAlarmDirect(id as string, db, alarm).then(() => {
-                        scheduleNextInstance(alarm);
+                    const clean = cleanUpAlarm();
+                    saveAlarmDirect(id as string, db, clean).then(() => {
+                        scheduleNextInstance(clean);
                         router.navigate("/?update=true");
                     });
                 }}
                 onLongPress={() => console.log(alarm)}
             />
-        </>
+        </GestureHandlerRootView>
     );
 }

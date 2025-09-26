@@ -753,7 +753,7 @@
     "@babel/plugin-transform-react-jsx-development" "^7.27.1"
     "@babel/plugin-transform-react-pure-annotations" "^7.27.1"
 
-"@babel/preset-typescript@^7.13.0", "@babel/preset-typescript@^7.16.7", "@babel/preset-typescript@^7.23.0":
+"@babel/preset-typescript@^7.13.0", "@babel/preset-typescript@^7.16.7", "@babel/preset-typescript@^7.17.12", "@babel/preset-typescript@^7.23.0":
   version "7.27.1"
   resolved "https://registry.yarnpkg.com/@babel/preset-typescript/-/preset-typescript-7.27.1.tgz#190742a6428d282306648a55b0529b561484f912"
   integrity sha512-l7WfQfX0WK4M0v2RudjuQK4u99BS6yLHYEmdtVPP7lKV013zr9DygFuWNlnbvQ9LR+LS0Egz/XAvGx5U9MX0fQ==
@@ -8384,6 +8384,13 @@ react-native-codegen@^0.70.7:
     jscodeshift "^0.14.0"
     nullthrows "^1.1.1"
 
+react-native-draggable-flatlist@^4.0.3:
+  version "4.0.3"
+  resolved "https://registry.yarnpkg.com/react-native-draggable-flatlist/-/react-native-draggable-flatlist-4.0.3.tgz#eb0bb3149059f48855b53aeb9728ab2eb361e4db"
+  integrity sha512-2F4x5BFieWdGq9SetD2nSAR7s7oQCSgNllYgERRXXtNfSOuAGAVbDb/3H3lP0y5f7rEyNwabKorZAD/SyyNbDw==
+  dependencies:
+    "@babel/preset-typescript" "^7.17.12"
+
 react-native-edge-to-edge@1.6.0:
   version "1.6.0"
   resolved "https://registry.yarnpkg.com/react-native-edge-to-edge/-/react-native-edge-to-edge-1.6.0.tgz#2ba63b941704a7f713e298185c26cde4d9e4b973"
@@ -8453,6 +8460,11 @@ react-native-reanimated@~3.17.4:
     convert-source-map "^2.0.0"
     invariant "^2.2.4"
     react-native-is-edge-to-edge "1.1.7"
+
+react-native-reorderable-list@^0.16.2:
+  version "0.16.2"
+  resolved "https://registry.yarnpkg.com/react-native-reorderable-list/-/react-native-reorderable-list-0.16.2.tgz#732063edd51097494613d53a03a3229dddb97f4b"
+  integrity sha512-+MwIpFj9HZQl/oko/hgqolvMUIYrRyFWu88YTNnmzguEsTS2C+MslUu3rN9tKe+BlHfqSlgRYSbHZeBlnsSYBw==
 
 react-native-safe-area-context@5.4.0:
   version "5.4.0"
