@@ -6,6 +6,7 @@ import {
     Text,
     Button,
     Chip,
+    Icon,
 } from "react-native-paper";
 import Modal from "react-native-modal";
 import { useCallback, useEffect, useState } from "react";
@@ -32,6 +33,7 @@ export default function PuzzleSelectionModal(props: {
     const [selectedTags, setSelectedTags] = useState<NFCTag[]>([]);
     const [availCodes, setAvailCodes] = useState<Barcode[]>([]);
     const [selectedCodes, setSelectedCodes] = useState<Barcode[]>([]);
+    const [canSave, setCanSave] = useState(true);
 
     const db = useSQLiteContext();
 
@@ -48,6 +50,17 @@ export default function PuzzleSelectionModal(props: {
             setPuzzle(createPuzzle("text", 1));
         }
     }, [isVisible, editIndex, alarm.puzzles]);
+
+    // Check if save button should be disabled
+    useEffect(() => {
+        if (puzzle.type === "nfc") {
+            setCanSave(selectedTags.length > 0);
+        } else if (puzzle.type === "scanner") {
+            setCanSave(selectedCodes.length > 0);
+        } else {
+            setCanSave(true);
+        }
+    }, [puzzle.type, selectedTags.length, selectedCodes.length]);
 
     const setVis = useCallback(
         (vis: boolean) => {
@@ -99,15 +112,22 @@ export default function PuzzleSelectionModal(props: {
             setAlarm(newPuzzles);
         }
         setVis(false);
-    }, [alarm.puzzles, editIndex, puzzle, setAlarm, setVis]);
-    console.log(editIndex);
+    }, [
+        alarm.puzzles,
+        editIndex,
+        puzzle,
+        setAlarm,
+        setVis,
+        selectedTags,
+        selectedCodes,
+    ]);
 
     const handleTagSelection = useCallback(
         (tag: NFCTag) => {
             if (selectedTags.includes(tag)) {
                 setSelectedTags(
                     selectedTags.filter((value) => {
-                        value.id !== tag.id;
+                        return value.id !== tag.id;
                     })
                 );
             } else {
@@ -116,12 +136,13 @@ export default function PuzzleSelectionModal(props: {
         },
         [selectedTags]
     );
+
     const handleCodeSelection = useCallback(
         (code: Barcode) => {
-            if (selectedTags.includes(code)) {
+            if (selectedCodes.includes(code)) {
                 setSelectedCodes(
                     selectedCodes.filter((value) => {
-                        value.id !== code.id;
+                        return value.id !== code.id;
                     })
                 );
             } else {
@@ -233,28 +254,46 @@ export default function PuzzleSelectionModal(props: {
                         }}
                     >
                         <Text variant="titleMedium">{"Available Tags"}</Text>
-                        <MosaicSelectors
-                            mosaicConfig={{
-                                height: 100,
-                                maxWidth: 500,
-                                gap: 5,
-                            }}
-                            totalItems={availTags}
-                            renderItem={(tag) => (
-                                <Chip
-                                    key={tag.id}
-                                    selected={selectedTags.includes(tag)}
-                                    onPress={() => handleTagSelection(tag)}
-                                    showSelectedOverlay={true}
-                                    style={{
-                                        alignSelf: "flex-start",
-                                        flexShrink: 1,
-                                    }}
-                                >
-                                    {tag.name}
-                                </Chip>
-                            )}
-                        />
+                        {availTags.length > 0 ? (
+                            <MosaicSelectors
+                                mosaicConfig={{
+                                    height: 100,
+                                    maxWidth: 500,
+                                    gap: 5,
+                                }}
+                                totalItems={availTags}
+                                renderItem={(tag) => (
+                                    <Chip
+                                        key={tag.id}
+                                        selected={selectedTags.includes(tag)}
+                                        onPress={() => handleTagSelection(tag)}
+                                        showSelectedOverlay={true}
+                                        style={{
+                                            alignSelf: "flex-start",
+                                            flexShrink: 1,
+                                        }}
+                                    >
+                                        {tag.name}
+                                    </Chip>
+                                )}
+                            />
+                        ) : (
+                            <View
+                                style={{
+                                    flexDirection: "row",
+                                    alignItems: "center",
+                                    gap: 10,
+                                    paddingRight: 10,
+                                }}
+                            >
+                                <Icon source={"information"} size={28} />
+                                <Text style={{ flex: 1, flexWrap: "wrap" }}>
+                                    {
+                                        "No registered Tags. Visit the NFC settings page to register"
+                                    }
+                                </Text>
+                            </View>
+                        )}
                     </View>
                 )}
                 {puzzle.type === "scanner" && (
@@ -266,33 +305,54 @@ export default function PuzzleSelectionModal(props: {
                         }}
                     >
                         <Text variant="titleMedium">{"Available Codes"}</Text>
-                        <MosaicSelectors
-                            mosaicConfig={{
-                                height: 100,
-                                maxWidth: 500,
-                                gap: 5,
-                            }}
-                            totalItems={availCodes}
-                            renderItem={(tag) => (
-                                <Chip
-                                    key={tag.id}
-                                    selected={selectedCodes.includes(tag)}
-                                    onPress={() => handleCodeSelection(tag)}
-                                    showSelectedOverlay={true}
-                                    style={{
-                                        alignSelf: "flex-start",
-                                        flexShrink: 1,
-                                    }}
-                                >
-                                    {tag.name}
-                                </Chip>
-                            )}
-                        />
+                        {availCodes.length > 0 ? (
+                            <MosaicSelectors
+                                mosaicConfig={{
+                                    height: 100,
+                                    maxWidth: 500,
+                                    gap: 5,
+                                }}
+                                totalItems={availCodes}
+                                renderItem={(code) => (
+                                    <Chip
+                                        key={code.id}
+                                        selected={selectedCodes.includes(code)}
+                                        onPress={() =>
+                                            handleCodeSelection(code)
+                                        }
+                                        showSelectedOverlay={true}
+                                        style={{
+                                            alignSelf: "flex-start",
+                                            flexShrink: 1,
+                                        }}
+                                    >
+                                        {code.name}
+                                    </Chip>
+                                )}
+                            />
+                        ) : (
+                            <View
+                                style={{
+                                    flexDirection: "row",
+                                    alignItems: "center",
+                                    gap: 10,
+                                    paddingRight: 10,
+                                }}
+                            >
+                                <Icon source={"information"} size={28} />
+                                <Text style={{ flex: 1, flexWrap: "wrap" }}>
+                                    {
+                                        "No registered Codes. Visit the barcode settings page to register"
+                                    }
+                                </Text>
+                            </View>
+                        )}
                     </View>
                 )}
                 <Button
                     mode="contained"
                     onPress={handleSave}
+                    disabled={!canSave}
                     onLongPress={() => {
                         console.log(puzzle);
                     }}
