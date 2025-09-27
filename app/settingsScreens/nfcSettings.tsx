@@ -51,7 +51,7 @@ export default function nfcSettings() {
         } else {
             db.runAsync(
                 "INSERT INTO physical (id, type, name) VALUES (?,?,?)",
-                [scannedTag!.id, "BAR", customName]
+                [scannedTag!.id, "NFC", customName]
             );
             setRegisteredTags([
                 ...registeredTags,

@@ -12,7 +12,7 @@ export default function NFCPuzzleComponent(props: {
     const { onSuccess, puzzle } = props;
     const currentTagTarget = useRef(0);
     const [currentTagName, setCurrentTagName] = useState(
-        puzzle.params.sequence.at(currentTagTarget.current)?.name
+        puzzle.sequence.at(currentTagTarget.current)?.name
     );
     const [isError, setIsError] = useState(false);
     const { colors, roundness } = useTheme();
@@ -21,8 +21,7 @@ export default function NFCPuzzleComponent(props: {
     const onTagRead = useCallback(
         (tagData: NFCTag) => {
             if (
-                tagData.id ===
-                puzzle?.params.sequence.at(currentTagTarget.current)?.id
+                tagData.id === puzzle?.sequence.at(currentTagTarget.current)?.id
             ) {
                 currentTagTarget.current = currentTagTarget.current + 1;
                 iconRef.current?.triggerAnimation();
@@ -59,12 +58,11 @@ export default function NFCPuzzleComponent(props: {
                 source={"nfc"}
                 onAnimationComplete={() => {
                     setIsError(false);
-                    if (currentTagTarget.current >= puzzle!.params.tagCount) {
+                    if (currentTagTarget.current >= puzzle!.sequence.length) {
                         onSuccess();
                     } else {
                         setCurrentTagName(
-                            puzzle.params.sequence.at(currentTagTarget.current)
-                                ?.name
+                            puzzle.sequence.at(currentTagTarget.current)?.name
                         );
                     }
                 }}

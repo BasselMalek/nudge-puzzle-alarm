@@ -39,7 +39,11 @@ export default function AlarmScreen() {
             "SELECT * FROM alarms WHERE id = ?",
             [id as string]
         );
-        if (initial) setAlarm(parseAlarm(initial));
+        if (initial) {
+            const innitAlarm = parseAlarm(initial);
+            setAlarm(innitAlarm);
+            setPuzzlesComplete(innitAlarm.puzzles.length === 0);
+        }
     }, [db, id]);
 
     const dismissAlarm = () => {
@@ -153,28 +157,7 @@ export default function AlarmScreen() {
                             setIsPuzzleVisible(false);
                             setPuzzlesComplete(true);
                         }}
-                        puzzles={[
-                            {
-                                type: "text",
-                                difficulty: 1,
-                                params: { length: 5 },
-                            },
-                            {
-                                type: "nfc",
-                                difficulty: 1,
-                                params: {
-                                    tagCount: 1,
-                                    timeLimit: 1,
-                                    sequence: [
-                                        {
-                                            name: "Coffee Maker",
-                                            id: "04BE68F2343580",
-                                            tech: "ndef",
-                                        },
-                                    ],
-                                },
-                            },
-                        ]}
+                        puzzles={alarm?.puzzles!}
                     />
                 </View>
                 <View

@@ -26,14 +26,14 @@ export default function TextPuzzleComponent(props: {
     const solveTarget = useMemo(
         () =>
             generateString(
-                puzzle.params.length,
+                puzzle.length,
                 puzzle.difficulty === 1
                     ? charsets.easy
                     : puzzle.difficulty === 2
                     ? charsets.medium
                     : charsets.hard
             ),
-        [puzzle.params.length, puzzle.difficulty]
+        [puzzle.length, puzzle.difficulty]
     );
     const [inputValue, setInputValue] = useState("");
     const { colors, roundness } = useTheme();

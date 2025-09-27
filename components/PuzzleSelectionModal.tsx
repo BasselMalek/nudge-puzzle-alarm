@@ -5,13 +5,16 @@ import {
     Card,
     Text,
     Button,
+    Chip,
 } from "react-native-paper";
 import Modal from "react-native-modal";
 import { useCallback, useEffect, useState } from "react";
 import PuzzleTypeChips from "@/components/PuzzleSelectorChips";
-import { Puzzle } from "@/types/Puzzles";
+import { Barcode, NFCTag, Puzzle } from "@/types/Puzzles";
 import { createPuzzle } from "@/utils/puzzleFactory";
 import { Alarm } from "@/types/Alarm";
+import { useSQLiteContext } from "expo-sqlite";
+import MosaicSelectors from "./MosaicSelectors";
 
 export default function PuzzleSelectionModal(props: {
     alarm: Alarm;
@@ -24,6 +27,13 @@ export default function PuzzleSelectionModal(props: {
     const { alarm, setAlarm, isVisible, setIsVisible, editIndex } = props;
     const [puzzle, setPuzzle] = useState<Puzzle>(createPuzzle("text", 1));
     const [modalVisible, setModalVisible] = useState(isVisible);
+
+    const [availTags, setAvailTags] = useState<NFCTag[]>([]);
+    const [selectedTags, setSelectedTags] = useState<NFCTag[]>([]);
+    const [availCodes, setAvailCodes] = useState<Barcode[]>([]);
+    const [selectedCodes, setSelectedCodes] = useState<Barcode[]>([]);
+
+    const db = useSQLiteContext();
 
     useEffect(() => {
         if (isVisible) {
@@ -46,19 +56,80 @@ export default function PuzzleSelectionModal(props: {
         [setIsVisible]
     );
 
+    useEffect(() => {
+        db.getAllAsync<Barcode & { type: string }>(
+            "SELECT * FROM physical"
+        ).then((values) => {
+            setAvailTags(
+                values
+                    .filter((val) => val.type === "NFC")
+                    .map((value) => ({
+                        name: value.name,
+                        id: value.id,
+                    }))
+            );
+            setAvailCodes(
+                values
+                    .filter((val) => val.type === "BAR")
+                    .map((value) => ({
+                        name: value.name!,
+                        id: value.id,
+                        tech: value.tech,
+                    }))
+            );
+        });
+    }, [db]);
+
     const handleSave = useCallback(() => {
+        let puzz = { ...puzzle };
+        if (puzzle.type === "nfc") {
+            puzz = { ...puzzle, sequence: selectedTags };
+        }
+        if (puzzle.type === "scanner") {
+            puzz = { ...puzzle, sequence: selectedCodes };
+        }
+
         if (editIndex !== undefined) {
             const newPuzzles = alarm.puzzles.map((p, i) =>
-                i === editIndex ? puzzle : p
+                i === editIndex ? puzz : p
             );
             setAlarm(newPuzzles);
         } else {
-            const newPuzzles = [...alarm.puzzles, puzzle];
+            const newPuzzles = [...alarm.puzzles, puzz];
             setAlarm(newPuzzles);
         }
         setVis(false);
     }, [alarm.puzzles, editIndex, puzzle, setAlarm, setVis]);
     console.log(editIndex);
+
+    const handleTagSelection = useCallback(
+        (tag: NFCTag) => {
+            if (selectedTags.includes(tag)) {
+                setSelectedTags(
+                    selectedTags.filter((value) => {
+                        value.id !== tag.id;
+                    })
+                );
+            } else {
+                setSelectedTags([...selectedTags, tag]);
+            }
+        },
+        [selectedTags]
+    );
+    const handleCodeSelection = useCallback(
+        (code: Barcode) => {
+            if (selectedTags.includes(code)) {
+                setSelectedCodes(
+                    selectedCodes.filter((value) => {
+                        value.id !== code.id;
+                    })
+                );
+            } else {
+                setSelectedCodes([...selectedCodes, code]);
+            }
+        },
+        [selectedCodes]
+    );
 
     return (
         <Modal
@@ -77,7 +148,10 @@ export default function PuzzleSelectionModal(props: {
             <View
                 style={{
                     flex: 1,
-                    maxHeight: "50%",
+                    maxHeight:
+                        puzzle.type === "nfc" || puzzle.type === "scanner"
+                            ? "70%"
+                            : "45%",
                     backgroundColor: colors.background,
                     borderTopLeftRadius: roundness + 10,
                     borderTopRightRadius: roundness + 10,
@@ -97,18 +171,20 @@ export default function PuzzleSelectionModal(props: {
                         marginBottom: 10,
                     }}
                 />
-                <View style={{}}>
+                <View>
                     <PuzzleTypeChips
                         value={puzzle.type}
                         onValueChange={(newType) => {
-                            setPuzzle(createPuzzle(newType as any, 1));
+                            setPuzzle(
+                                createPuzzle(newType as Puzzle["type"], 1)
+                            );
                         }}
                     />
                 </View>
-                <ScrollView style={{ flex: 5 }}>
-                    <Card style={{ marginBottom: 10 }}>
+                <View style={{ flex: 1 }}>
+                    <Card style={{ flex: 1 }}>
                         <Card.Content style={{ gap: 15 }}>
-                            <View>
+                            <View style={{ gap: 5 }}>
                                 <Text variant="titleSmall">Difficulty</Text>
                                 <SegmentedButtons
                                     value={puzzle.difficulty.toString()}
@@ -127,7 +203,7 @@ export default function PuzzleSelectionModal(props: {
                                     ]}
                                 />
                             </View>
-                            <View>
+                            <View style={{ gap: 5 }}>
                                 <Text variant="titleSmall">Repetitions</Text>
                                 <SegmentedButtons
                                     //TODO: implement repetitions.
@@ -147,8 +223,80 @@ export default function PuzzleSelectionModal(props: {
                             </View>
                         </Card.Content>
                     </Card>
-                </ScrollView>
-                <Button mode="contained" onPress={handleSave}>
+                </View>
+                {puzzle.type === "nfc" && (
+                    <View
+                        style={{
+                            flex: 1,
+                            gap: 10,
+                            paddingHorizontal: 10,
+                        }}
+                    >
+                        <Text variant="titleMedium">{"Available Tags"}</Text>
+                        <MosaicSelectors
+                            mosaicConfig={{
+                                height: 100,
+                                maxWidth: 500,
+                                gap: 5,
+                            }}
+                            totalItems={availTags}
+                            renderItem={(tag) => (
+                                <Chip
+                                    key={tag.id}
+                                    selected={selectedTags.includes(tag)}
+                                    onPress={() => handleTagSelection(tag)}
+                                    showSelectedOverlay={true}
+                                    style={{
+                                        alignSelf: "flex-start",
+                                        flexShrink: 1,
+                                    }}
+                                >
+                                    {tag.name}
+                                </Chip>
+                            )}
+                        />
+                    </View>
+                )}
+                {puzzle.type === "scanner" && (
+                    <View
+                        style={{
+                            flex: 1,
+                            gap: 10,
+                            paddingHorizontal: 10,
+                        }}
+                    >
+                        <Text variant="titleMedium">{"Available Codes"}</Text>
+                        <MosaicSelectors
+                            mosaicConfig={{
+                                height: 100,
+                                maxWidth: 500,
+                                gap: 5,
+                            }}
+                            totalItems={availCodes}
+                            renderItem={(tag) => (
+                                <Chip
+                                    key={tag.id}
+                                    selected={selectedCodes.includes(tag)}
+                                    onPress={() => handleCodeSelection(tag)}
+                                    showSelectedOverlay={true}
+                                    style={{
+                                        alignSelf: "flex-start",
+                                        flexShrink: 1,
+                                    }}
+                                >
+                                    {tag.name}
+                                </Chip>
+                            )}
+                        />
+                    </View>
+                )}
+                <Button
+                    mode="contained"
+                    onPress={handleSave}
+                    onLongPress={() => {
+                        console.log(puzzle);
+                    }}
+                >
                     {"Save"}
                 </Button>
             </View>

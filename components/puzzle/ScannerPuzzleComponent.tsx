@@ -3,7 +3,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { View } from "react-native";
 import { Card, Text, TextInput, useTheme } from "react-native-paper";
 
-export default function MathPuzzleComponent(props: {
+export default function ScannerPuzzleComponent(props: {
     puzzle: ScannerPuzzle;
     onSuccess: () => void;
 }) {

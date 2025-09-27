@@ -39,10 +39,7 @@ export default function PuzzleContainer(
     const [currentPuzzle, setCurrentPuzzle] = useState<{
         index: number;
         puzzle: Puzzle;
-    }>({
-        index: 0,
-        puzzle: puzzles!.at(0)!,
-    });
+    }>();
 
     useEffect(() => {
         if (!isDone && isVisible) {
@@ -74,8 +71,17 @@ export default function PuzzleContainer(
         }
     }, [isVisible, roundness, isDone]);
 
+    useEffect(() => {
+        if (puzzles) {
+            setCurrentPuzzle({
+                index: 0,
+                puzzle: puzzles!.at(0)!,
+            });
+        }
+    }, [puzzles]);
+
     const handleNextPuzzle = () => {
-        const newIndex = currentPuzzle.index + 1;
+        const newIndex = currentPuzzle!.index + 1;
         setIndicatorDotProgress(newIndex);
         if (newIndex >= puzzles.length) {
             setIsDone(true);
@@ -176,7 +182,7 @@ export default function PuzzleContainer(
                                 case "text":
                                     return (
                                         !showAnimation &&
-                                        currentPuzzle.index === k && (
+                                        currentPuzzle!.index === k && (
                                             <TextPuzzleComponent
                                                 key={k}
                                                 puzzle={puzzle}
@@ -187,7 +193,7 @@ export default function PuzzleContainer(
                                 case "nfc":
                                     return (
                                         !showAnimation &&
-                                        currentPuzzle.index === k && (
+                                        currentPuzzle!.index === k && (
                                             <NFCPuzzleComponent
                                                 key={k}
                                                 puzzle={puzzle}
@@ -198,7 +204,7 @@ export default function PuzzleContainer(
                                 case "math":
                                     return (
                                         !showAnimation &&
-                                        currentPuzzle.index === k && (
+                                        currentPuzzle!.index === k && (
                                             <MathPuzzleComponent
                                                 key={k}
                                                 puzzle={puzzle}
@@ -209,7 +215,7 @@ export default function PuzzleContainer(
                                 case "scanner":
                                     return (
                                         !showAnimation &&
-                                        currentPuzzle.index === k && (
+                                        currentPuzzle!.index === k && (
                                             <BarcodePuzzleComponent
                                                 key={k}
                                                 puzzle={puzzle}
@@ -220,7 +226,7 @@ export default function PuzzleContainer(
                                 case "memory":
                                     return (
                                         !showAnimation &&
-                                        currentPuzzle.index === k && (
+                                        currentPuzzle!.index === k && (
                                             <MemoryPuzzleComponent
                                                 key={k}
                                                 puzzle={puzzle}
