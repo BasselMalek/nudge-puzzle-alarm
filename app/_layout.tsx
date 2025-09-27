@@ -52,7 +52,6 @@ export default function RootLayout() {
                             name="settings"
                             options={{
                                 headerTitle: "Settings",
-                                title: "Settings",
                                 presentation: "modal",
                                 headerStyle: {
                                     backgroundColor:
@@ -96,7 +95,7 @@ export default function RootLayout() {
                             }}
                         />
                         <Stack.Screen
-                            name="onboard"
+                            name="onboardingScreens"
                             options={{
                                 headerShown: false,
                                 presentation: "modal",

@@ -3,6 +3,7 @@ import { useTheme, Text } from "react-native-paper";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import ListItem from "@/components/ListItem";
+import { router } from "expo-router";
 const imgSrc = require("@/assets/images/hourglass.png");
 
 export default function Settings() {
@@ -54,7 +55,11 @@ export default function Settings() {
                             title: "Registered NFC Tags",
                             desc: "Manage your tags",
                             icon: "nfc-search-variant",
-                            onPress: () => {},
+                            onPress: () => {
+                                router.push(
+                                    "./settingsScreens/nfcSettings.tsx"
+                                );
+                            },
                         },
                         {
                             title: "Registered QR/Barcodes",

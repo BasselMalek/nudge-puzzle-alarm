@@ -28,7 +28,7 @@ export default function Alarms() {
     useEffect(() => {
         const first = Storage.getItemSync("isFirstBoot");
         if (first === null) {
-            router.navigate("/onboard/welcome");
+            router.navigate("/onboardingScreens/welcome");
         }
     }, []);
 
@@ -190,7 +190,7 @@ export default function Alarms() {
                     router.navigate(`./alarms/${alarms.at(0)?.id}`);
                 }}
                 onLongPress={() => {
-                    router.push("/onboard/welcome");
+                    router.push("/onboardingScreens/welcome");
                 }}
             />
             <FlatList
