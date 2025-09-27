@@ -56,14 +56,16 @@ export default function Settings() {
                             desc: "Manage your tags",
                             icon: "nfc-search-variant",
                             onPress: () => {
-                                router.push("/nfcSettings");
+                                router.push("/settingsScreens/nfcSettings");
                             },
                         },
                         {
                             title: "Registered QR/Barcodes",
                             desc: "Manage your scanned codes",
                             icon: "qrcode-edit",
-                            onPress: () => {},
+                            onPress: () => {
+                                router.push("/settingsScreens/barcodeSettings");
+                            },
                         },
                         {
                             title: "Donate",

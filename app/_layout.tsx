@@ -72,9 +72,9 @@ export default function RootLayout() {
                             }}
                         />
                         <Stack.Screen
-                            name="nfcSettings"
+                            name="settingsScreens"
                             options={{
-                                headerTitle: "NFC Settings",
+                                headerShown: false,
                                 presentation: "modal",
                                 headerStyle: {
                                     backgroundColor:

@@ -43,17 +43,30 @@ export default function nfcSettings() {
     };
 
     const saveTag = async () => {
-        db.runAsync("INSERT INTO physical (id, type, name) VALUES (?,?,?)", [
-            scannedTag!.id,
-            "NFC",
-            customName,
-        ]);
-        setRegisteredTags([
-            ...registeredTags,
-            { ...scannedTag!, name: customName },
-        ]);
+        if (checkifRegistered(scannedTag!.id)) {
+            db.runAsync("UPDATE physical SET name = ? WHERE id = ?", [
+                customName,
+                scannedTag!.id,
+            ]);
+        } else {
+            db.runAsync(
+                "INSERT INTO physical (id, type, name) VALUES (?,?,?)",
+                [scannedTag!.id, "BAR", customName]
+            );
+            setRegisteredTags([
+                ...registeredTags,
+                { ...scannedTag!, name: customName },
+            ]);
+        }
+        setScannedTag(null);
     };
-
+    const handleDelete = useCallback(
+        (id: string) => {
+            setRegisteredTags(registeredTags.filter((val) => val.id !== id));
+            db.runAsync("DELETE FROM physical where id = ?", [id]);
+        },
+        [db]
+    );
     useFocusEffect(
         useCallback(() => {
             const rows = db
@@ -117,16 +130,25 @@ export default function nfcSettings() {
                 </Card>
             )}
             <View style={{ flex: 1, gap: 15 }}>
-                {/* <Card.Content style={{ height: "100%" }}> */}
                 <Text variant="titleMedium">{"Registered Tags"}</Text>
                 <FlatList
                     fadingEdgeLength={40}
                     data={registeredTags}
                     renderItem={({ item }) => (
-                        <ListItem title={item.name!} desc={item.id} buttons />
+                        <ListItem
+                            title={item.name!}
+                            desc={item.id}
+                            buttons
+                            buttonOneAction={() => {
+                                setCustomName(item.name!);
+                                setScannedTag(item);
+                            }}
+                            buttonTwoAction={() => {
+                                handleDelete(item.id);
+                            }}
+                        />
                     )}
                 />
-                {/* </Card.Content> */}
             </View>
         </View>
     );
