@@ -56,9 +56,7 @@ export default function Settings() {
                             desc: "Manage your tags",
                             icon: "nfc-search-variant",
                             onPress: () => {
-                                router.push(
-                                    "./settingsScreens/nfcSettings.tsx"
-                                );
+                                router.push("/nfcSettings");
                             },
                         },
                         {

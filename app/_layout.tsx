@@ -63,7 +63,30 @@ export default function RootLayout() {
                                     flex: 1,
                                     backgroundColor:
                                         paperTheme.colors.background,
-                                    paddingTop: 10,
+                                    // paddingTop: 10,
+                                    paddingLeft: safeInsets.left + 10,
+                                    paddingRight: safeInsets.right + 10,
+                                    paddingBottom: safeInsets.bottom + 10,
+                                    gap: 10,
+                                },
+                            }}
+                        />
+                        <Stack.Screen
+                            name="nfcSettings"
+                            options={{
+                                headerTitle: "NFC Settings",
+                                presentation: "modal",
+                                headerStyle: {
+                                    backgroundColor:
+                                        paperTheme.colors.background,
+                                },
+                                headerTintColor: paperTheme.colors.onBackground,
+                                contentStyle: {
+                                    display: "flex",
+                                    flex: 1,
+                                    backgroundColor:
+                                        paperTheme.colors.background,
+                                    // paddingTop: 10,
                                     paddingLeft: safeInsets.left + 10,
                                     paddingRight: safeInsets.right + 10,
                                     paddingBottom: safeInsets.bottom + 10,

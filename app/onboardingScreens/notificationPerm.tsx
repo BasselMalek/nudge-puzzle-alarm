@@ -49,7 +49,7 @@ export default function Notification() {
                     mode="elevated"
                     onPress={async () => {
                         if (permsGranted) {
-                            router.push("/onboard/displayOverPerm");
+                            router.push("/onboardingScreens/displayOverPerm");
                         } else {
                             const result = await requestPermissionsAsync({
                                 ios: {

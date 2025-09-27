@@ -1,9 +1,9 @@
-import { NFCPuzzle } from "@/types/Puzzles";
+import { NFCPuzzle, NFCTag } from "@/types/Puzzles";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { View } from "react-native";
 import { IconButton, Text, useTheme } from "react-native-paper";
-import NfcManager, { NfcEvents, TagEvent } from "react-native-nfc-manager";
-import AnimatedIcon, { AnimatedIconRef } from "../AnimatedIcon";
+import AnimatedIcon, { AnimatedIconRef } from "@/components/AnimatedIcon";
+import { useNFCScanner } from "@/hooks/useNFCScanner";
 
 export default function NFCPuzzleComponent(props: {
     puzzle: NFCPuzzle;
@@ -19,9 +19,9 @@ export default function NFCPuzzleComponent(props: {
     const iconRef = useRef<AnimatedIconRef>(null);
 
     const onTagRead = useCallback(
-        (tagId: string) => {
+        (tagData: NFCTag) => {
             if (
-                tagId ===
+                tagData.id ===
                 puzzle?.params.sequence.at(currentTagTarget.current)?.id
             ) {
                 currentTagTarget.current = currentTagTarget.current + 1;
@@ -34,20 +34,12 @@ export default function NFCPuzzleComponent(props: {
         [puzzle, currentTagTarget]
     );
 
+    const { startNFCScanning, stopNFCScanning } = useNFCScanner(onTagRead);
+
     useEffect(() => {
-        NfcManager.setEventListener(NfcEvents.DiscoverTag, (tag: TagEvent) => {
-            if (tag.id) {
-                onTagRead(tag.id);
-            }
-            NfcManager.unregisterTagEvent();
-            NfcManager.registerTagEvent();
-        });
-        NfcManager.registerTagEvent();
+        startNFCScanning();
         return () => {
-            NfcManager.unregisterTagEvent();
-            NfcManager.setEventListener(NfcEvents.DiscoverTag, null);
-            NfcManager.setEventListener(NfcEvents.SessionClosed, null);
-            NfcManager.close();
+            stopNFCScanning();
         };
     }, []);
 
@@ -65,9 +57,6 @@ export default function NFCPuzzleComponent(props: {
                 color1={colors.onBackground}
                 color2={isError ? colors.error : colors.primary}
                 source={"nfc"}
-                //? I'm not sure there's another way of somehow reseting this that does not envolve interval
-                //? if there is it's gonna look bad exposing a whole ass thread from there just to set a state var.
-                //? this is 5am code tho i'm sure its fine.
                 onAnimationComplete={() => {
                     setIsError(false);
                     if (currentTagTarget.current >= puzzle!.params.tagCount) {

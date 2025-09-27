@@ -24,9 +24,9 @@ export default function Alarms() {
         useAlarms(db, "nudge://alarms");
     const { update } = useLocalSearchParams();
     const [loadStale, setLoadStale] = useState(true);
+    const first = Storage.getItemSync("isFirstBoot");
 
     useEffect(() => {
-        const first = Storage.getItemSync("isFirstBoot");
         if (first === null) {
             router.navigate("/onboardingScreens/welcome");
         }
@@ -34,8 +34,10 @@ export default function Alarms() {
 
     useFocusEffect(
         useCallback(() => {
-            setLoadStale(update === "true");
-        }, [])
+            if (first) {
+                setLoadStale(update === "true");
+            }
+        }, [first])
     );
 
     useEffect(() => {

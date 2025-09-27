@@ -27,6 +27,14 @@ export const initDatabaseTableIfFirstBoot = (db: SQLiteDatabase) => {
                 `CREATE INDEX IF NOT EXISTS idx_alarms_enabled ON alarms(is_enabled)`
             );
 
+            db.runSync(`
+          CREATE TABLE IF NOT EXISTS physical (
+            id TEXT PRIMARY KEY,
+            name TEXT NOT NULL,
+            type TEXT NOT NULL
+          )
+        `);
+
             Storage.setItemSync("isFirstBoot", "true");
         }
     } catch (error) {

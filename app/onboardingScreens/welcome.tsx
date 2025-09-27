@@ -51,7 +51,7 @@ export default function Welcome() {
                     icon={"arrow-right"}
                     mode="elevated"
                     onPress={() => {
-                        router.push("/onboard/notificationPerm");
+                        router.push("/onboardingScreens/notificationPerm");
                     }}
                 >
                     {"Start"}

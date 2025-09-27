@@ -1,7 +1,25 @@
-export type RegisteredTag = {
-    tech: "mifare" | "ndef" | "ultralight";
+export type NFCTag = {
+    name?: string;
+    id: string;
+};
+
+export type Barcode = {
     name: string;
     id: string;
+    tech:
+        | "aztec"
+        | "ean13"
+        | "ean8"
+        | "qr"
+        | "pdf417"
+        | "upc_e"
+        | "datamatrix"
+        | "code39"
+        | "code93"
+        | "itf14"
+        | "codabar"
+        | "code128"
+        | "upc_a";
 };
 
 export type TextPuzzle = {
@@ -23,7 +41,7 @@ export type NFCPuzzle = {
     difficulty: 1 | 2 | 3;
     params: {
         tagCount: number;
-        sequence: RegisteredTag[];
+        sequence: NFCTag[];
         timeLimit: number;
     };
 };
@@ -49,7 +67,7 @@ export type ScannerPuzzle = {
         codeType: "qr" | "code128" | "ean13";
         tagCount: number;
         timeLimit: number;
-        sequence: RegisteredTag[];
+        sequence: Barcode[];
     };
 };
 
