@@ -18,7 +18,7 @@ import { Alarm, AlarmDto } from "@/types/Alarm";
 import { createAlarm, parseAlarm, saveAlarmDirect } from "@/hooks/useAlarms";
 import { useSQLiteContext } from "expo-sqlite";
 import { StatusBar } from "expo-status-bar";
-import { View } from "react-native";
+import { FlatList, View } from "react-native";
 import { DaySet } from "@/types/DaySet";
 import { scheduleNextInstance } from "@/utils/alarmSchedulingHelpers";
 import SoundOptionsModal from "@/components/SoundOptionsModal";
@@ -273,86 +273,133 @@ export default function AlarmOptions() {
                     />
                 </Card.Content>
             </Card>
-            <Card style={{ flex: 1, borderRadius: 20 }} elevation={3}>
-                <Card.Content
-                    style={{ paddingVertical: 15, gap: 10, height: "100%" }}
-                >
-                    <Text variant="titleMedium">{"Puzzles"}</Text>
-                    <PuzzleSelectionModal
-                        alarm={alarm}
-                        setAlarm={handlePuzzleUpdate}
-                        isVisible={puzzlesModalVisible}
-                        setIsVisible={handleModalClose}
-                        editIndex={editPuzzleAtIndex.current}
-                    />
-                    <ReorderableList
-                        ItemSeparatorComponent={() => (
-                            <View style={{ height: 10 }} />
-                        )}
-                        data={alarm.puzzles}
-                        onReorder={({
-                            from,
-                            to,
-                        }: ReorderableListReorderEvent) => {
-                            setAlarm((prevAlarm) => ({
-                                ...prevAlarm,
-                                puzzles: reorderItems(
-                                    prevAlarm.puzzles,
-                                    from,
-                                    to
-                                ),
-                            }));
-                        }}
-                        keyExtractor={(item) => item.id}
-                        renderItem={({ item, index }) => {
-                            return (
+            <PuzzleSelectionModal
+                alarm={alarm}
+                setAlarm={handlePuzzleUpdate}
+                isVisible={puzzlesModalVisible}
+                setIsVisible={handleModalClose}
+                editIndex={editPuzzleAtIndex.current}
+            />
+            <View
+                style={{
+                    flex: 1,
+                    gap: 10,
+                    paddingHorizontal: 10,
+                    marginTop: 10,
+                }}
+            >
+                <Text variant="titleMedium">{"Puzzles"}</Text>
+                <ReorderableList
+                    ItemSeparatorComponent={() => (
+                        <View style={{ height: 10 }} />
+                    )}
+                    data={alarm.puzzles}
+                    onReorder={({ from, to }: ReorderableListReorderEvent) => {
+                        setAlarm((prevAlarm) => ({
+                            ...prevAlarm,
+                            puzzles: reorderItems(prevAlarm.puzzles, from, to),
+                        }));
+                    }}
+                    keyExtractor={(item) => item.id}
+                    renderItem={({ item, index }) => {
+                        return (
+                            <ListItem
+                                title={item.title}
+                                icon={item.icon}
+                                desc={"Difficulty: " + item.difficulty}
+                                style={{ height: 70 }}
+                                buttons
+                                draggable
+                                buttonOneAction={() => {
+                                    editPuzzleAtIndex.current = index;
+                                    setPuzzlesModalVisible(true);
+                                }}
+                                buttonTwoAction={() => {
+                                    setAlarm((prevAlarm) => ({
+                                        ...prevAlarm,
+                                        puzzles: prevAlarm.puzzles.filter(
+                                            (puzzle) => puzzle.id !== item.id
+                                        ),
+                                    }));
+                                }}
+                            />
+                        );
+                    }}
+                    ListFooterComponent={() => {
+                        return (
+                            <>
+                                <View style={{ height: 10 }} />
                                 <ListItem
-                                    title={item.title}
-                                    icon={item.icon}
-                                    buttons
-                                    buttonOneAction={() => {
-                                        editPuzzleAtIndex.current = index;
+                                    icon={"plus"}
+                                    style={{ height: 75 }}
+                                    title={"New Puzzle"}
+                                    desc={
+                                        "Tip: drag your puzzles to change their order"
+                                    }
+                                    onPress={() => {
+                                        editPuzzleAtIndex.current = undefined;
                                         setPuzzlesModalVisible(true);
                                     }}
-                                    buttonTwoAction={() => {
-                                        setAlarm((prevAlarm) => ({
-                                            ...prevAlarm,
-                                            puzzles: prevAlarm.puzzles.filter(
-                                                (puzzle) =>
-                                                    puzzle.id !== item.id
-                                            ),
-                                        }));
+                                />
+                            </>
+                        );
+                    }}
+                />
+            </View>
+            <View
+                style={{
+                    flex: 1,
+                    gap: 5,
+                    paddingHorizontal: 10,
+                }}
+            >
+                <Text variant="titleMedium">{"Boosters"}</Text>
+                <FlatList
+                    ItemSeparatorComponent={() => (
+                        <View style={{ height: 10 }} />
+                    )}
+                    data={[]}
+                    // keyExtractor={(item) => item.id}
+                    renderItem={({ item, index }) => {
+                        return (
+                            // <ListItem
+                            //     title={item.title??""}
+                            //     icon={item.icon}
+                            //     buttons
+                            //     buttonOneAction={() => {
+                            //         editPuzzleAtIndex.current = index;
+                            //         setPuzzlesModalVisible(true);
+                            //     }}
+                            //     buttonTwoAction={() => {
+                            //         setAlarm((prevAlarm) => ({
+                            //             ...prevAlarm,
+                            //             puzzles: prevAlarm.puzzles.filter(
+                            //                 (puzzle) => puzzle.id !== item.id
+                            //             ),
+                            //         }));
+                            //     }}
+                            // />
+                            <></>
+                        );
+                    }}
+                    ListFooterComponent={() => {
+                        return (
+                            <>
+                                <View style={{ height: 10 }} />
+                                <ListItem
+                                    icon={"plus"}
+                                    style={{ height: 75 }}
+                                    title={"New Booster"}
+                                    onPress={() => {
+                                        editPuzzleAtIndex.current = undefined;
+                                        setPuzzlesModalVisible(true);
                                     }}
                                 />
-                            );
-                        }}
-                        ListFooterComponent={() => {
-                            return (
-                                <>
-                                    <View style={{ height: 10 }} />
-                                    <Card
-                                        style={{ flex: 1 }}
-                                        onPress={() => {
-                                            editPuzzleAtIndex.current =
-                                                undefined;
-                                            setPuzzlesModalVisible(true);
-                                        }}
-                                    >
-                                        <Card.Content
-                                            style={{
-                                                justifyContent: "center",
-                                                alignItems: "center",
-                                            }}
-                                        >
-                                            <Icon source={"plus"} size={24} />
-                                        </Card.Content>
-                                    </Card>
-                                </>
-                            );
-                        }}
-                    />
-                </Card.Content>
-            </Card>
+                            </>
+                        );
+                    }}
+                />
+            </View>
             <FAB
                 icon="check"
                 style={{

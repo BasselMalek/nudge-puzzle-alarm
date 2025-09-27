@@ -39,7 +39,7 @@ export default function ListItem(
     }
 
     return (
-        <Card onPressIn={drag} onPress={props.onPress} style={props.style}>
+        <Card onLongPress={drag} onPress={props.onPress} style={props.style}>
             <Card.Content
                 style={{
                     height: "100%",
