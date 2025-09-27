@@ -5,7 +5,7 @@ import { useSQLiteContext } from "expo-sqlite";
 import { useCallback, useState } from "react";
 import { View, FlatList } from "react-native";
 import { Text, TextInput, Button, Card, useTheme } from "react-native-paper";
-import { CameraView } from "expo-camera";
+import { CameraView, useCameraPermissions } from "expo-camera";
 
 export default function barcodeSettings() {
     const [scannedCode, setScannedCode] = useState<Barcode | null>(null);
@@ -13,6 +13,7 @@ export default function barcodeSettings() {
     const [error, setError] = useState(false);
     const [customName, setCustomName] = useState("");
     const [isScanning, setIsScanning] = useState(false);
+    const [permission, requestPermission] = useCameraPermissions();
     const db = useSQLiteContext();
     const { colors, roundness } = useTheme();
 
@@ -38,6 +39,18 @@ export default function barcodeSettings() {
             ]);
         }
         setScannedCode(null);
+    };
+
+    const handleStartScanning = async () => {
+        if (!permission?.granted) {
+            const { granted } = await requestPermission();
+            if (!granted) {
+                setError(true);
+                return;
+            }
+        }
+        setError(false);
+        setIsScanning(true);
     };
 
     useFocusEffect(
@@ -77,15 +90,14 @@ export default function barcodeSettings() {
                         style={{ textAlign: "center" }}
                     >
                         {error
-                            ? "Code unreadable or already registered"
+                            ? permission?.granted
+                                ? "Code unreadable or already registered"
+                                : "Camera permission required to scan codes"
                             : "Press the button to open viewfinder."}
                     </Text>
                     <Button
                         mode="contained"
-                        onPress={() => {
-                            setError(false);
-                            setIsScanning(true);
-                        }}
+                        onPress={handleStartScanning}
                         icon="line-scan"
                     >
                         {isScanning ? "Stop Scanning" : "Start Scanning"}
