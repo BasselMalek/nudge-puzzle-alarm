@@ -28,6 +28,10 @@ export default function barcodeSettings() {
                 customName,
                 scannedCode!.id,
             ]);
+            setRegisteredCodes([
+                ...registeredCodes,
+                { ...scannedCode!, name: customName },
+            ]);
         } else {
             db.runAsync(
                 "INSERT INTO physical (id, type, name) VALUES (?,?,?)",
@@ -60,7 +64,6 @@ export default function barcodeSettings() {
                     "BAR",
                 ])
                 .then((items) => {
-                    console.log(items);
                     setRegisteredCodes(items);
                 });
         }, [db])
@@ -113,14 +116,13 @@ export default function barcodeSettings() {
                             borderRadius: roundness + 10,
                         }}
                         onBarcodeScanned={({ type, data }) => {
-                            console.log(data);
                             setIsScanning(false);
                             if (checkifRegistered(data)) {
                                 setError(true);
                             } else {
                                 setScannedCode({
                                     name: "",
-                                    id: data,
+                                    id: String(data),
                                     tech: type as Barcode["tech"],
                                 });
                             }
@@ -165,10 +167,11 @@ export default function barcodeSettings() {
                 <FlatList
                     fadingEdgeLength={40}
                     data={registeredCodes}
+                    contentContainerStyle={{ gap: 10 }}
                     renderItem={({ item }) => (
                         <ListItem
                             title={item.name!}
-                            desc={item.id}
+                            style={{ height: 70 }}
                             buttons
                             buttonOneAction={() => {
                                 setCustomName(item.name);

@@ -20,20 +20,20 @@ export default function ScannerPuzzleComponent(props: {
     const { colors, roundness } = useTheme();
     const iconRef = useRef<AnimatedIconRef>(null);
 
+    //TODO: also figure out a way to guard against deleting a tag that is used in a puzzle.
+
     const onBarcodeScanned = useCallback(
         (scannedData: { type: string; data: string }) => {
+            setIsScanning(false);
             const currentTarget = puzzle.sequence.at(
                 currentBarcodeTarget.current
             );
-
             if (scannedData.data === currentTarget?.id) {
                 currentBarcodeTarget.current = currentBarcodeTarget.current + 1;
                 iconRef.current?.triggerAnimation();
-                setIsScanning(false);
             } else {
                 setIsError(true);
                 iconRef.current?.triggerAnimation();
-                setIsScanning(false);
             }
         },
         [puzzle, currentBarcodeTarget]
@@ -52,73 +52,62 @@ export default function ScannerPuzzleComponent(props: {
     };
 
     return (
-        <View
-            style={{
-                paddingVertical: 20,
-                gap: 30,
-                alignItems: "center",
-                flex: 1,
-            }}
-        >
-            <AnimatedIcon
-                ref={iconRef}
-                size={64}
-                color1={colors.onBackground}
-                color2={isError ? colors.error : colors.primary}
-                source={"line-scan"}
-                onAnimationComplete={() => {
-                    setIsError(false);
-                    if (
-                        currentBarcodeTarget.current >= puzzle.sequence.length
-                    ) {
-                        onSuccess();
-                    } else {
-                        setCurrentBarcodeName(
-                            puzzle.sequence.at(currentBarcodeTarget.current)
-                                ?.name
-                        );
-                    }
+        <>
+            {isScanning && (
+                <CameraView
+                    active={isScanning}
+                    style={{
+                        flex: 1,
+                        borderRadius: roundness + 10,
+                    }}
+                    onBarcodeScanned={onBarcodeScanned}
+                />
+            )}
+            <View
+                style={{
+                    paddingVertical: 20,
+                    gap: 25,
+                    alignItems: "center",
+                    flex: 1,
+                    display: isScanning ? "none" : "flex",
                 }}
-            />
-
-            <Text variant="displayMedium" style={{ textAlign: "center" }}>
-                {isError
-                    ? permission?.granted
-                        ? "Wrong code! Try again"
-                        : "Camera permission required"
-                    : `Scan ${currentBarcodeName}`}
-            </Text>
-
-            {!isScanning ? (
+            >
+                <AnimatedIcon
+                    ref={iconRef}
+                    size={64}
+                    color1={colors.onBackground}
+                    color2={isError ? colors.error : colors.primary}
+                    source={"line-scan"}
+                    onAnimationComplete={() => {
+                        setIsError(false);
+                        if (
+                            currentBarcodeTarget.current >=
+                            puzzle.sequence.length
+                        ) {
+                            onSuccess();
+                        } else {
+                            setCurrentBarcodeName(
+                                puzzle.sequence.at(currentBarcodeTarget.current)
+                                    ?.name
+                            );
+                        }
+                    }}
+                />
+                <Text variant="displayMedium" style={{ textAlign: "center" }}>
+                    {isError
+                        ? permission?.granted
+                            ? "Wrong code!"
+                            : "Camera permission required"
+                        : `Scan ${currentBarcodeName}`}
+                </Text>
                 <Button
                     mode="contained"
                     onPress={handleStartScanning}
                     icon="line-scan"
-                    style={{ marginTop: 20 }}
                 >
-                    Start Scanning
+                    {"Start Scanning"}
                 </Button>
-            ) : (
-                <View style={{ flex: 1, width: "100%", gap: 20 }}>
-                    <CameraView
-                        active={isScanning}
-                        style={{
-                            flex: 1,
-                            borderRadius: roundness + 10,
-                            minHeight: 300,
-                        }}
-                        onBarcodeScanned={onBarcodeScanned}
-                    />
-                    <Button
-                        mode="outlined"
-                        onPress={() => setIsScanning(false)}
-                        icon="stop"
-                        style={{ alignSelf: "center" }}
-                    >
-                        Stop Scanning
-                    </Button>
-                </View>
-            )}
-        </View>
+            </View>
+        </>
     );
 }

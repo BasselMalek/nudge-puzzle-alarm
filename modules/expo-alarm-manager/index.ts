@@ -72,7 +72,6 @@ export const pickAlarmTone = async (
  * @Platform android
  */
 export const requestOverlayPerm = () => {
-    console.log("hi");
     ExpoAlarmManagerModule.requestOverlayPerm();
 };
 

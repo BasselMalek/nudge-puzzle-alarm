@@ -14,7 +14,6 @@ const BootTask = async () => {
             "SELECT * FROM alarms WHERE is_enabled = 1"
         );
         const result = await rescheduleAllForOnBoot(rows.map(parseAlarm));
-        console.log(result);
     } catch (e) {
         console.log(e);
     } finally {

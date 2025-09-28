@@ -121,8 +121,6 @@ export default function SoundOptionsModal(props: {
                                 ? undefined
                                 : alarm.ringtone.uri
                         );
-                        console.log("URI is " + uri);
-
                         if (uri !== null)
                             if (uri.name === "") {
                                 setAlarm({
