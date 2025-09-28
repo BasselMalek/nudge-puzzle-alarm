@@ -11,7 +11,13 @@ import {
 import Modal from "react-native-modal";
 import { useCallback, useEffect, useState } from "react";
 import PuzzleTypeChips from "@/components/PuzzleSelectorChips";
-import { Barcode, NFCTag, Puzzle } from "@/types/Puzzles";
+import {
+    Barcode,
+    NFCPuzzle,
+    NFCTag,
+    Puzzle,
+    ScannerPuzzle,
+} from "@/types/Puzzles";
 import { createPuzzle } from "@/utils/puzzleFactory";
 import { Alarm } from "@/types/Alarm";
 import { useSQLiteContext } from "expo-sqlite";
@@ -44,6 +50,14 @@ export default function PuzzleSelectionModal(props: {
                     ? alarm.puzzles.at(editIndex)!
                     : createPuzzle("text", 1)
             );
+            if (editIndex !== undefined) {
+                setSelectedTags([
+                    ...(alarm.puzzles.at(editIndex)! as NFCPuzzle)!.sequence,
+                ]);
+                setSelectedCodes([
+                    ...(alarm.puzzles.at(editIndex)! as ScannerPuzzle).sequence,
+                ]);
+            }
             setModalVisible(isVisible);
         } else {
             setModalVisible(isVisible);
@@ -51,16 +65,15 @@ export default function PuzzleSelectionModal(props: {
         }
     }, [isVisible, editIndex, alarm.puzzles]);
 
-    // Check if save button should be disabled
     useEffect(() => {
         if (puzzle.type === "nfc") {
-            setCanSave(selectedTags.length > 0);
+            setCanSave(selectedTags?.length > 0);
         } else if (puzzle.type === "scanner") {
-            setCanSave(selectedCodes.length > 0);
+            setCanSave(selectedCodes?.length > 0);
         } else {
             setCanSave(true);
         }
-    }, [puzzle.type, selectedTags.length, selectedCodes.length]);
+    }, [puzzle.type, selectedTags?.length, selectedCodes?.length]);
 
     const setVis = useCallback(
         (vis: boolean) => {
@@ -96,10 +109,9 @@ export default function PuzzleSelectionModal(props: {
     const handleSave = useCallback(() => {
         let puzz = { ...puzzle };
         if (puzzle.type === "nfc") {
-            puzz = { ...puzzle, sequence: selectedTags };
-        }
-        if (puzzle.type === "scanner") {
-            puzz = { ...puzzle, sequence: selectedCodes };
+            (puzz as any) = { ...puzz, sequence: selectedTags };
+        } else if (puzzle.type === "scanner") {
+            (puzz as any) = { ...puzz, sequence: selectedCodes };
         }
 
         if (editIndex !== undefined) {
@@ -124,9 +136,9 @@ export default function PuzzleSelectionModal(props: {
 
     const handleTagSelection = useCallback(
         (tag: NFCTag) => {
-            if (selectedTags.includes(tag)) {
+            if (selectedTags?.includes(tag)) {
                 setSelectedTags(
-                    selectedTags.filter((value) => {
+                    selectedTags?.filter((value) => {
                         return value.id !== tag.id;
                     })
                 );
@@ -139,9 +151,9 @@ export default function PuzzleSelectionModal(props: {
 
     const handleCodeSelection = useCallback(
         (code: Barcode) => {
-            if (selectedCodes.includes(code)) {
+            if (selectedCodes?.includes(code)) {
                 setSelectedCodes(
-                    selectedCodes.filter((value) => {
+                    selectedCodes?.filter((value) => {
                         return value.id !== code.id;
                     })
                 );
@@ -199,6 +211,8 @@ export default function PuzzleSelectionModal(props: {
                             setPuzzle(
                                 createPuzzle(newType as Puzzle["type"], 1)
                             );
+                            setSelectedCodes([]);
+                            setSelectedTags([]);
                         }}
                     />
                 </View>
@@ -265,7 +279,7 @@ export default function PuzzleSelectionModal(props: {
                                 renderItem={(tag) => (
                                     <Chip
                                         key={tag.id}
-                                        selected={selectedTags.includes(tag)}
+                                        selected={selectedTags?.includes(tag)}
                                         onPress={() => handleTagSelection(tag)}
                                         showSelectedOverlay={true}
                                         style={{
@@ -316,7 +330,7 @@ export default function PuzzleSelectionModal(props: {
                                 renderItem={(code) => (
                                     <Chip
                                         key={code.id}
-                                        selected={selectedCodes.includes(code)}
+                                        selected={selectedCodes?.includes(code)}
                                         onPress={() =>
                                             handleCodeSelection(code)
                                         }

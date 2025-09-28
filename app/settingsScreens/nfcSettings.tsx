@@ -137,7 +137,7 @@ export default function nfcSettings() {
                     renderItem={({ item }) => (
                         <ListItem
                             title={item.name!}
-                            desc={item.id}
+                            style={{ height: 70 }}
                             buttons
                             buttonOneAction={() => {
                                 setCustomName(item.name!);
