@@ -45,23 +45,28 @@ export default function PuzzleSelectionModal(props: {
 
     useEffect(() => {
         if (isVisible) {
-            setPuzzle(
-                editIndex !== undefined
-                    ? alarm.puzzles.at(editIndex)!
-                    : createPuzzle("text", 1)
-            );
             if (editIndex !== undefined) {
-                setSelectedTags([
-                    ...(alarm.puzzles.at(editIndex)! as NFCPuzzle)!.sequence,
-                ]);
-                setSelectedCodes([
-                    ...(alarm.puzzles.at(editIndex)! as ScannerPuzzle).sequence,
-                ]);
+                setPuzzle(alarm.puzzles.at(editIndex)!);
+                if (alarm.puzzles.at(editIndex)!.type === "nfc") {
+                    setSelectedTags(
+                        (alarm.puzzles.at(editIndex)! as NFCPuzzle)!.sequence
+                    );
+                } else if (alarm.puzzles.at(editIndex)!.type === "scanner") {
+                    setSelectedCodes(
+                        (alarm.puzzles.at(editIndex)! as ScannerPuzzle).sequence
+                    );
+                }
+            } else {
+                setPuzzle(createPuzzle("text", 1));
+                setSelectedCodes([]);
+                setSelectedTags([]);
             }
             setModalVisible(isVisible);
         } else {
             setModalVisible(isVisible);
             setPuzzle(createPuzzle("text", 1));
+            setSelectedCodes([]);
+            setSelectedTags([]);
         }
     }, [isVisible, editIndex, alarm.puzzles]);
 
@@ -276,20 +281,35 @@ export default function PuzzleSelectionModal(props: {
                                     gap: 5,
                                 }}
                                 totalItems={availTags}
-                                renderItem={(tag) => (
-                                    <Chip
-                                        key={tag.id}
-                                        selected={selectedTags?.includes(tag)}
-                                        onPress={() => handleTagSelection(tag)}
-                                        showSelectedOverlay={true}
-                                        style={{
-                                            alignSelf: "flex-start",
-                                            flexShrink: 1,
-                                        }}
-                                    >
-                                        {tag.name}
-                                    </Chip>
-                                )}
+                                renderItem={(tag: NFCTag) => {
+                                    const selected = selectedTags
+                                        .map((v) => v.id)
+                                        .includes(tag.id);
+                                    return (
+                                        <Chip
+                                            key={tag.id}
+                                            selected={selected}
+                                            onPress={() =>
+                                                handleTagSelection(tag)
+                                            }
+                                            showSelectedOverlay={true}
+                                            style={{
+                                                alignSelf: "flex-start",
+                                                flexShrink: 1,
+                                                backgroundColor: selected
+                                                    ? colors.primaryContainer
+                                                    : colors.elevation.level3,
+                                            }}
+                                            textStyle={{
+                                                color: selected
+                                                    ? colors.onPrimaryContainer
+                                                    : colors.onSurfaceVariant,
+                                            }}
+                                        >
+                                            {tag.name}
+                                        </Chip>
+                                    );
+                                }}
                             />
                         ) : (
                             <View
@@ -327,22 +347,35 @@ export default function PuzzleSelectionModal(props: {
                                     gap: 5,
                                 }}
                                 totalItems={availCodes}
-                                renderItem={(code) => (
-                                    <Chip
-                                        key={code.id}
-                                        selected={selectedCodes?.includes(code)}
-                                        onPress={() =>
-                                            handleCodeSelection(code)
-                                        }
-                                        showSelectedOverlay={true}
-                                        style={{
-                                            alignSelf: "flex-start",
-                                            flexShrink: 1,
-                                        }}
-                                    >
-                                        {code.name}
-                                    </Chip>
-                                )}
+                                renderItem={(code: Barcode) => {
+                                    const selected = selectedCodes
+                                        .map((v) => v.id)
+                                        .includes(code.id);
+                                    return (
+                                        <Chip
+                                            key={code.id}
+                                            selected={selected}
+                                            onPress={() =>
+                                                handleCodeSelection(code)
+                                            }
+                                            showSelectedOverlay={true}
+                                            style={{
+                                                alignSelf: "flex-start",
+                                                flexShrink: 1,
+                                                backgroundColor: selected
+                                                    ? colors.primaryContainer
+                                                    : colors.elevation.level3,
+                                            }}
+                                            textStyle={{
+                                                color: selected
+                                                    ? colors.onPrimaryContainer
+                                                    : colors.onSurfaceVariant,
+                                            }}
+                                        >
+                                            {code.name}
+                                        </Chip>
+                                    );
+                                }}
                             />
                         ) : (
                             <View
@@ -368,6 +401,9 @@ export default function PuzzleSelectionModal(props: {
                     onPress={handleSave}
                     disabled={!canSave}
                     onLongPress={() => {
+                        console.log(selectedCodes);
+                        console.log(selectedTags);
+
                         console.log(puzzle);
                     }}
                 >
