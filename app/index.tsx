@@ -201,9 +201,6 @@ export default function Alarms() {
                     flex: 1,
                     marginTop: 5,
                 }}
-                contentContainerStyle={{
-                    paddingBottom: safeInsets.bottom + 10,
-                }}
                 data={alarms}
                 renderItem={renderAlarmItem}
                 keyExtractor={keyExtractor}

@@ -141,7 +141,6 @@ export default function AlarmOptions() {
                     borderRadius: roundness + 15,
                     overflow: "hidden",
                 }}
-                elevation={4}
             >
                 <LinearGradient
                     start={{ x: 0.0, y: 1.0 }}
@@ -202,7 +201,7 @@ export default function AlarmOptions() {
                     </TouchableRipple>
                 </LinearGradient>
             </Card>
-            <Card style={{ borderRadius: 20 }} elevation={3}>
+            <Card style={{ borderRadius: 20 }}>
                 <Card.Content
                     style={{
                         padding: 20,
@@ -215,7 +214,7 @@ export default function AlarmOptions() {
                         mode="outlined"
                         label="Alarm Name"
                         value={alarm.name}
-                        style={{ backgroundColor: colors.elevation.level3 }}
+                        style={{ backgroundColor: colors.elevation.level1 }}
                         outlineColor={colors.onSecondaryContainer}
                         outlineStyle={{ borderRadius: roundness + 5 }}
                         onChange={(e) =>
@@ -294,6 +293,7 @@ export default function AlarmOptions() {
                         <View style={{ height: 10 }} />
                     )}
                     data={alarm.puzzles}
+                    fadingEdgeLength={40}
                     onReorder={({ from, to }: ReorderableListReorderEvent) => {
                         setAlarm((prevAlarm) => ({
                             ...prevAlarm,
@@ -307,7 +307,7 @@ export default function AlarmOptions() {
                                 title={item.title}
                                 icon={item.icon}
                                 desc={"Difficulty: " + item.difficulty}
-                                style={{ height: 70 }}
+                                style={{ height: 60 }}
                                 buttons
                                 draggable
                                 buttonOneAction={() => {
@@ -331,7 +331,7 @@ export default function AlarmOptions() {
                                 <View style={{ height: 10 }} />
                                 <ListItem
                                     icon={"plus"}
-                                    style={{ height: 75 }}
+                                    style={{ height: 60 }}
                                     title={"New Puzzle"}
                                     desc={
                                         "Tip: drag your puzzles to change their order"
@@ -355,6 +355,7 @@ export default function AlarmOptions() {
             >
                 <Text variant="titleMedium">{"Boosters"}</Text>
                 <FlatList
+                    fadingEdgeLength={40}
                     ItemSeparatorComponent={() => (
                         <View style={{ height: 10 }} />
                     )}
@@ -388,7 +389,7 @@ export default function AlarmOptions() {
                                 <View style={{ height: 10 }} />
                                 <ListItem
                                     icon={"plus"}
-                                    style={{ height: 75 }}
+                                    style={{ height: 60 }}
                                     title={"New Booster"}
                                     onPress={() => {
                                         editPuzzleAtIndex.current = undefined;
@@ -404,7 +405,7 @@ export default function AlarmOptions() {
                 icon="check"
                 style={{
                     position: "absolute",
-                    bottom: insets.bottom + 20,
+                    bottom: insets.bottom + 10,
                     right: insets.right + 20,
                 }}
                 onPress={() => {

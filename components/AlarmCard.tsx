@@ -107,7 +107,6 @@ export default function AlarmCard(props: {
                             borderRadius: roundness + 10,
                             overflow: "hidden",
                         }}
-                        elevation={4}
                     >
                         <TouchableOpacity
                             style={{
