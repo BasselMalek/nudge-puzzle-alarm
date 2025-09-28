@@ -153,7 +153,7 @@ export const createAlarm = (p: {
 
 export const useAlarms = (db: SQLiteDatabase, linkingScheme: string) => {
     const [alarms, dispatch] = useReducer(alarmsReducer, []);
-    const [diff, setDiff] = useState<Map<string, Alarm>>(new Map());
+    const [diff, setDiff] = useState<number>();
 
     useEffect(() => {
         setLinkingScheme(linkingScheme);
@@ -163,19 +163,14 @@ export const useAlarms = (db: SQLiteDatabase, linkingScheme: string) => {
         const rows = await db.getAllAsync<AlarmDto>("SELECT * FROM alarms");
         const parsed = rows.map(parseAlarm);
         dispatch({ type: "SET_ALARMS", payload: parsed });
-        //TODO: not sure what stroke of genius led me to creating this abomination of code instead of just recording a timestamp here. fix it please.
-        setDiff(new Map(parsed.map((a) => [a.id, a])));
+        setDiff(Date.now());
     }, [db]);
 
     const saveAlarms = useCallback(async () => {
         await db.withTransactionAsync(async () => {
-            for (const v of alarms) {
-                const old = diff.get(v.id);
-                if (
-                    !old ||
-                    v.lastModified.getTime() > old.lastModified.getTime()
-                ) {
-                    await db.runAsync(
+            alarms.forEach((v) => {
+                if (v.lastModified.getTime() > diff!) {
+                    db.runAsync(
                         `UPDATE alarms
              SET name = ?, ring_hours = ?, ring_mins = ?, repeat = ?, repeat_days = ?,
                  ringtone = ?, vibrate = ?, puzzles = ?, power_ups = ?,
@@ -197,7 +192,7 @@ export const useAlarms = (db: SQLiteDatabase, linkingScheme: string) => {
                         ]
                     );
                 }
-            }
+            });
         });
     }, [alarms, diff, db]);
 
