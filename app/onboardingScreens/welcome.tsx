@@ -12,11 +12,7 @@ export default function Welcome() {
     initDatabaseTableIfFirstBoot(db);
     const { colors } = useTheme();
     return (
-        <View
-            style={{
-                flex: 1,
-            }}
-        >
+        <>
             <StatusBar translucent />
             <View
                 style={{
@@ -76,6 +72,6 @@ export default function Welcome() {
                     }}
                 />
             </View>
-        </View>
+        </>
     );
 }

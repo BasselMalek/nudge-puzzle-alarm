@@ -91,7 +91,7 @@ export default function nfcSettings() {
     );
 
     return (
-        <View style={{ flex: 1, backgroundColor: colors.background, gap: 15 }}>
+        <>
             <Card>
                 <Card.Content
                     style={{ alignItems: "center", padding: 24, gap: 15 }}
@@ -176,6 +176,6 @@ export default function nfcSettings() {
                     )}
                 />
             </View>
-        </View>
+        </>
     );
 }

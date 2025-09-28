@@ -15,7 +15,7 @@ export default function miscSettings() {
         }, [])
     );
     return (
-        <View style={{ flex: 1, gap: 15 }}>
+        <>
             <ScrollView>
                 <Card>
                     <Card.Content
@@ -75,6 +75,6 @@ export default function miscSettings() {
                     </Card.Content>
                 </Card>
             </ScrollView>
-        </View>
+        </>
     );
 }

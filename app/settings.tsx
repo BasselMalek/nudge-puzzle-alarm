@@ -9,7 +9,7 @@ const imgSrc = require("@/assets/images/hourglass.png");
 export default function Settings() {
     const { colors } = useTheme();
     return (
-        <View style={{ flex: 1 }}>
+        <>
             <StatusBar translucent />
             <View
                 style={{
@@ -94,6 +94,6 @@ export default function Settings() {
                     }}
                 />
             </View>
-        </View>
+        </>
     );
 }

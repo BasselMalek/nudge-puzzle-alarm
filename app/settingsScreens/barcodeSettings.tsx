@@ -85,7 +85,7 @@ export default function barcodeSettings() {
     );
 
     return (
-        <View style={{ flex: 1, backgroundColor: colors.background, gap: 15 }}>
+        <>
             <Card style={{ display: isScanning ? "none" : "flex", flex: 1 }}>
                 <Card.Content
                     style={{
@@ -209,6 +209,6 @@ export default function barcodeSettings() {
                     )}
                 />
             </View>
-        </View>
+        </>
     );
 }

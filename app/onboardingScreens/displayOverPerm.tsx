@@ -10,11 +10,7 @@ export default function DisplayOver() {
     const [permsGranted, setPermsGranted] = useState(false);
     const { colors } = useTheme();
     return (
-        <View
-            style={{
-                flex: 1,
-            }}
-        >
+        <>
             <StatusBar translucent />
             <View
                 style={{
@@ -78,6 +74,6 @@ export default function DisplayOver() {
                     }}
                 />
             </View>
-        </View>
+        </>
     );
 }

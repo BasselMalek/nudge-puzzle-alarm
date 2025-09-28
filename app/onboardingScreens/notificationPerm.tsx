@@ -10,11 +10,7 @@ export default function Notification() {
     const { colors } = useTheme();
     const [permsGranted, setPermsGranted] = useState(false);
     return (
-        <View
-            style={{
-                flex: 1,
-            }}
-        >
+        <>
             <StatusBar translucent />
             <View
                 style={{
@@ -87,6 +83,6 @@ export default function Notification() {
                     }}
                 />
             </View>
-        </View>
+        </>
     );
 }
