@@ -20,8 +20,6 @@ export default function ScannerPuzzleComponent(props: {
     const { colors, roundness } = useTheme();
     const iconRef = useRef<AnimatedIconRef>(null);
 
-    //TODO: also figure out a way to guard against deleting a tag that is used in a puzzle.
-
     const onBarcodeScanned = useCallback(
         (scannedData: { type: string; data: string }) => {
             setIsScanning(false);

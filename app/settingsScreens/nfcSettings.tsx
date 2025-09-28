@@ -5,7 +5,14 @@ import { useFocusEffect } from "expo-router";
 import { useSQLiteContext } from "expo-sqlite";
 import { useCallback, useState } from "react";
 import { View, FlatList } from "react-native";
-import { Text, TextInput, Button, Card, useTheme } from "react-native-paper";
+import {
+    Text,
+    TextInput,
+    Button,
+    Card,
+    useTheme,
+    Icon,
+} from "react-native-paper";
 
 export default function nfcSettings() {
     const [scannedTag, setScannedTag] = useState<NFCTag | null>(null);
@@ -134,6 +141,25 @@ export default function nfcSettings() {
                 <FlatList
                     fadingEdgeLength={40}
                     data={registeredTags}
+                    contentContainerStyle={{ gap: 10 }}
+                    ListFooterComponent={() => (
+                        <View
+                            style={{
+                                flexDirection: "row",
+                                alignItems: "center",
+                                gap: 10,
+                                paddingRight: 10,
+                                opacity: 0.8,
+                            }}
+                        >
+                            <Icon source={"information"} size={28} />
+                            <Text style={{ flex: 1, flexWrap: "wrap" }}>
+                                {
+                                    "Tag deletion here does not reflect on existing puzzles. Unselect from inside a puzzle's config to fully delete."
+                                }
+                            </Text>
+                        </View>
+                    )}
                     renderItem={({ item }) => (
                         <ListItem
                             title={item.name!}
