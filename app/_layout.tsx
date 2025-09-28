@@ -6,15 +6,27 @@ import {
 import { MD3DarkTheme, MD3LightTheme, PaperProvider } from "react-native-paper";
 import { useColorScheme } from "react-native";
 import { useMaterial3Theme } from "@pchmn/expo-material3-theme";
+import { lightPalette, darkPalette } from "@/constants/customTheme";
 import { SQLiteProvider } from "expo-sqlite";
+import AsyncStorage from "expo-sqlite/kv-store";
 export default function RootLayout() {
     const colorScheme = useColorScheme();
     const safeInsets = useSafeAreaInsets();
     const { theme } = useMaterial3Theme();
-    const paperTheme =
-        colorScheme === "dark"
-            ? { ...MD3DarkTheme, colors: theme.dark }
-            : { ...MD3LightTheme, colors: theme.light };
+    let paperTheme;
+    const colorSettings = AsyncStorage.getItemSync("systemColors");
+    if (colorSettings === null || colorSettings === "false") {
+        AsyncStorage.setItemAsync("systemColors", "false");
+        paperTheme =
+            colorScheme === "dark"
+                ? { ...MD3DarkTheme, colors: darkPalette.colors }
+                : { ...MD3LightTheme, colors: lightPalette.colors };
+    } else {
+        paperTheme =
+            colorScheme === "dark"
+                ? { ...MD3DarkTheme, colors: theme.dark }
+                : { ...MD3LightTheme, colors: theme.light };
+    }
 
     return (
         <SafeAreaProvider>

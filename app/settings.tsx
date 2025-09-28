@@ -46,10 +46,12 @@ export default function Settings() {
                     }}
                     data={[
                         {
-                            title: "Time & Sounds",
+                            title: "App settings",
                             desc: "Modify misc settings",
                             icon: "timer-cog-outline",
-                            onPress: () => {},
+                            onPress: () => {
+                                router.push("/settingsScreens/miscSettings");
+                            },
                         },
                         {
                             title: "Registered NFC Tags",
