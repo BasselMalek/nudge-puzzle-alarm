@@ -1,15 +1,17 @@
-import { Image, View } from "react-native";
-import { Button, Text, useTheme } from "react-native-paper";
+import { View } from "react-native";
+import { Button, Icon, Text, useTheme } from "react-native-paper";
 import { StatusBar } from "expo-status-bar";
 import IndicatorDots from "@/components/IndicatorDots";
 import { router } from "expo-router";
-import { useSQLiteContext } from "expo-sqlite";
-import { initDatabaseTableIfFirstBoot } from "@/utils/databaseHelpers";
-const imgSrc = require("@/assets/images/hourglass.png");
+import { useState } from "react";
+import {
+    requestFullScreenAlertsPerm,
+    requestOverlayPerm,
+    requestScheduleExactPerm,
+} from "@/modules/expo-alarm-manager";
 
-export default function Welcome() {
-    const db = useSQLiteContext();
-    initDatabaseTableIfFirstBoot(db);
+export default function ExactAlarm() {
+    const [permsGranted, setPermsGranted] = useState(false);
     const { colors } = useTheme();
     return (
         <>
@@ -22,35 +24,40 @@ export default function Welcome() {
                     gap: 5,
                 }}
             >
-                <Image
-                    source={imgSrc}
-                    style={{
-                        height: 150,
-                        width: 150,
-                        marginBottom: 30,
-                    }}
-                    tintColor={colors.primary}
-                />
-                <Text variant="displaySmall" style={{ textAlign: "center" }}>
-                    {"Welcome to Nudge!"}
+                <Icon source={"alarm"} size={120} color={colors.primary} />
+                <Text
+                    variant="displaySmall"
+                    style={{ textAlign: "center", marginTop: 30 }}
+                >
+                    {"Exact Alarm Permission"}
                 </Text>
-                <Text variant="labelLarge" style={{ textAlign: "center" }}>
-                    {"Never miss an alarm again"}
+                <Text
+                    variant="labelLarge"
+                    style={{ textAlign: "center", flexWrap: "wrap" }}
+                >
+                    {
+                        "Needed to send alarms on time. Depending on OEM this might be enabled already."
+                    }
                 </Text>
                 <Button
                     style={{ marginTop: 50 }}
                     contentStyle={{
                         flexDirection: "row-reverse",
-                        height: 50,
-                        width: 100,
+                        minHeight: 50,
+                        minWidth: 100,
                     }}
                     icon={"arrow-right"}
                     mode="elevated"
                     onPress={() => {
-                        router.push("/onboardingScreens/notificationPerm");
+                        if (permsGranted) {
+                            router.dismissTo("/");
+                        } else {
+                            requestScheduleExactPerm();
+                            setPermsGranted(true);
+                        }
                     }}
                 >
-                    {"Start"}
+                    {permsGranted ? "Done" : "Request"}
                 </Button>
             </View>
             <View
@@ -63,7 +70,7 @@ export default function Welcome() {
             >
                 <IndicatorDots
                     total={5}
-                    enabled={1}
+                    enabled={5}
                     size={10}
                     colors={{
                         primary: colors.primary,

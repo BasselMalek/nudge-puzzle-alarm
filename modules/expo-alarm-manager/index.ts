@@ -88,8 +88,19 @@ export const setShowWhenLocked = (show: boolean) =>
  * Sets the activity's showWhenLocked for managing alarm visibilty.
  * @Platform android
  */
-export const requestFullScreenAlertsPerm = () =>
-    ExpoAlarmManagerModule.requestFullScreenAlertsPerm;
+export const requestFullScreenAlertsPerm = () => {
+    ExpoAlarmManagerModule.requestFullScreenAlertsPerm();
+};
+
+/**
+ * Opens the "Alarms & Reminders" options screen.
+ * @Platform android
+ */
+export const requestScheduleExactPerm = () => {
+    console.log("d");
+
+    ExpoAlarmManagerModule.requestScheduleExactPerm();
+};
 
 /**
  * Hook that creates and returns an AlarmPlayer instance once mounted.

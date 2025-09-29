@@ -169,8 +169,7 @@ class ExpoAlarmManagerModule : Module() {
                             val ring = RingtoneManager.getRingtone(appContext.reactContext, uri);
                             currentPromise.resolve(
                                 arrayOf(
-                                    uri.toString(),
-                                    ring.getTitle(appContext.reactContext)
+                                    uri.toString(), ring.getTitle(appContext.reactContext)
                                 )
 
                             )
@@ -294,13 +293,11 @@ class ExpoAlarmManagerModule : Module() {
                 } else {
                     if (show) {
                         activity.window.addFlags(
-                            WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED or
-                                    WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON
+                            WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED or WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON
                         )
                     } else {
                         activity.window.clearFlags(
-                            WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED or
-                                    WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON
+                            WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED or WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON
                         )
                     }
                 }
@@ -309,16 +306,34 @@ class ExpoAlarmManagerModule : Module() {
 
         Function("requestFullScreenAlertsPerm") {
             try {
+                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                    return@Function null ;
+                }
                 val currentActivity = appContext.currentActivity;
                 val notificationManager =
                     appContext.reactContext?.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+                    Log.d("NUDGE", notificationManager.canUseFullScreenIntent().toString())
                 if (!notificationManager.canUseFullScreenIntent()) {
-
                     val intent = Intent(Settings.ACTION_MANAGE_APP_USE_FULL_SCREEN_INTENT).apply {
-                        data =
-                            appContext.reactContext!!.packageName.toUri()
+                        data = "package:${appContext.reactContext!!.packageName}".toUri()
                     }
                     currentActivity?.startActivity(intent)
+                }
+            } catch (e: Exception) {
+                e.message?.let { Log.e("NUDGE", it) }
+            }
+
+        }
+
+        Function("requestScheduleExactPerm") {
+            try {
+                val currentActivity = appContext.currentActivity;
+                getAlarmManager()?.canScheduleExactAlarms()?.let {
+                    if (!it){
+                        val intent = Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM).apply {
+                            data = "package:${appContext.reactContext!!.packageName}".toUri()
+                        }
+                        currentActivity?.startActivity(intent)}
                 }
             } catch (e: Exception) {
                 e.message?.let { Log.e("NUDGE", it) }

@@ -106,6 +106,12 @@ declare class ExpoAlarmManagerModule extends NativeModule<ExpoAlarmManagerModule
      * @Platform android
      */
     setShowWhenLocked(show: boolean): void;
+
+    /**
+     * Opens the "Alarms & Reminders" options screen.
+     * @Platform android
+     */
+    requestScheduleExactPerm(): void;
 }
 
 // This call loads the native module object from the JSI.

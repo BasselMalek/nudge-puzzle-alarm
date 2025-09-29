@@ -73,7 +73,7 @@ export default function Notification() {
                 }}
             >
                 <IndicatorDots
-                    total={4}
+                    total={5}
                     enabled={2}
                     size={10}
                     colors={{

@@ -44,7 +44,7 @@ export default function FullAlert() {
                     mode="elevated"
                     onPress={() => {
                         if (permsGranted) {
-                            router.dismissTo("/");
+                            router.push("/onboardingScreens/exactAlarmPerm");
                         } else {
                             requestFullScreenAlertsPerm();
                             setPermsGranted(true);
@@ -63,7 +63,7 @@ export default function FullAlert() {
                 }}
             >
                 <IndicatorDots
-                    total={4}
+                    total={5}
                     enabled={4}
                     size={10}
                     colors={{
