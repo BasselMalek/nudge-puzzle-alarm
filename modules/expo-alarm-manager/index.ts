@@ -76,6 +76,7 @@ export const requestOverlayPerm = () => {
 };
 
 export const addListener = ExpoAlarmManagerModule.addListener;
+export const setShowWhenLocked = ExpoAlarmManagerModule.setShowWhenLocked;
 
 /**
  * Hook that creates and returns an AlarmPlayer instance once mounted.

@@ -11,6 +11,7 @@ import android.net.Uri
 import android.os.Build
 import android.provider.Settings
 import android.util.Log
+import android.view.WindowManager
 import androidx.core.net.toUri
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.MediaItem
@@ -18,6 +19,7 @@ import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
+import com.facebook.react.bridge.UiThreadUtil
 import expo.modules.kotlin.Promise
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
@@ -281,6 +283,28 @@ class ExpoAlarmManagerModule : Module() {
             } finally {
                 alarmPlayer = null
                 uriSelectionPendingPromise = null
+            }
+        }
+
+        Function("setShowWhenLocked") { show: Boolean ->
+            val activity = appContext.currentActivity;
+            activity?.runOnUiThread {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
+                    appContext.currentActivity?.setShowWhenLocked(show)
+                    activity.setTurnScreenOn(show)
+                } else {
+                    if (show) {
+                        activity.window.addFlags(
+                            WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED or
+                                    WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON
+                        )
+                    } else {
+                        activity.window.clearFlags(
+                            WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED or
+                                    WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON
+                        )
+                    }
+                }
             }
         }
 

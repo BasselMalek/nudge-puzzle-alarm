@@ -94,6 +94,12 @@ declare class ExpoAlarmManagerModule extends NativeModule<ExpoAlarmManagerModule
      * @Platform android
      */
     requestOverlayPerm(): void;
+
+    /**
+     * Sets the activity's showWhenLocked for managing alarm visibilty.
+     * @Platform android
+     */
+    setShowWhenLocked(show: boolean): void;
 }
 
 // This call loads the native module object from the JSI.

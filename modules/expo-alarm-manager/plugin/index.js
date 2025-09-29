@@ -79,18 +79,7 @@ const withScreenWake = (config) => {
             });
             const screenWakeCode = `
         val reactNativeHost = getReactNativeHost();
-        val reactInstanceManager = reactNativeHost.reactInstanceManager;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
-          // API 27+
-          setShowWhenLocked(true)
-          setTurnScreenOn(true)
-        } else {
-          // API < 27
-          window.addFlags(
-            WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED or
-            WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON
-          )
-        }`;
+        val reactInstanceManager = reactNativeHost.reactInstanceManager;`;
             const superOnCreateRegex = /(super\.onCreate\(null\))/;
             if (superOnCreateRegex.test(config.modResults.contents)) {
                 config.modResults.contents = config.modResults.contents.replace(
