@@ -45,7 +45,7 @@ export default function DisplayOver() {
                     mode="elevated"
                     onPress={() => {
                         if (permsGranted) {
-                            router.dismissTo("/");
+                            router.push("/onboardingScreens/fullAlertPerm");
                         } else {
                             requestOverlayPerm();
                             setPermsGranted(true);
@@ -64,7 +64,7 @@ export default function DisplayOver() {
                 }}
             >
                 <IndicatorDots
-                    total={3}
+                    total={4}
                     enabled={3}
                     size={10}
                     colors={{

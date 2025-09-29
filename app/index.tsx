@@ -42,9 +42,9 @@ export default function Alarms() {
 
     useFocusEffect(
         useCallback(() => {
-            setLoadStale(update === "true");
+            setLoadStale(first !== null && update === "true");
             setShouldDismiss(dismiss === "true");
-        }, [update, shouldDismiss])
+        }, [update, shouldDismiss, first])
     );
 
     useEffect(() => {

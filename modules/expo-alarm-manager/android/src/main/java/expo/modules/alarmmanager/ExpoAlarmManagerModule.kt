@@ -1,8 +1,8 @@
 package expo.modules.alarmmanager
 
-import android.R
 import android.annotation.SuppressLint
 import android.app.AlarmManager
+import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
@@ -19,7 +19,6 @@ import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
-import com.facebook.react.bridge.UiThreadUtil
 import expo.modules.kotlin.Promise
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
@@ -306,6 +305,25 @@ class ExpoAlarmManagerModule : Module() {
                     }
                 }
             }
+        }
+
+        Function("requestFullScreenAlertsPerm") {
+            try {
+                val currentActivity = appContext.currentActivity;
+                val notificationManager =
+                    appContext.reactContext?.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+                if (!notificationManager.canUseFullScreenIntent()) {
+
+                    val intent = Intent(Settings.ACTION_MANAGE_APP_USE_FULL_SCREEN_INTENT).apply {
+                        data =
+                            appContext.reactContext!!.packageName.toUri()
+                    }
+                    currentActivity?.startActivity(intent)
+                }
+            } catch (e: Exception) {
+                e.message?.let { Log.e("NUDGE", it) }
+            }
+
         }
 
         Function("requestOverlayPerm") {

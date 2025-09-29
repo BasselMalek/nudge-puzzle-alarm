@@ -96,6 +96,12 @@ declare class ExpoAlarmManagerModule extends NativeModule<ExpoAlarmManagerModule
     requestOverlayPerm(): void;
 
     /**
+     * Opens the "Full screen alerts" options screen.
+     * @Platform android
+     */
+    requestFullScreenAlertsPerm(): void;
+
+    /**
      * Sets the activity's showWhenLocked for managing alarm visibilty.
      * @Platform android
      */

@@ -76,7 +76,20 @@ export const requestOverlayPerm = () => {
 };
 
 export const addListener = ExpoAlarmManagerModule.addListener;
-export const setShowWhenLocked = ExpoAlarmManagerModule.setShowWhenLocked;
+
+/**
+ * Sets the activity's showWhenLocked for managing alarm visibilty.
+ * @Platform android
+ */
+export const setShowWhenLocked = (show: boolean) =>
+    ExpoAlarmManagerModule.setShowWhenLocked;
+
+/**
+ * Sets the activity's showWhenLocked for managing alarm visibilty.
+ * @Platform android
+ */
+export const requestFullScreenAlertsPerm = () =>
+    ExpoAlarmManagerModule.requestFullScreenAlertsPerm;
 
 /**
  * Hook that creates and returns an AlarmPlayer instance once mounted.
