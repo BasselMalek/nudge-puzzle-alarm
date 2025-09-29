@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState, useMemo } from "react";
-import { FlatList, View } from "react-native";
+import { BackHandler, FlatList, View } from "react-native";
 import { Text, Card, useTheme, FAB, IconButton } from "react-native-paper";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
@@ -22,8 +22,9 @@ export default function Alarms() {
     const [soonestRingTime, setSoonestRingTime] = useState("");
     const { alarms, deleteAlarm, loadAlarms, saveAlarms, toggleAlarm } =
         useAlarms(db, "nudge://alarms");
-    const { update } = useLocalSearchParams();
+    const { update, dismiss } = useLocalSearchParams();
     const [loadStale, setLoadStale] = useState(true);
+    const [shouldDismiss, setShouldDismiss] = useState(false);
     const first = Storage.getItemSync("isFirstBoot");
 
     useEffect(() => {
@@ -32,12 +33,18 @@ export default function Alarms() {
         }
     }, []);
 
+    useEffect(() => {
+        if (shouldDismiss) {
+            setShouldDismiss(false);
+            BackHandler.exitApp();
+        }
+    }, [shouldDismiss]);
+
     useFocusEffect(
         useCallback(() => {
-            if (first) {
-                setLoadStale(update === "true");
-            }
-        }, [first])
+            setLoadStale(update === "true");
+            setShouldDismiss(dismiss === "true");
+        }, [update, shouldDismiss])
     );
 
     useEffect(() => {

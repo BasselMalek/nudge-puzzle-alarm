@@ -22,7 +22,8 @@ import {
     scheduleNextInstance,
     scheduleSnoozedAlarm,
 } from "@/utils/alarmSchedulingHelpers";
-import { add } from "date-fns";
+
+AlarmManager.setShowWhenLocked(true);
 
 export default function AlarmScreen() {
     const { id } = useLocalSearchParams();
@@ -47,11 +48,12 @@ export default function AlarmScreen() {
     }, [db, id]);
 
     const dismissAlarm = () => {
+        AlarmManager.setShowWhenLocked(false);
         handleDaisyChainAfterRing(alarm!).then((newAlarm) => {
             saveAlarmDirect(newAlarm.id, db, newAlarm).then(() => {
                 alarmAud?.stop();
                 alarmAud?.release();
-                BackHandler.exitApp();
+                router.navigate("/?dismiss=true");
             });
         });
     };
@@ -186,7 +188,7 @@ export default function AlarmScreen() {
                         }}
                         onPress={() => {
                             scheduleSnoozedAlarm(alarm!, 5).then(() => {
-                                BackHandler.exitApp();
+                                router.navigate("/?dismiss=true");
                             });
                         }}
                     >
