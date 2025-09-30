@@ -288,7 +288,7 @@ class ExpoAlarmManagerModule : Module() {
             val activity = appContext.currentActivity;
             activity?.runOnUiThread {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
-                    appContext.currentActivity?.setShowWhenLocked(show)
+                    activity.setShowWhenLocked(show)
                     activity.setTurnScreenOn(show)
                 } else {
                     if (show) {
@@ -307,12 +307,11 @@ class ExpoAlarmManagerModule : Module() {
         Function("requestFullScreenAlertsPerm") {
             try {
                 if (Build.VERSION.SDK_INT < Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-                    return@Function null ;
+                    return@Function null;
                 }
                 val currentActivity = appContext.currentActivity;
                 val notificationManager =
                     appContext.reactContext?.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-                    Log.d("NUDGE", notificationManager.canUseFullScreenIntent().toString())
                 if (!notificationManager.canUseFullScreenIntent()) {
                     val intent = Intent(Settings.ACTION_MANAGE_APP_USE_FULL_SCREEN_INTENT).apply {
                         data = "package:${appContext.reactContext!!.packageName}".toUri()
@@ -329,11 +328,12 @@ class ExpoAlarmManagerModule : Module() {
             try {
                 val currentActivity = appContext.currentActivity;
                 getAlarmManager()?.canScheduleExactAlarms()?.let {
-                    if (!it){
+                    if (!it) {
                         val intent = Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM).apply {
                             data = "package:${appContext.reactContext!!.packageName}".toUri()
                         }
-                        currentActivity?.startActivity(intent)}
+                        currentActivity?.startActivity(intent)
+                    }
                 }
             } catch (e: Exception) {
                 e.message?.let { Log.e("NUDGE", it) }
