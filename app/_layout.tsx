@@ -1,4 +1,4 @@
-import { Stack } from "expo-router";
+import { Stack, useRouter } from "expo-router";
 import {
     SafeAreaProvider,
     useSafeAreaInsets,
@@ -9,10 +9,25 @@ import { useMaterial3Theme } from "@pchmn/expo-material3-theme";
 import { lightPalette, darkPalette } from "@/constants/customTheme";
 import { SQLiteProvider } from "expo-sqlite";
 import AsyncStorage from "expo-sqlite/kv-store";
+import { Linking } from "react-native";
+import { useEffect } from "react";
+
 export default function RootLayout() {
     const colorScheme = useColorScheme();
     const safeInsets = useSafeAreaInsets();
     const { theme } = useMaterial3Theme();
+    const router = useRouter();
+
+    useEffect(() => {
+        Linking.getInitialURL().then((url) => {
+            if (url?.match("nudge://alarms/*")) {
+                console.log("f");
+                const path = url.replace(/^nudge:\/\//, "/");
+                router.push(path as any);
+            }
+        });
+    }, []);
+
     let paperTheme;
     const colorSettings = AsyncStorage.getItemSync("systemColors");
     if (colorSettings === null || colorSettings === "false") {
@@ -52,9 +67,7 @@ export default function RootLayout() {
                         />
                         <Stack.Screen
                             name="alarms/[id]"
-                            options={{
-                                headerShown: false,
-                            }}
+                            options={{ headerShown: false }}
                         />
                         <Stack.Screen
                             name="themeDisplay"
@@ -75,7 +88,6 @@ export default function RootLayout() {
                                     flex: 1,
                                     backgroundColor:
                                         paperTheme.colors.background,
-                                    // paddingTop: 10,
                                     paddingLeft: safeInsets.left + 10,
                                     paddingRight: safeInsets.right + 10,
                                     paddingBottom: safeInsets.bottom + 10,
@@ -98,7 +110,6 @@ export default function RootLayout() {
                                     flex: 1,
                                     backgroundColor:
                                         paperTheme.colors.background,
-                                    // paddingTop: 10,
                                     paddingLeft: safeInsets.left + 10,
                                     paddingRight: safeInsets.right + 10,
                                     paddingBottom: safeInsets.bottom + 10,
