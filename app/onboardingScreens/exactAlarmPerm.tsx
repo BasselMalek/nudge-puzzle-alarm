@@ -50,7 +50,7 @@ export default function ExactAlarm() {
                     mode="elevated"
                     onPress={() => {
                         if (permsGranted) {
-                            router.dismissTo("/");
+                            router.push("/onboardingScreens/battOptiPerm");
                         } else {
                             requestScheduleExactPerm();
                             setPermsGranted(true);
@@ -69,7 +69,7 @@ export default function ExactAlarm() {
                 }}
             >
                 <IndicatorDots
-                    total={5}
+                    total={6}
                     enabled={5}
                     size={10}
                     colors={{

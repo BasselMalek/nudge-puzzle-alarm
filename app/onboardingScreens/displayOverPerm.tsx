@@ -64,7 +64,7 @@ export default function DisplayOver() {
                 }}
             >
                 <IndicatorDots
-                    total={5}
+                    total={6}
                     enabled={3}
                     size={10}
                     colors={{

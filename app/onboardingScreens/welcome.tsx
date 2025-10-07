@@ -62,7 +62,7 @@ export default function Welcome() {
                 }}
             >
                 <IndicatorDots
-                    total={5}
+                    total={6}
                     enabled={1}
                     size={10}
                     colors={{
