@@ -26,7 +26,7 @@ class AlarmReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         when (intent.action) {
             Intent.ACTION_BOOT_COMPLETED -> {
-                handleBootCompleted(context, intent)
+                handleBootCompleted(context)
             }
 
             else -> {
@@ -35,14 +35,12 @@ class AlarmReceiver : BroadcastReceiver() {
         }
     }
 
-    private fun handleBootCompleted(context: Context, intent: Intent) {
+    private fun handleBootCompleted(context: Context) {
 
-        val rescheduleRequest = androidx.work.OneTimeWorkRequest.Builder(WorkManagerHeadlessJSWorker::class.java)
-            .build()
+        val rescheduleRequest =
+            androidx.work.OneTimeWorkRequest.Builder(WorkManagerHeadlessJSWorker::class.java).build()
         androidx.work.WorkManager.getInstance(context).enqueueUniqueWork(
-            "RescheduleAlarmsWork",
-            androidx.work.ExistingWorkPolicy.REPLACE,
-            rescheduleRequest
+            "RescheduleAlarmsWork", androidx.work.ExistingWorkPolicy.REPLACE, rescheduleRequest
         )
     }
 
@@ -59,9 +57,7 @@ class AlarmReceiver : BroadcastReceiver() {
     private fun ensureNotificationChannelsExist(context: Context) {
         if (!channelsCreated && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channelWithVibration = NotificationChannel(
-                "alarm_channel_vibrate",
-                "Alarm Notifications",
-                NotificationManager.IMPORTANCE_HIGH
+                "alarm_channel_vibrate", "Alarm Notifications", NotificationManager.IMPORTANCE_HIGH
             ).apply {
                 description = "Notifications for alarms"
                 setBypassDnd(true)
@@ -69,12 +65,11 @@ class AlarmReceiver : BroadcastReceiver() {
                 enableVibration(true)
                 lockscreenVisibility = NotificationCompat.VISIBILITY_PUBLIC
                 setShowBadge(true)
+                setSound(null, null)
             }
 
             val channelWithoutVibration = NotificationChannel(
-                "alarm_channel_no_vibrate",
-                "Alarm Notifications (Silent)",
-                NotificationManager.IMPORTANCE_HIGH
+                "alarm_channel_no_vibrate", "Alarm Notifications (Silent)", NotificationManager.IMPORTANCE_HIGH
             ).apply {
                 description = "Notifications for alarms without vibration"
                 setBypassDnd(true)
@@ -82,6 +77,7 @@ class AlarmReceiver : BroadcastReceiver() {
                 enableVibration(false)
                 lockscreenVisibility = NotificationCompat.VISIBILITY_PUBLIC
                 setShowBadge(true)
+                setSound(null, null)
             }
 
             val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
@@ -99,9 +95,7 @@ class AlarmReceiver : BroadcastReceiver() {
     ) {
         val deepLinkIntent = Intent(Intent.ACTION_VIEW).apply {
             data = "${linkingScheme}/${alarmId}".toUri()
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK or
-                    Intent.FLAG_ACTIVITY_CLEAR_TOP or
-                    Intent.FLAG_ACTIVITY_SINGLE_TOP
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
             putExtra("alarm_triggered", true)
             putExtra("alarm_id", alarmId)
         }
@@ -128,34 +122,41 @@ class AlarmReceiver : BroadcastReceiver() {
 
 
         if (isLocked) {
-            val notification = NotificationCompat.Builder(context, channelId)
-                .setSmallIcon(android.R.drawable.ic_lock_idle_alarm)
-                .setContentTitle("Nudge")
-                .setContentText("Time to wake up!")
-                .setPriority(NotificationCompat.PRIORITY_MAX)
-                .setCategory(NotificationCompat.CATEGORY_ALARM)
-                .setFullScreenIntent(fullScreenPendingIntent, true)
-                .setAutoCancel(true)
-                .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
-                .setOngoing(true)
-                .build()
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                val notification =
+                    NotificationCompat.Builder(context, channelId).setSmallIcon(android.R.drawable.ic_lock_idle_alarm)
+                        .setContentTitle("Nudge").setContentText("Time to wake up!")
+                        .setPriority(NotificationCompat.PRIORITY_MAX).setCategory(NotificationCompat.CATEGORY_ALARM)
+                        .setVisibility(NotificationCompat.VISIBILITY_PUBLIC).setOngoing(true).setSound(null).build()
 
-            notification.flags = notification.flags or Notification.FLAG_INSISTENT
+                notification.flags = notification.flags or Notification.FLAG_INSISTENT
 
-            NotificationManagerCompat.from(context).notify(alarmId.hashCode(), notification)
+                NotificationManagerCompat.from(context).notify(alarmId.hashCode(), notification)
+                context.startActivity(
+                    deepLinkIntent,
+
+                )
+
+            } else {
+                val notification =
+                    NotificationCompat.Builder(context, channelId).setSmallIcon(android.R.drawable.ic_lock_idle_alarm)
+                        .setContentTitle("Nudge").setContentText("Time to wake up!")
+                        .setPriority(NotificationCompat.PRIORITY_MAX).setCategory(NotificationCompat.CATEGORY_ALARM)
+                        .setFullScreenIntent(fullScreenPendingIntent, true).setAutoCancel(true)
+                        .setVisibility(NotificationCompat.VISIBILITY_PUBLIC).setOngoing(true).setSound(null).build()
+
+                notification.flags = notification.flags or Notification.FLAG_INSISTENT
+
+                NotificationManagerCompat.from(context).notify(alarmId.hashCode(), notification)
+            }
         } else {
             try {
-                val notification = NotificationCompat.Builder(context, channelId)
-                    .setSmallIcon(android.R.drawable.ic_lock_idle_alarm)
-                    .setContentTitle("Nudge")
-                    .setContentText("Time to wake up!")
-                    .setPriority(NotificationCompat.PRIORITY_MAX)
-                    .setCategory(NotificationCompat.CATEGORY_ALARM)
-                    .setContentIntent(fullScreenPendingIntent)
-                    .setAutoCancel(true)
-                    .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
-                    .setOngoing(true)
-                    .build()
+                val notification =
+                    NotificationCompat.Builder(context, channelId).setSmallIcon(android.R.drawable.ic_lock_idle_alarm)
+                        .setContentTitle("Nudge").setContentText("Time to wake up!")
+                        .setPriority(NotificationCompat.PRIORITY_MAX).setCategory(NotificationCompat.CATEGORY_ALARM)
+                        .setContentIntent(fullScreenPendingIntent).setAutoCancel(true)
+                        .setVisibility(NotificationCompat.VISIBILITY_PUBLIC).setOngoing(true).build()
                 NotificationManagerCompat.from(context).notify(alarmId.hashCode(), notification)
 
                 context.startActivity(deepLinkIntent)

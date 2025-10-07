@@ -112,6 +112,12 @@ declare class ExpoAlarmManagerModule extends NativeModule<ExpoAlarmManagerModule
      * @Platform android
      */
     requestScheduleExactPerm(): void;
+
+    /**
+     * Requests dismissal of keyguard. Useful for launching apps post alarm or using NFC.
+     * @Platform android
+     */
+    requestKeyguardDismiss(): void;
 }
 
 // This call loads the native module object from the JSI.

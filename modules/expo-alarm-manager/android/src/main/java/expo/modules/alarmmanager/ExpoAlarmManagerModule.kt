@@ -3,6 +3,7 @@ package expo.modules.alarmmanager
 import android.annotation.SuppressLint
 import android.app.AlarmManager
 import android.app.NotificationManager
+import android.app.KeyguardManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
@@ -288,8 +289,8 @@ class ExpoAlarmManagerModule : Module() {
             val activity = appContext.currentActivity;
             activity?.runOnUiThread {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
-                    activity.setShowWhenLocked(show)
                     activity.setTurnScreenOn(show)
+                    activity.setShowWhenLocked(show)
                 } else {
                     if (show) {
                         activity.window.addFlags(
@@ -299,6 +300,20 @@ class ExpoAlarmManagerModule : Module() {
                         activity.window.clearFlags(
                             WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED or WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON
                         )
+                    }
+                }
+            }
+        }
+
+        Function("requestKeyguardDismiss") {
+            val activity = appContext.currentActivity;
+            activity?.runOnUiThread {
+                val keyguardManager = activity.getSystemService(Context.KEYGUARD_SERVICE) as? KeyguardManager
+                if (keyguardManager != null) {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                        keyguardManager.requestDismissKeyguard(activity, null)
+                    } else {
+                        activity.window.addFlags(WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD)
                     }
                 }
             }
@@ -323,6 +338,7 @@ class ExpoAlarmManagerModule : Module() {
             }
 
         }
+
 
         Function("requestScheduleExactPerm") {
             try {
@@ -374,20 +390,38 @@ class ExpoAlarmManagerModule : Module() {
     //Helpers
 
     private fun createAlarmIntent(alarmId: String, vibrate: Boolean): PendingIntent {
-        val context = appContext.reactContext ?: throw IllegalStateException("React context is null")
-        val intent = Intent(context, AlarmReceiver::class.java).apply {
-            action = "expo.modules.alarmmanager.ACTION_ALARM"
-            data = null
-            putExtra("alarm_id", alarmId)
-            putExtra("linking_scheme", LINKING_SCHEME)
-            putExtra("vibrate", vibrate)
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            val context = appContext.reactContext ?: throw IllegalStateException("React context is null")
+            val deepLinkIntent = Intent(Intent.ACTION_VIEW).apply {
+                data = "${LINKING_SCHEME}/${alarmId}".toUri()
+                flags =
+                    Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+                putExtra("alarm_triggered", true)
+                putExtra("alarm_id", alarmId)
+            }
+            return PendingIntent.getActivity(
+                context.applicationContext,
+                uuidToInt(alarmId),
+                deepLinkIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            )
+
+        } else {
+            val context = appContext.reactContext ?: throw IllegalStateException("React context is null")
+            val intent = Intent(context, AlarmReceiver::class.java).apply {
+                action = "expo.modules.alarmmanager.ACTION_ALARM"
+                data = null
+                putExtra("alarm_id", alarmId)
+                putExtra("linking_scheme", LINKING_SCHEME)
+                putExtra("vibrate", vibrate)
+            }
+            return PendingIntent.getBroadcast(
+                context.applicationContext,
+                uuidToInt(alarmId),
+                intent,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            )
         }
-        return PendingIntent.getBroadcast(
-            context.applicationContext,
-            uuidToInt(alarmId),
-            intent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        )
     }
 
     private fun createShowIntent(): PendingIntent? {

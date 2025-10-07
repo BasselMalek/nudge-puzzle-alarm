@@ -81,8 +81,17 @@ export const addListener = ExpoAlarmManagerModule.addListener;
  * Sets the activity's showWhenLocked for managing alarm visibilty.
  * @Platform android
  */
-export const setShowWhenLocked = (show: boolean) =>
-    ExpoAlarmManagerModule.setShowWhenLocked;
+export const setShowWhenLocked = (show: boolean) => {
+    ExpoAlarmManagerModule.setShowWhenLocked(show);
+};
+
+/**
+ * Requests dismissal of keyguard. Useful for launching apps post alarm or using NFC.
+ * @Platform android
+ */
+export const requestKeyguardDismiss = () => {
+    ExpoAlarmManagerModule.requestKeyguardDismiss();
+};
 
 /**
  * Sets the activity's showWhenLocked for managing alarm visibilty.

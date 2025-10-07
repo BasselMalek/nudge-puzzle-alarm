@@ -23,8 +23,6 @@ import {
     scheduleSnoozedAlarm,
 } from "@/utils/alarmSchedulingHelpers";
 
-AlarmManager.setShowWhenLocked(true);
-
 export default function AlarmScreen() {
     const { id } = useLocalSearchParams();
     const { colors, roundness } = useTheme();
@@ -34,6 +32,10 @@ export default function AlarmScreen() {
 
     const [isPuzzleVisible, setIsPuzzleVisible] = useState(false);
     const [puzzlesComplete, setPuzzlesComplete] = useState(false);
+
+    useEffect(() => {
+        AlarmManager.setShowWhenLocked(true);
+    }, []);
 
     useEffect(() => {
         const initial = db.getFirstSync<AlarmDto>(
@@ -148,6 +150,13 @@ export default function AlarmScreen() {
                             if (puzzlesComplete) {
                                 dismissAlarm();
                             } else {
+                                if (
+                                    alarm?.puzzles.some(
+                                        (val) => val.type === "nfc"
+                                    )
+                                ) {
+                                    AlarmManager.requestKeyguardDismiss();
+                                }
                                 setIsPuzzleVisible(true);
                             }
                         }}

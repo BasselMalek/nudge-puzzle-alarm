@@ -11,6 +11,7 @@ import { Alarm } from "@/types/Alarm";
 import { preventAutoHideAsync, hide } from "expo-splash-screen";
 import AlarmCard from "@/components/AlarmCard";
 import Storage from "expo-sqlite/kv-store";
+import { scheduleAlarm } from "@/modules/expo-alarm-manager";
 
 preventAutoHideAsync();
 
@@ -196,7 +197,7 @@ export default function Alarms() {
                     right: safeInsets.right + 20,
                 }}
                 onPress={() => {
-                    router.navigate(`./alarms/${alarms.at(0)?.id}`);
+                    scheduleAlarm(alarms.at(0)!.id, Date.now() + 15000, false);
                 }}
                 onLongPress={() => {
                     router.push("/onboardingScreens/welcome");

@@ -3,7 +3,7 @@
         "name": "Nudge",
         "slug": "nudge",
         "scheme": "nudge",
-        "version": "0.0.1-alpha",
+        "version": "0.1.1",
         "orientation": "portrait",
         "newArchEnabled": true,
         "icon": "./assets/images/icon.png",
@@ -27,7 +27,9 @@
                 "android.permission.DISABLE_KEYGUARD",
                 "android.permission.POST_NOTIFICATIONS",
                 "android.permission.NFC",
-                "android.permission.RECEIVE_BOOT_COMPLETED"
+                "android.permission.RECEIVE_BOOT_COMPLETED",
+                "android.permission.FOREGROUND_SERVICE",
+                "android.permission.FOREGROUND_SERVICE_SHORT_SERVICE"
             ],
             "adaptiveIcon": {
                 "foregroundImage": "./assets/images/adaptive-icon.png",
