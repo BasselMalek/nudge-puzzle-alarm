@@ -4,14 +4,12 @@ import { StatusBar } from "expo-status-bar";
 import IndicatorDots from "@/components/IndicatorDots";
 import { router } from "expo-router";
 import { useState } from "react";
-import {
-    requestFullScreenAlertsPerm,
-    requestOverlayPerm,
-} from "@/modules/expo-alarm-manager";
+import { startActivityAsync, ActivityAction } from "expo-intent-launcher";
 
-export default function FullAlert() {
-    const [permsGranted, setPermsGranted] = useState(false);
+export default function BatteryOptimization() {
+    const [requestSent, setRequestSent] = useState(false);
     const { colors } = useTheme();
+
     return (
         <>
             <StatusBar translucent />
@@ -21,37 +19,49 @@ export default function FullAlert() {
                     alignItems: "center",
                     justifyContent: "center",
                     gap: 5,
+                    paddingHorizontal: 20,
                 }}
             >
-                <Icon source={"fullscreen"} size={120} color={colors.primary} />
+                <Icon
+                    source={"battery-heart-variant"}
+                    size={120}
+                    color={colors.primary}
+                />
                 <Text
                     variant="displaySmall"
                     style={{ textAlign: "center", marginTop: 30 }}
                 >
-                    {"Full Screen Permission"}
+                    {"Disable Battery Optimization"}
                 </Text>
-                <Text variant="labelLarge" style={{ textAlign: "center" }}>
-                    {"Needed to show alarms on lock-screen."}
+                <Text
+                    variant="bodyLarge"
+                    style={{ textAlign: "center", marginTop: 10 }}
+                >
+                    {
+                        "To ensure alarms and notifications are delivered on time, our app needs to run in the background. Please disable battery optimization."
+                    }
                 </Text>
                 <Button
                     style={{ marginTop: 50 }}
                     contentStyle={{
                         flexDirection: "row-reverse",
                         minHeight: 50,
-                        minWidth: 100,
+                        minWidth: 150,
                     }}
                     icon={"arrow-right"}
                     mode="elevated"
                     onPress={() => {
-                        if (permsGranted) {
-                            router.push("/onboardingScreens/exactAlarmPerm");
+                        if (requestSent) {
+                            router.dismissTo("/");
                         } else {
-                            requestFullScreenAlertsPerm();
-                            setPermsGranted(true);
+                            startActivityAsync(
+                                ActivityAction.IGNORE_BATTERY_OPTIMIZATION_SETTINGS
+                            );
+                            setRequestSent(true);
                         }
                     }}
                 >
-                    {permsGranted ? "Done" : "Request"}
+                    {requestSent ? "Continue" : "Open Settings"}
                 </Button>
             </View>
             <View
@@ -64,7 +74,7 @@ export default function FullAlert() {
             >
                 <IndicatorDots
                     total={6}
-                    enabled={4}
+                    enabled={6}
                     size={10}
                     colors={{
                         primary: colors.primary,
