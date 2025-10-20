@@ -285,7 +285,7 @@ class ExpoAlarmManagerModule : Module() {
             }
         }
 
-        Function("setShowWhenLocked") { show: Boolean ->
+        Function("setShowWhenLocked") { show: Boolean, id: String? ->
             val activity = appContext.currentActivity;
             activity?.runOnUiThread {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
@@ -302,6 +302,11 @@ class ExpoAlarmManagerModule : Module() {
                         )
                     }
                 }
+            }
+            if (!show && id != null) {
+                val notificationManager =
+                    appContext.reactContext?.let { it.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager }
+                notificationManager?.cancel(id.hashCode())
             }
         }
 
@@ -365,7 +370,7 @@ class ExpoAlarmManagerModule : Module() {
             try {
                 val currentActivity = appContext.currentActivity;
                 val permGranted = getAlarmManager()?.canScheduleExactAlarms();
-                    if (!permGranted!!) {
+                if (!permGranted!!) {
                         val intent = Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM).apply {
                             data = "package:${appContext.reactContext!!.packageName}".toUri()
                         }

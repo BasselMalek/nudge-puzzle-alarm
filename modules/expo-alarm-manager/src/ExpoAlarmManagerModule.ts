@@ -105,7 +105,7 @@ declare class ExpoAlarmManagerModule extends NativeModule<ExpoAlarmManagerModule
      * Sets the activity's showWhenLocked for managing alarm visibilty.
      * @Platform android
      */
-    setShowWhenLocked(show: boolean): void;
+    setShowWhenLocked(show: boolean, id: string | null): void;
 
     /**
      * Opens the "Alarms & Reminders" options screen.

@@ -50,7 +50,7 @@ export default function AlarmScreen() {
     }, [db, id]);
 
     const dismissAlarm = () => {
-        AlarmManager.setShowWhenLocked(false);
+        AlarmManager.setShowWhenLocked(false, alarm?.id);
         handleDaisyChainAfterRing(alarm!).then((newAlarm) => {
             saveAlarmDirect(newAlarm.id, db, newAlarm).then(() => {
                 alarmAud?.stop();
@@ -196,7 +196,10 @@ export default function AlarmScreen() {
                             borderColor: colors.primary,
                         }}
                         onPress={() => {
+                            AlarmManager.setShowWhenLocked(false, alarm?.id);
                             scheduleSnoozedAlarm(alarm!, 5).then(() => {
+                                alarmAud?.stop();
+                                alarmAud?.release();
                                 router.navigate("/?dismiss=true");
                             });
                         }}
