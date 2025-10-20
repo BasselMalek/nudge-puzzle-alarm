@@ -1,7 +1,7 @@
-import { ScannerPuzzle, Barcode } from "@/types/Puzzles";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { ScannerPuzzle } from "@/types/Puzzles";
+import { useCallback, useRef, useState } from "react";
 import { View } from "react-native";
-import { IconButton, Text, useTheme, Button } from "react-native-paper";
+import { Text, useTheme, Button } from "react-native-paper";
 import AnimatedIcon, { AnimatedIconRef } from "@/components/AnimatedIcon";
 import { CameraView, useCameraPermissions } from "expo-camera";
 

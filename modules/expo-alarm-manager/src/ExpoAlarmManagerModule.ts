@@ -169,17 +169,17 @@ export class AlarmPlayer implements IAlarmPlayer {
         return ExpoAlarmManagerNative.playPlayer();
     }
 
-    stop(): void {
-        ExpoAlarmManagerNative.stopPlayer();
+    stop(): Promise<void> {
         this._isFinished = true;
+        return ExpoAlarmManagerNative.stopPlayer();
     }
 
-    release(): void {
-        ExpoAlarmManagerNative.releasePlayer();
+    release(): Promise<void> {
+        return ExpoAlarmManagerNative.releasePlayer();
     }
 
-    setVolume(vol: number): void {
-        ExpoAlarmManagerNative.setPlayerVolume(vol);
+    setVolume(vol: number): Promise<void> {
+        return ExpoAlarmManagerNative.setPlayerVolume(vol);
     }
 
     get isFinished(): boolean {

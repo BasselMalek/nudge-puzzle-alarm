@@ -69,7 +69,7 @@ export default function PuzzleContainer(
                 }
             );
         }
-    }, [isVisible, roundness, isDone]);
+    }, [isVisible, roundness, isDone, scale, borderRadius, onSucessAll]);
 
     useEffect(() => {
         if (puzzles) {

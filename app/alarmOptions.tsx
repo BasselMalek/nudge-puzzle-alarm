@@ -11,7 +11,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import WeekdayRepeat from "@/components/WeekdayRepeat";
-import { useCallback, useEffect, useRef, useState, useMemo } from "react";
+import { useCallback, useRef, useState } from "react";
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { TimePickerModal } from "react-native-paper-dates";
 import { Alarm, AlarmDto } from "@/types/Alarm";
@@ -22,7 +22,6 @@ import { FlatList, View } from "react-native";
 import { DaySet } from "@/types/DaySet";
 import { scheduleNextInstance } from "@/utils/alarmSchedulingHelpers";
 import SoundOptionsModal from "@/components/SoundOptionsModal";
-import ListItem from "@/components/ListItem";
 import PuzzleSelectionModal from "@/components/PuzzleSelectionModal";
 import { Puzzle } from "@/types/Puzzles";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
@@ -30,6 +29,8 @@ import ReorderableList, {
     ReorderableListReorderEvent,
     reorderItems,
 } from "react-native-reorderable-list";
+import DraggableListItem from "@/components/DraggableListItem";
+import ListItem from "@/components/ListItem";
 
 const blankRepeat: DaySet = {
     0: {
@@ -93,7 +94,7 @@ export default function AlarmOptions() {
                     setAlarm(parseAlarm(initial));
                 }
             }
-        }, [id])
+        }, [db, id])
     );
 
     const cleanUpAlarm = useCallback(() => {
@@ -293,7 +294,7 @@ export default function AlarmOptions() {
                         <View style={{ height: 10 }} />
                     )}
                     data={alarm.puzzles}
-                    fadingEdgeLength={40}
+                    fadingEdgeLength={{ start: 0, end: 40 }}
                     onReorder={({ from, to }: ReorderableListReorderEvent) => {
                         setAlarm((prevAlarm) => ({
                             ...prevAlarm,
@@ -303,13 +304,12 @@ export default function AlarmOptions() {
                     keyExtractor={(item) => item.id}
                     renderItem={({ item, index }) => {
                         return (
-                            <ListItem
+                            <DraggableListItem
                                 title={item.title}
                                 icon={item.icon}
                                 desc={"Difficulty: " + item.difficulty}
                                 style={{ height: 60 }}
                                 buttons
-                                draggable
                                 buttonOneAction={() => {
                                     editPuzzleAtIndex.current = index;
                                     setPuzzlesModalVisible(true);
@@ -355,7 +355,7 @@ export default function AlarmOptions() {
             >
                 <Text variant="titleMedium">{"Boosters"}</Text>
                 <FlatList
-                    fadingEdgeLength={40}
+                    fadingEdgeLength={{ start: 0, end: 40 }}
                     ItemSeparatorComponent={() => (
                         <View style={{ height: 10 }} />
                     )}

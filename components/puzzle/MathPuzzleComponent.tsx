@@ -1,7 +1,7 @@
-import { MathPuzzle, TextPuzzle } from "@/types/Puzzles";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { MathPuzzle } from "@/types/Puzzles";
+import { useEffect, useMemo, useState } from "react";
 import { View } from "react-native";
-import { Card, Text, TextInput, useTheme } from "react-native-paper";
+import { Text, TextInput, useTheme } from "react-native-paper";
 
 export default function MathPuzzleComponent(props: {
     puzzle: MathPuzzle;
@@ -16,7 +16,7 @@ export default function MathPuzzleComponent(props: {
         if (inputValue === solveTarget) {
             onSuccess();
         }
-    }, [inputValue, onSuccess]);
+    }, [inputValue, onSuccess, solveTarget]);
 
     return (
         <View

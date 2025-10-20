@@ -1,6 +1,5 @@
-import { View, ScrollView, FlatList, Image } from "react-native";
+import { View, FlatList, Image } from "react-native";
 import { useTheme, Text } from "react-native-paper";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import ListItem from "@/components/ListItem";
 import { router } from "expo-router";
@@ -39,7 +38,7 @@ export default function Settings() {
             <View style={{ flex: 2 }}>
                 <FlatList
                     scrollEnabled
-                    fadingEdgeLength={40}
+                    fadingEdgeLength={{ start: 0, end: 40 }}
                     contentContainerStyle={{
                         height: "100%",
                         gap: 15,

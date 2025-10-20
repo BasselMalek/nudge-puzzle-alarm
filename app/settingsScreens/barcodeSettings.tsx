@@ -14,7 +14,7 @@ import {
 } from "react-native-paper";
 import { CameraView, useCameraPermissions } from "expo-camera";
 
-export default function barcodeSettings() {
+export default function BarcodeSettings() {
     const [scannedCode, setScannedCode] = useState<Barcode | null>(null);
     const [registeredCodes, setRegisteredCodes] = useState<Barcode[]>([]);
     const [error, setError] = useState(false);
@@ -22,7 +22,7 @@ export default function barcodeSettings() {
     const [isScanning, setIsScanning] = useState(false);
     const [permission, requestPermission] = useCameraPermissions();
     const db = useSQLiteContext();
-    const { colors, roundness } = useTheme();
+    const { roundness } = useTheme();
 
     const checkifRegistered = useCallback(
         (id: string) => registeredCodes.map((val) => val.id).includes(id),
@@ -66,13 +66,11 @@ export default function barcodeSettings() {
 
     useFocusEffect(
         useCallback(() => {
-            const rows = db
-                .getAllAsync<Barcode>("SELECT * FROM physical WHERE type = ?", [
-                    "BAR",
-                ])
-                .then((items) => {
-                    setRegisteredCodes(items);
-                });
+            db.getAllAsync<Barcode>("SELECT * FROM physical WHERE type = ?", [
+                "BAR",
+            ]).then((items) => {
+                setRegisteredCodes(items);
+            });
         }, [db])
     );
 
@@ -81,7 +79,7 @@ export default function barcodeSettings() {
             setRegisteredCodes(registeredCodes.filter((val) => val.id !== id));
             db.runAsync("DELETE FROM physical where id = ?", [id]);
         },
-        [db]
+        [db, registeredCodes]
     );
 
     return (
@@ -172,7 +170,7 @@ export default function barcodeSettings() {
             <View style={{ flex: 3, gap: 15 }}>
                 <Text variant="titleMedium">{"Registered Codes"}</Text>
                 <FlatList
-                    fadingEdgeLength={40}
+                    fadingEdgeLength={{ start: 0, end: 40 }}
                     data={registeredCodes}
                     contentContainerStyle={{ gap: 10 }}
                     ListFooterComponent={() => (

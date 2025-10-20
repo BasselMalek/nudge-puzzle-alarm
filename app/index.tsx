@@ -32,7 +32,7 @@ export default function Alarms() {
         if (first === null) {
             router.navigate("/onboardingScreens/welcome");
         }
-    }, []);
+    }, [first]);
 
     useEffect(() => {
         if (shouldDismiss) {
@@ -45,7 +45,7 @@ export default function Alarms() {
         useCallback(() => {
             setLoadStale(first !== null && update === "true");
             setShouldDismiss(dismiss === "true");
-        }, [update, shouldDismiss, first])
+        }, [first, update, dismiss])
     );
 
     useEffect(() => {
@@ -107,11 +107,11 @@ export default function Alarms() {
 
     const handleSettingsPress = useCallback(() => {
         router.push("/settings");
-    }, [router]);
+    }, []);
 
     const handleFABPress = useCallback(() => {
         router.navigate("./alarmOptions?id=new");
-    }, [router]);
+    }, []);
 
     const renderAlarmItem = useCallback(
         ({ item }: { item: Alarm }) => (
@@ -128,7 +128,7 @@ export default function Alarms() {
                 }}
             />
         ),
-        [deleteAlarm, toggleAlarm, router]
+        [deleteAlarm, toggleAlarm]
     );
 
     const keyExtractor = useCallback((item: Alarm) => item.id, []);
@@ -213,7 +213,7 @@ export default function Alarms() {
                 renderItem={renderAlarmItem}
                 keyExtractor={keyExtractor}
                 showsVerticalScrollIndicator={false}
-                fadingEdgeLength={40}
+                fadingEdgeLength={{ start: 0, end: 40 }}
                 ItemSeparatorComponent={() => (
                     <View style={{ height: 10 }}></View>
                 )}

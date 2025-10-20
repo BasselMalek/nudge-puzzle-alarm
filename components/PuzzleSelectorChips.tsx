@@ -1,5 +1,5 @@
 import { Puzzle } from "@/types/Puzzles";
-import { View, ScrollView, FlatList } from "react-native";
+import { FlatList } from "react-native";
 import { Chip, useTheme } from "react-native-paper";
 
 export default function PuzzleTypeChips(props: {

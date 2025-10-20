@@ -1,13 +1,5 @@
-import { View, BackHandler, TouchableOpacity } from "react-native";
-import {
-    Button,
-    Card,
-    Icon,
-    IconButton,
-    Text,
-    TouchableRipple,
-    useTheme,
-} from "react-native-paper";
+import { View } from "react-native";
+import { Button, IconButton, Text, useTheme } from "react-native-paper";
 import { StatusBar } from "expo-status-bar";
 import { router, useLocalSearchParams, useNavigation } from "expo-router";
 import { useEffect, useState } from "react";
@@ -19,13 +11,12 @@ import ClockText from "@/components/ClockText";
 import PuzzleContainer from "@/components/PuzzleContainer";
 import {
     handleDaisyChainAfterRing,
-    scheduleNextInstance,
     scheduleSnoozedAlarm,
 } from "@/utils/alarmSchedulingHelpers";
 
 export default function AlarmScreen() {
     const { id } = useLocalSearchParams();
-    const { colors, roundness } = useTheme();
+    const { colors } = useTheme();
     const [alarm, setAlarm] = useState<Alarm>();
     const db = useSQLiteContext();
     const alarmAud = AlarmManager.useAlarmPlayer();
@@ -49,15 +40,12 @@ export default function AlarmScreen() {
         }
     }, [db, id]);
 
-    const dismissAlarm = () => {
+    const dismissAlarm = async () => {
         AlarmManager.setShowWhenLocked(false, alarm?.id);
-        handleDaisyChainAfterRing(alarm!).then((newAlarm) => {
-            saveAlarmDirect(newAlarm.id, db, newAlarm).then(() => {
-                alarmAud?.stop();
-                alarmAud?.release();
-                router.navigate("/?dismiss=true");
-            });
-        });
+        const newAlarm = await handleDaisyChainAfterRing(alarm!);
+        await saveAlarmDirect(newAlarm.id, db, newAlarm);
+        await alarmAud?.stop();
+        alarmAud?.release().then(() => router.navigate("/?dismiss=true"));
     };
 
     const nav = useNavigation();
@@ -70,7 +58,7 @@ export default function AlarmScreen() {
     }, [nav]);
 
     useEffect(() => {
-        if (alarmAud && alarm?.ringtone && alarm.ringtone.uri != "none") {
+        if (alarmAud && alarm?.ringtone && alarm.ringtone.uri !== "none") {
             alarmAud.setSource(alarm.ringtone.uri);
             alarmAud.play();
         }

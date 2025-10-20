@@ -4,8 +4,8 @@ import { useCallback, useState } from "react";
 import { View, ScrollView } from "react-native";
 import { Card, useTheme, Text, Switch, Icon } from "react-native-paper";
 
-export default function miscSettings() {
-    const { colors, roundness } = useTheme();
+export default function MiscSettings() {
+    const { colors } = useTheme();
     const [colorsM3, setColorsM3] = useState(false);
     useFocusEffect(
         useCallback(() => {

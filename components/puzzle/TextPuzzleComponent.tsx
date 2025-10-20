@@ -1,7 +1,7 @@
 import { TextPuzzle } from "@/types/Puzzles";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { View } from "react-native";
-import { Card, Text, TextInput, useTheme } from "react-native-paper";
+import { Text, TextInput, useTheme } from "react-native-paper";
 
 const charsets = {
     easy: "abcdefghijklmnopqrstuvwxyz0123456789",
@@ -42,7 +42,7 @@ export default function TextPuzzleComponent(props: {
         if (inputValue === solveTarget) {
             onSuccess();
         }
-    }, [inputValue, onSuccess]);
+    }, [inputValue, onSuccess, solveTarget]);
 
     return (
         <View

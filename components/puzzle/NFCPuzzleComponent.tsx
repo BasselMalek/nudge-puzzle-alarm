@@ -1,7 +1,7 @@
 import { NFCPuzzle, NFCTag } from "@/types/Puzzles";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { View } from "react-native";
-import { IconButton, Text, useTheme } from "react-native-paper";
+import { Text, useTheme } from "react-native-paper";
 import AnimatedIcon, { AnimatedIconRef } from "@/components/AnimatedIcon";
 import { useNFCScanner } from "@/hooks/useNFCScanner";
 
@@ -12,26 +12,29 @@ export default function NFCPuzzleComponent(props: {
     const { onSuccess, puzzle } = props;
     const currentTagTarget = useRef(0);
     const [currentTagName, setCurrentTagName] = useState(
-        puzzle.sequence.at(currentTagTarget.current)?.name
+        puzzle.sequence.at(0)?.name
     );
     const [isError, setIsError] = useState(false);
-    const { colors, roundness } = useTheme();
+    const { colors } = useTheme();
     const iconRef = useRef<AnimatedIconRef>(null);
 
-    const onTagRead = useCallback(
-        (tagData: NFCTag) => {
-            if (
-                tagData.id === puzzle?.sequence.at(currentTagTarget.current)?.id
-            ) {
-                currentTagTarget.current = currentTagTarget.current + 1;
-                iconRef.current?.triggerAnimation();
-            } else {
-                setIsError(true);
-                iconRef.current?.triggerAnimation();
-            }
-        },
-        [puzzle, currentTagTarget]
-    );
+    const puzzleRef = useRef(puzzle);
+
+    useEffect(() => {
+        puzzleRef.current = puzzle;
+    }, [puzzle]);
+
+    const onTagRead = useCallback((tagData: NFCTag) => {
+        const currentPuzzle = puzzleRef.current;
+        const targetIndex = currentTagTarget.current;
+        if (tagData.id === currentPuzzle?.sequence.at(targetIndex)?.id) {
+            currentTagTarget.current = targetIndex + 1;
+            iconRef.current?.triggerAnimation();
+        } else {
+            setIsError(true);
+            iconRef.current?.triggerAnimation();
+        }
+    }, []);
 
     const { startNFCScanning, stopNFCScanning } = useNFCScanner(onTagRead);
 
@@ -40,7 +43,7 @@ export default function NFCPuzzleComponent(props: {
         return () => {
             stopNFCScanning();
         };
-    }, []);
+    }, [startNFCScanning, stopNFCScanning]);
 
     return (
         <View

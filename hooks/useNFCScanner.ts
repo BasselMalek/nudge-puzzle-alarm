@@ -16,11 +16,11 @@ export const useNFCScanner = (onValidScan: (tagData: NFCTag) => void) => {
         NfcManager.registerTagEvent();
     };
 
-    const stopNFCScanning = () => {
-        NfcManager.unregisterTagEvent();
+    const stopNFCScanning = async () => {
+        await NfcManager.unregisterTagEvent();
         NfcManager.setEventListener(NfcEvents.DiscoverTag, null);
         NfcManager.setEventListener(NfcEvents.SessionClosed, null);
-        NfcManager.close();
+        await NfcManager.close();
     };
 
     return { startNFCScanning, stopNFCScanning };

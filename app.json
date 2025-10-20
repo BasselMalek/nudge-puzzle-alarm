@@ -3,7 +3,7 @@
         "name": "Nudge",
         "slug": "nudge",
         "scheme": "nudge",
-        "version": "0.1.1",
+        "version": "0.1.2",
         "orientation": "portrait",
         "newArchEnabled": true,
         "icon": "./assets/images/icon.png",
@@ -63,7 +63,8 @@
             "expo-audio"
         ],
         "experiments": {
-            "typedRoutes": true
+            "typedRoutes": true,
+            "reactCompiler": true
         },
         "extra": {
             "router": {},

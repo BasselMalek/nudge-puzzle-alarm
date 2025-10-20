@@ -5,23 +5,15 @@ import { useFocusEffect } from "expo-router";
 import { useSQLiteContext } from "expo-sqlite";
 import { useCallback, useState } from "react";
 import { View, FlatList } from "react-native";
-import {
-    Text,
-    TextInput,
-    Button,
-    Card,
-    useTheme,
-    Icon,
-} from "react-native-paper";
+import { Text, TextInput, Button, Card, Icon } from "react-native-paper";
 
-export default function nfcSettings() {
+export default function NFCSettings() {
     const [scannedTag, setScannedTag] = useState<NFCTag | null>(null);
     const [registeredTags, setRegisteredTags] = useState<NFCTag[]>([]);
     const [error, setError] = useState(false);
     const [customName, setCustomName] = useState("");
     const [isScanning, setIsScanning] = useState(false);
     const db = useSQLiteContext();
-    const { colors } = useTheme();
 
     const checkifRegistered = useCallback(
         (id: string) => registeredTags.map((val) => val.id).includes(id),
@@ -72,22 +64,20 @@ export default function nfcSettings() {
             setRegisteredTags(registeredTags.filter((val) => val.id !== id));
             db.runAsync("DELETE FROM physical where id = ?", [id]);
         },
-        [db]
+        [db, registeredTags]
     );
     useFocusEffect(
         useCallback(() => {
-            const rows = db
-                .getAllAsync<NFCTag>("SELECT * FROM physical WHERE type = ?", [
-                    "NFC",
-                ])
-                .then((items) => {
-                    console.log(items);
-                    setRegisteredTags(items);
-                });
+            db.getAllAsync<NFCTag>("SELECT * FROM physical WHERE type = ?", [
+                "NFC",
+            ]).then((items) => {
+                console.log(items);
+                setRegisteredTags(items);
+            });
             return () => {
                 stopNFCScanning();
             };
-        }, [db])
+        }, [db, stopNFCScanning])
     );
 
     return (
@@ -139,7 +129,7 @@ export default function nfcSettings() {
             <View style={{ flex: 1, gap: 15 }}>
                 <Text variant="titleMedium">{"Registered Tags"}</Text>
                 <FlatList
-                    fadingEdgeLength={40}
+                    fadingEdgeLength={{ start: 0, end: 40 }}
                     data={registeredTags}
                     contentContainerStyle={{ gap: 10 }}
                     ListFooterComponent={() => (

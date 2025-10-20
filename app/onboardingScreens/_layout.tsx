@@ -3,7 +3,6 @@ import {
     SafeAreaProvider,
     useSafeAreaInsets,
 } from "react-native-safe-area-context";
-import { useColorScheme } from "react-native";
 import { useTheme } from "react-native-paper";
 export default function RootLayout() {
     const safeInsets = useSafeAreaInsets();

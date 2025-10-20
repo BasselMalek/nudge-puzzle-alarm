@@ -4,10 +4,7 @@ import { StatusBar } from "expo-status-bar";
 import IndicatorDots from "@/components/IndicatorDots";
 import { router } from "expo-router";
 import { useState } from "react";
-import {
-    requestFullScreenAlertsPerm,
-    requestOverlayPerm,
-} from "@/modules/expo-alarm-manager";
+import { requestFullScreenAlertsPerm } from "@/modules/expo-alarm-manager";
 
 export default function FullAlert() {
     const [permsGranted, setPermsGranted] = useState(false);
