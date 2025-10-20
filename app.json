@@ -19,7 +19,7 @@
         },
         "android": {
             "permissions": [
-                "android.permission.SCHEDULE_EXACT_ALARM",
+                // "android.permission.SCHEDULE_EXACT_ALARM",
                 "android.permission.USE_EXACT_ALARM",
                 "android.permission.SYSTEM_ALERT_WINDOW",
                 "android.permission.USE_FULL_SCREEN_INTENT",
