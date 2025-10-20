@@ -11,6 +11,7 @@ import { SQLiteProvider } from "expo-sqlite";
 import AsyncStorage from "expo-sqlite/kv-store";
 import { Linking } from "react-native";
 import { useEffect } from "react";
+import { checkExtras } from "@/modules/expo-alarm-manager";
 
 export default function RootLayout() {
     const colorScheme = useColorScheme();
@@ -21,9 +22,14 @@ export default function RootLayout() {
     useEffect(() => {
         Linking.getInitialURL().then((url) => {
             if (url?.match("nudge://alarms/*")) {
-                console.log("f");
                 const path = url.replace(/^nudge:\/\//, "/");
                 router.push(path as any);
+            } else {
+                const extras = checkExtras();
+                if (extras) {
+                    console.log(extras.timestamp);
+                    router.push(`/alarms/${extras.alarmId}`);
+                }
             }
         });
     }, []);

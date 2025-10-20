@@ -118,6 +118,15 @@ declare class ExpoAlarmManagerModule extends NativeModule<ExpoAlarmManagerModule
      * @Platform android
      */
     requestKeyguardDismiss(): void;
+
+    /**
+     * Returns intent extras if exist and valid.
+     * @Platform android
+     */
+    checkExtras(): {
+        alarmId: string;
+        timestamp: number;
+    };
 }
 
 // This call loads the native module object from the JSI.

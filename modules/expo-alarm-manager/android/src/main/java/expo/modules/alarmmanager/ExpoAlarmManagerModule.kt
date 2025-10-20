@@ -305,6 +305,27 @@ class ExpoAlarmManagerModule : Module() {
             }
         }
 
+        Function("checkExtras") {
+            val activity = appContext.currentActivity
+            val intent = activity?.intent
+
+            if (intent != null) {
+                val alarmId = intent.getStringExtra("alarm_id")
+                val timestamp = intent.getLongExtra("alarm_timestamp", 0L)
+
+                if (alarmId != null && timestamp > 0L) {
+                    intent.removeExtra("alarm_id")
+                    intent.removeExtra("alarm_timestamp")
+
+                    return@Function mapOf(
+                        "alarmId" to alarmId,
+                        "timestamp" to timestamp
+                    )
+                }
+            }
+            return@Function null
+        }
+
         Function("requestKeyguardDismiss") {
             val activity = appContext.currentActivity;
             activity?.runOnUiThread {
@@ -343,14 +364,14 @@ class ExpoAlarmManagerModule : Module() {
         Function("requestScheduleExactPerm") {
             try {
                 val currentActivity = appContext.currentActivity;
-                getAlarmManager()?.canScheduleExactAlarms()?.let {
-                    if (!it) {
+                val permGranted = getAlarmManager()?.canScheduleExactAlarms();
+                    if (!permGranted!!) {
                         val intent = Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM).apply {
                             data = "package:${appContext.reactContext!!.packageName}".toUri()
                         }
                         currentActivity?.startActivity(intent)
                     }
-                }
+
             } catch (e: Exception) {
                 e.message?.let { Log.e("NUDGE", it) }
             }

@@ -106,9 +106,15 @@ export const requestFullScreenAlertsPerm = () => {
  * @Platform android
  */
 export const requestScheduleExactPerm = () => {
-    console.log("d");
-
     ExpoAlarmManagerModule.requestScheduleExactPerm();
+};
+
+/**
+ * Returns intent extras if exist and valid.
+ * @Platform android
+ */
+export const checkExtras = () => {
+    return ExpoAlarmManagerModule.checkExtras();
 };
 
 /**
