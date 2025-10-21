@@ -45,7 +45,7 @@ export default function AlarmScreen() {
         const newAlarm = await handleDaisyChainAfterRing(alarm!);
         await saveAlarmDirect(newAlarm.id, db, newAlarm);
         await alarmAud?.stop();
-        await alarmAud?.release();
+        // await alarmAud?.release();
         router.navigate("/?dismiss=true");
     };
 

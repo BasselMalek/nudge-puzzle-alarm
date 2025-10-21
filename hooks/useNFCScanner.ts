@@ -26,7 +26,7 @@ export const useNFCScanner = (onValidScan: (tagData: NFCTag) => void) => {
             await NfcManager.unregisterTagEvent();
             NfcManager.setEventListener(NfcEvents.DiscoverTag, null);
             NfcManager.setEventListener(NfcEvents.SessionClosed, null);
-            await NfcManager.close();
+            void NfcManager.close();
         }
     };
 

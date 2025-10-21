@@ -122,7 +122,6 @@ export default function SoundOptionsModal(props: {
                                     ? undefined
                                     : alarm.ringtone.uri
                             );
-
                             if (uri !== null) {
                                 if (uri.name === "") {
                                     setAlarm({

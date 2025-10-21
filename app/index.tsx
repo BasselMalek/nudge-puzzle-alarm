@@ -73,24 +73,41 @@ export default function Alarms() {
     }, [alarms]);
 
     useEffect(() => {
-        if (soonestAlarm !== undefined) {
-            setAlarmGradientDim(true);
-            setSoonestRingTime(
-                "Next alarm in " +
-                    formatDistanceStrictShortened(
-                        new Date(
-                            new Date().setHours(
-                                soonestAlarm.ringHours,
-                                soonestAlarm.ringMins
-                            )
-                        ),
-                        new Date()
-                    )
-            );
-        } else {
-            setAlarmGradientDim(false);
-            setSoonestRingTime("No alarms for now");
-        }
+        let interval: NodeJS.Timeout;
+
+        const updateSoonest = () => {
+            if (soonestAlarm !== undefined) {
+                setAlarmGradientDim(true);
+                setSoonestRingTime(
+                    "Next alarm in " +
+                        formatDistanceStrictShortened(
+                            new Date(
+                                new Date().setHours(
+                                    soonestAlarm.ringHours,
+                                    soonestAlarm.ringMins
+                                )
+                            ),
+                            new Date()
+                        )
+                );
+            } else {
+                setAlarmGradientDim(false);
+                setSoonestRingTime("No alarms for now");
+            }
+        };
+        updateSoonest();
+        const now = new Date();
+        const msToNextMinute =
+            (60 - now.getSeconds()) * 1000 - now.getMilliseconds();
+        const timeout = setTimeout(() => {
+            updateSoonest();
+            interval = setInterval(updateSoonest, 60 * 1000);
+        }, msToNextMinute);
+
+        return () => {
+            clearTimeout(timeout);
+            clearInterval(interval);
+        };
     }, [soonestAlarm]);
 
     const gradientColors = useMemo(() => {

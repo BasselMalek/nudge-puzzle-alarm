@@ -36,14 +36,11 @@ export default function NFCPuzzleComponent(props: {
         }
     }, []);
 
-    const { startNFCScanning, stopNFCScanning } = useNFCScanner(onTagRead);
+    const { startNFCScanning } = useNFCScanner(onTagRead);
 
     useEffect(() => {
         void startNFCScanning();
-        return () => {
-            void stopNFCScanning();
-        };
-    }, [startNFCScanning, stopNFCScanning]);
+    }, [startNFCScanning]);
 
     return (
         <View

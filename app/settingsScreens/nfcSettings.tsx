@@ -75,10 +75,7 @@ export default function NFCSettings() {
                 );
                 setRegisteredTags(items);
             })();
-            return () => {
-                void stopNFCScanning();
-            };
-        }, [db, stopNFCScanning])
+        }, [db])
     );
 
     return (
