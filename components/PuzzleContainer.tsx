@@ -72,10 +72,10 @@ export default function PuzzleContainer(
     }, [isVisible, roundness, isDone, scale, borderRadius, onSucessAll]);
 
     useEffect(() => {
-        if (puzzles) {
+        if (puzzles && puzzles.length > 0) {
             setCurrentPuzzle({
                 index: 0,
-                puzzle: puzzles!.at(0)!,
+                puzzle: puzzles.at(0)!,
             });
         }
     }, [puzzles]);

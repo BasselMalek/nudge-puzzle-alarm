@@ -176,29 +176,31 @@ export default function AlarmScreen() {
                         justifyContent: "center",
                     }}
                 >
-                    <Button
-                        mode="outlined"
-                        icon="sleep"
-                        buttonColor={colors.background}
-                        textColor={colors.onBackground}
-                        contentStyle={{
-                            paddingVertical: 8,
-                            paddingHorizontal: 16,
-                        }}
-                        labelStyle={{
-                            fontSize: 24,
-                            lineHeight: 24,
-                        }}
-                        style={{
-                            borderWidth: 2,
-                            borderColor: colors.primary,
-                        }}
-                        onPress={() => {
-                            void snoozeAlarm();
-                        }}
-                    >
-                        {"Snooze"}
-                    </Button>
+                    {!puzzlesComplete && (
+                        <Button
+                            mode="outlined"
+                            icon="sleep"
+                            buttonColor={colors.background}
+                            textColor={colors.onBackground}
+                            contentStyle={{
+                                paddingVertical: 8,
+                                paddingHorizontal: 16,
+                            }}
+                            labelStyle={{
+                                fontSize: 24,
+                                lineHeight: 24,
+                            }}
+                            style={{
+                                borderWidth: 2,
+                                borderColor: colors.primary,
+                            }}
+                            onPress={() => {
+                                void snoozeAlarm();
+                            }}
+                        >
+                            {"Snooze"}
+                        </Button>
+                    )}
                 </View>
             </View>
         </View>
