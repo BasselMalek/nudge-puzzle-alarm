@@ -3,7 +3,7 @@
         "name": "Nudge",
         "slug": "nudge",
         "scheme": "nudge",
-        "version": "0.1.2",
+        "version": "0.1.3",
         "orientation": "portrait",
         "newArchEnabled": true,
         "icon": "./assets/images/icon.png",
@@ -63,8 +63,8 @@
             "expo-audio"
         ],
         "experiments": {
-            "typedRoutes": true,
-            "reactCompiler": true
+            "typedRoutes": true
+            // "reactCompiler": true //! not even sure if it's my code that's so bad the compiler breaks half of it or the compiler is strict asl.
         },
         "extra": {
             "router": {},

@@ -9,9 +9,10 @@ export default function MiscSettings() {
     const [colorsM3, setColorsM3] = useState(false);
     useFocusEffect(
         useCallback(() => {
-            AsyncStorage.getItemAsync("systemColors").then((value) => {
+            void (async () => {
+                const value = await AsyncStorage.getItemAsync("systemColors");
                 setColorsM3(value === "true" ? true : false);
-            });
+            })();
         }, [])
     );
     return (
@@ -65,7 +66,7 @@ export default function MiscSettings() {
                                 value={colorsM3}
                                 onValueChange={(newVal) => {
                                     setColorsM3(newVal);
-                                    AsyncStorage.setItemAsync(
+                                    void AsyncStorage.setItemAsync(
                                         "systemColors",
                                         newVal ? "true" : "false"
                                     );

@@ -88,9 +88,10 @@ export default function PuzzleSelectionModal(props: {
     );
 
     useEffect(() => {
-        db.getAllAsync<Barcode & { type: string }>(
-            "SELECT * FROM physical"
-        ).then((values) => {
+        void (async () => {
+            const values = await db.getAllAsync<Barcode & { type: string }>(
+                "SELECT * FROM physical"
+            );
             setAvailTags(
                 values
                     .filter((val) => val.type === "NFC")
@@ -108,7 +109,7 @@ export default function PuzzleSelectionModal(props: {
                         tech: value.tech,
                     }))
             );
-        });
+        })();
     }, [db]);
 
     const handleSave = useCallback(() => {

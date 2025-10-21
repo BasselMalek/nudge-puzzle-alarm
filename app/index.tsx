@@ -13,7 +13,7 @@ import AlarmCard from "@/components/AlarmCard";
 import Storage from "expo-sqlite/kv-store";
 import { scheduleAlarm } from "@/modules/expo-alarm-manager";
 
-preventAutoHideAsync();
+void preventAutoHideAsync();
 
 export default function Alarms() {
     const db = useSQLiteContext();
@@ -50,15 +50,15 @@ export default function Alarms() {
 
     useEffect(() => {
         if (loadStale) {
-            loadAlarms().finally(() => setLoadStale(false));
+            void loadAlarms().finally(() => setLoadStale(false));
         }
         return () => {
-            hide();
+            void hide();
         };
     }, [loadStale, loadAlarms]);
 
     useEffect(() => {
-        saveAlarms();
+        void saveAlarms();
     }, [alarms, saveAlarms]);
 
     const soonestAlarm = useMemo(() => {
@@ -124,7 +124,7 @@ export default function Alarms() {
                     router.navigate(`./alarmOptions?id=${item.id}`);
                 }}
                 onToggle={(nextVal: boolean) => {
-                    toggleAlarm(item.id, nextVal);
+                    void toggleAlarm(item.id, nextVal);
                 }}
             />
         ),
@@ -187,6 +187,9 @@ export default function Alarms() {
                     right: safeInsets.right + 20,
                 }}
                 onPress={handleFABPress}
+                onLongPress={() => {
+                    console.log(alarms);
+                }}
             />
             <FAB
                 icon={"alarm"}
@@ -197,7 +200,11 @@ export default function Alarms() {
                     right: safeInsets.right + 20,
                 }}
                 onPress={() => {
-                    scheduleAlarm(alarms.at(0)!.id, Date.now() + 15000, false);
+                    void scheduleAlarm(
+                        alarms.at(0)!.id,
+                        Date.now() + 15000,
+                        false
+                    );
                 }}
                 onLongPress={() => {
                     router.push("/onboardingScreens/welcome");

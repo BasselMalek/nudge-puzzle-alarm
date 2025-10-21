@@ -19,24 +19,29 @@ export default function RootLayout() {
     const router = useRouter();
 
     useEffect(() => {
-        Linking.getInitialURL().then((url) => {
-            if (url?.match("nudge://alarms/*")) {
-                const path = url.replace(/^nudge:\/\//, "/");
-                router.push(path as any);
-            } else {
-                const extras = checkExtras();
-                if (extras) {
-                    console.log(extras.timestamp);
-                    router.push(`/alarms/${extras.alarmId}`);
+        void (async () => {
+            try {
+                const url = await Linking.getInitialURL();
+                if (url?.match("nudge://alarms/*")) {
+                    const path = url.replace(/^nudge:\/\//, "/");
+                    router.push(path as any);
+                } else {
+                    const extras = checkExtras();
+                    if (extras) {
+                        console.log(extras.timestamp);
+                        router.push(`/alarms/${extras.alarmId}`);
+                    }
                 }
+            } catch (err) {
+                console.error("Failed to handle initial URL:", err);
             }
-        });
+        })();
     }, [router]);
 
     let paperTheme;
     const colorSettings = AsyncStorage.getItemSync("systemColors");
     if (colorSettings === null || colorSettings === "false") {
-        AsyncStorage.setItemAsync("systemColors", "false");
+        void AsyncStorage.setItemAsync("systemColors", "false");
         paperTheme =
             colorScheme === "dark"
                 ? { ...MD3DarkTheme, colors: darkPalette.colors }

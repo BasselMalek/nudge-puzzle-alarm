@@ -45,9 +45,17 @@ export default function AlarmScreen() {
         const newAlarm = await handleDaisyChainAfterRing(alarm!);
         await saveAlarmDirect(newAlarm.id, db, newAlarm);
         await alarmAud?.stop();
-        alarmAud?.release().then(() => router.navigate("/?dismiss=true"));
+        await alarmAud?.release();
+        router.navigate("/?dismiss=true");
     };
 
+    const snoozeAlarm = async () => {
+        AlarmManager.setShowWhenLocked(false, alarm?.id);
+        await scheduleSnoozedAlarm(alarm!, 5);
+        await alarmAud?.stop();
+        await alarmAud?.release();
+        router.navigate("/?dismiss=true");
+    };
     const nav = useNavigation();
 
     useEffect(() => {
@@ -58,10 +66,12 @@ export default function AlarmScreen() {
     }, [nav]);
 
     useEffect(() => {
-        if (alarmAud && alarm?.ringtone && alarm.ringtone.uri !== "none") {
-            alarmAud.setSource(alarm.ringtone.uri);
-            alarmAud.play();
-        }
+        void (async () => {
+            if (alarmAud && alarm?.ringtone && alarm.ringtone.uri !== "none") {
+                await alarmAud.setSource(alarm.ringtone.uri);
+                await alarmAud.play();
+            }
+        })();
     }, [alarmAud, alarm]);
 
     return (
@@ -136,7 +146,7 @@ export default function AlarmScreen() {
                         }}
                         onPress={() => {
                             if (puzzlesComplete) {
-                                dismissAlarm();
+                                void dismissAlarm();
                             } else {
                                 if (
                                     alarm?.puzzles.some(
@@ -184,12 +194,7 @@ export default function AlarmScreen() {
                             borderColor: colors.primary,
                         }}
                         onPress={() => {
-                            AlarmManager.setShowWhenLocked(false, alarm?.id);
-                            scheduleSnoozedAlarm(alarm!, 5).then(() => {
-                                alarmAud?.stop();
-                                alarmAud?.release();
-                                router.navigate("/?dismiss=true");
-                            });
+                            void snoozeAlarm();
                         }}
                     >
                         {"Snooze"}

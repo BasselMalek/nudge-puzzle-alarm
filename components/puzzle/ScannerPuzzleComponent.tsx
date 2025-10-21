@@ -100,7 +100,9 @@ export default function ScannerPuzzleComponent(props: {
                 </Text>
                 <Button
                     mode="contained"
-                    onPress={handleStartScanning}
+                    onPress={() => {
+                        void handleStartScanning();
+                    }}
                     icon="line-scan"
                 >
                     {"Start Scanning"}

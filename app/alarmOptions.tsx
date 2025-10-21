@@ -409,11 +409,16 @@ export default function AlarmOptions() {
                     right: insets.right + 20,
                 }}
                 onPress={() => {
-                    const clean = cleanUpAlarm();
-                    saveAlarmDirect(id as string, db, clean).then(() => {
-                        scheduleNextInstance(clean);
-                        router.navigate("/?update=true");
-                    });
+                    void (async () => {
+                        try {
+                            const clean = cleanUpAlarm();
+                            await saveAlarmDirect(id as string, db, clean);
+                            await scheduleNextInstance(clean);
+                            router.navigate("/?update=true");
+                        } catch (err) {
+                            console.error("Failed to save alarm:", err);
+                        }
+                    })();
                 }}
                 onLongPress={() => console.log(alarm)}
             />

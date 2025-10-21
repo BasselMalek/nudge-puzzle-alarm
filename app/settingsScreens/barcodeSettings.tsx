@@ -31,7 +31,7 @@ export default function BarcodeSettings() {
 
     const saveTag = async () => {
         if (checkifRegistered(scannedCode!.id)) {
-            db.runAsync("UPDATE physical SET name = ? WHERE id = ?", [
+            void db.runAsync("UPDATE physical SET name = ? WHERE id = ?", [
                 customName,
                 scannedCode!.id,
             ]);
@@ -40,7 +40,7 @@ export default function BarcodeSettings() {
                 { ...scannedCode!, name: customName },
             ]);
         } else {
-            db.runAsync(
+            void db.runAsync(
                 "INSERT INTO physical (id, type, name) VALUES (?,?,?)",
                 [scannedCode!.id, "BAR", customName]
             );
@@ -66,18 +66,23 @@ export default function BarcodeSettings() {
 
     useFocusEffect(
         useCallback(() => {
-            db.getAllAsync<Barcode>("SELECT * FROM physical WHERE type = ?", [
-                "BAR",
-            ]).then((items) => {
-                setRegisteredCodes(items);
-            });
+            void (async () => {
+                await db
+                    .getAllAsync<Barcode>(
+                        "SELECT * FROM physical WHERE type = ?",
+                        ["BAR"]
+                    )
+                    .then((items) => {
+                        setRegisteredCodes(items);
+                    });
+            })();
         }, [db])
     );
 
     const handleDelete = useCallback(
         (id: string) => {
             setRegisteredCodes(registeredCodes.filter((val) => val.id !== id));
-            db.runAsync("DELETE FROM physical where id = ?", [id]);
+            void db.runAsync("DELETE FROM physical where id = ?", [id]);
         },
         [db, registeredCodes]
     );
@@ -105,7 +110,9 @@ export default function BarcodeSettings() {
                     </Text>
                     <Button
                         mode="contained"
-                        onPress={handleStartScanning}
+                        onPress={() => {
+                            void handleStartScanning();
+                        }}
                         icon="line-scan"
                     >
                         {isScanning ? "Stop Scanning" : "Start Scanning"}
@@ -161,7 +168,12 @@ export default function BarcodeSettings() {
                             mode="outlined"
                             placeholder="Enter a custom name"
                         />
-                        <Button mode="contained" onPress={saveTag}>
+                        <Button
+                            mode="contained"
+                            onPress={() => {
+                                void saveTag();
+                            }}
+                        >
                             {"Save Tag"}
                         </Button>
                     </Card.Content>

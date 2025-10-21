@@ -33,22 +33,22 @@ export default function NFCSettings() {
         setError(false);
         setIsScanning(true);
         setScannedTag(null);
-        startNFCScanning();
+        void startNFCScanning();
     };
 
     const handleStopScan = () => {
         setIsScanning(false);
-        stopNFCScanning();
+        void stopNFCScanning();
     };
 
     const saveTag = async () => {
         if (checkifRegistered(scannedTag!.id)) {
-            db.runAsync("UPDATE physical SET name = ? WHERE id = ?", [
+            void db.runAsync("UPDATE physical SET name = ? WHERE id = ?", [
                 customName,
                 scannedTag!.id,
             ]);
         } else {
-            db.runAsync(
+            void db.runAsync(
                 "INSERT INTO physical (id, type, name) VALUES (?,?,?)",
                 [scannedTag!.id, "NFC", customName]
             );
@@ -62,20 +62,21 @@ export default function NFCSettings() {
     const handleDelete = useCallback(
         (id: string) => {
             setRegisteredTags(registeredTags.filter((val) => val.id !== id));
-            db.runAsync("DELETE FROM physical where id = ?", [id]);
+            void db.runAsync("DELETE FROM physical where id = ?", [id]);
         },
         [db, registeredTags]
     );
     useFocusEffect(
         useCallback(() => {
-            db.getAllAsync<NFCTag>("SELECT * FROM physical WHERE type = ?", [
-                "NFC",
-            ]).then((items) => {
-                console.log(items);
+            void (async () => {
+                const items = await db.getAllAsync<NFCTag>(
+                    "SELECT * FROM physical WHERE type = ?",
+                    ["NFC"]
+                );
                 setRegisteredTags(items);
-            });
+            })();
             return () => {
-                stopNFCScanning();
+                void stopNFCScanning();
             };
         }, [db, stopNFCScanning])
     );
@@ -120,7 +121,12 @@ export default function NFCSettings() {
                             mode="outlined"
                             placeholder="Enter a custom name"
                         />
-                        <Button mode="elevated" onPress={saveTag}>
+                        <Button
+                            mode="elevated"
+                            onPress={() => {
+                                void saveTag();
+                            }}
+                        >
                             {"Save Tag"}
                         </Button>
                     </Card.Content>

@@ -43,22 +43,26 @@ export default function Notification() {
                     }}
                     icon={"arrow-right"}
                     mode="elevated"
-                    onPress={async () => {
-                        if (permsGranted) {
-                            router.push("/onboardingScreens/displayOverPerm");
-                        } else {
-                            const result = await requestPermissionsAsync({
-                                ios: {
-                                    allowAlert: true,
-                                    allowBadge: true,
-                                    allowCriticalAlerts: true,
-                                    allowSound: true,
-                                },
-                            });
-                            if (result) {
-                                setPermsGranted(true);
+                    onPress={() => {
+                        void (async () => {
+                            if (permsGranted) {
+                                router.push(
+                                    "/onboardingScreens/displayOverPerm"
+                                );
+                            } else {
+                                const result = await requestPermissionsAsync({
+                                    ios: {
+                                        allowAlert: true,
+                                        allowBadge: true,
+                                        allowCriticalAlerts: true,
+                                        allowSound: true,
+                                    },
+                                });
+                                if (result) {
+                                    setPermsGranted(true);
+                                }
                             }
-                        }
+                        })();
                     }}
                 >
                     {permsGranted ? "Continue" : "Request"}
