@@ -290,6 +290,7 @@ export default function AlarmOptions() {
             >
                 <Text variant="titleMedium">{"Puzzles"}</Text>
                 <ReorderableList
+                    showsVerticalScrollIndicator={false}
                     ItemSeparatorComponent={() => (
                         <View style={{ height: 10 }} />
                     )}
@@ -329,18 +330,22 @@ export default function AlarmOptions() {
                         return (
                             <>
                                 <View style={{ height: 10 }} />
-                                <ListItem
-                                    icon={"plus"}
-                                    style={{ height: 60 }}
-                                    title={"New Puzzle"}
-                                    desc={
-                                        "Tip: drag your puzzles to change their order"
-                                    }
-                                    onPress={() => {
-                                        editPuzzleAtIndex.current = undefined;
-                                        setPuzzlesModalVisible(true);
-                                    }}
-                                />
+                                {alarm.puzzles.length < 5 && (
+                                    <ListItem
+                                        disabled={true}
+                                        icon={"plus"}
+                                        style={{ height: 60 }}
+                                        title={"New Puzzle"}
+                                        desc={
+                                            "Tip: drag your puzzles to change their order"
+                                        }
+                                        onPress={() => {
+                                            editPuzzleAtIndex.current =
+                                                undefined;
+                                            setPuzzlesModalVisible(true);
+                                        }}
+                                    />
+                                )}
                             </>
                         );
                     }}
@@ -355,6 +360,7 @@ export default function AlarmOptions() {
             >
                 <Text variant="titleMedium">{"Boosters"}</Text>
                 <FlatList
+                    showsVerticalScrollIndicator={false}
                     fadingEdgeLength={{ start: 0, end: 5 }}
                     ItemSeparatorComponent={() => (
                         <View style={{ height: 10 }} />

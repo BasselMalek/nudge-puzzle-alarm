@@ -401,11 +401,6 @@ export default function PuzzleSelectionModal(props: {
                     mode="contained"
                     onPress={handleSave}
                     disabled={!canSave}
-                    onLongPress={() => {
-                        console.log(selectedCodes);
-                        console.log(selectedTags);
-                        console.log(puzzle);
-                    }}
                 >
                     {"Save"}
                 </Button>

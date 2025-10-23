@@ -4,7 +4,7 @@ import {
     modifyAlarm,
     deleteAlarm,
 } from "@/modules/expo-alarm-manager";
-import { add, isFuture, isPast, nextDay, set } from "date-fns";
+import { add, isPast, set } from "date-fns";
 import { DaySet } from "@/types/DaySet";
 
 const findNextDay = (startingDate: Date, repeatDays: DaySet) => {
@@ -68,8 +68,6 @@ const handleDaisyChainAfterRing = async (alarm: Alarm) => {
 const rescheduleAllForOnBoot = async (alarms: Alarm[]): Promise<boolean> => {
     const results = await Promise.all(
         alarms.map(async (alarm) => {
-            console.log(alarm);
-
             return scheduleNextInstance(alarm);
         })
     );

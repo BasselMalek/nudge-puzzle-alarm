@@ -172,7 +172,6 @@ export default function MemoryPuzzleComponent(props: {
                         }
                         onPress={() => {
                             setInputValue(inputValue + "0");
-                            console.log(inputValue);
                         }}
                     />
                     <GamePadButton
@@ -184,7 +183,6 @@ export default function MemoryPuzzleComponent(props: {
                         }
                         onPress={() => {
                             setInputValue(inputValue + "1");
-                            console.log(inputValue);
                         }}
                     />
                 </View>
@@ -198,7 +196,6 @@ export default function MemoryPuzzleComponent(props: {
                         }
                         onPress={() => {
                             setInputValue(inputValue + "3");
-                            console.log(inputValue);
                         }}
                     />
                     <GamePadButton
@@ -210,7 +207,6 @@ export default function MemoryPuzzleComponent(props: {
                         }
                         onPress={() => {
                             setInputValue(inputValue + "2");
-                            console.log(inputValue);
                         }}
                     />
                 </View>

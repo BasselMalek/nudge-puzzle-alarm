@@ -28,7 +28,6 @@ export default function RootLayout() {
                 } else {
                     const extras = checkExtras();
                     if (extras) {
-                        console.log(extras.timestamp);
                         router.push(`/alarms/${extras.alarmId}`);
                     }
                 }
