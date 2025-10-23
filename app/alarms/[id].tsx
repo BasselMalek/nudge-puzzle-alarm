@@ -166,6 +166,9 @@ export default function AlarmScreen() {
                             setIsPuzzleVisible(false);
                             setPuzzlesComplete(true);
                         }}
+                        onPuzzleFailure={() => {
+                            setIsPuzzleVisible(false);
+                        }}
                         puzzles={alarm?.puzzles!}
                     />
                 </View>

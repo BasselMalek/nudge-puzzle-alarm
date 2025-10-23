@@ -19,6 +19,7 @@ const POP_DELAY = 750;
 export default function MemoryPuzzleComponent(props: {
     puzzle: MemoryPuzzle;
     onSuccess: () => void;
+    onFailure: () => void;
 }) {
     const { onSuccess, puzzle } = props;
     const { difficulty } = puzzle;

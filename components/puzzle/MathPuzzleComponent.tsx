@@ -8,6 +8,7 @@ import CountdownTimerBadge from "./CountdownTimerBadge";
 export default function MathPuzzleComponent(props: {
     puzzle: MathPuzzle;
     onSuccess: () => void;
+    onFailure: () => void;
 }) {
     const { onSuccess, puzzle } = props;
     const { difficulty } = puzzle;

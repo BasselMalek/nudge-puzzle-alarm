@@ -9,6 +9,7 @@ import CountdownTimerBadge from "./CountdownTimerBadge";
 export default function NFCPuzzleComponent(props: {
     puzzle: NFCPuzzle;
     onSuccess: () => void;
+    onFailure: () => void;
 }) {
     const { onSuccess, puzzle } = props;
     const { difficulty } = puzzle;

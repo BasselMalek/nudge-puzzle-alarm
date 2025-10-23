@@ -22,8 +22,9 @@ const generateString = (length: number, charset: string) => {
 export default function TextPuzzleComponent(props: {
     puzzle: TextPuzzle;
     onSuccess: () => void;
+    onFailure: () => void;
 }) {
-    const { onSuccess, puzzle } = props;
+    const { onSuccess, puzzle, onFailure } = props;
     const { difficulty } = puzzle;
     const timeLimit = difficulty === 1 ? 60 : difficulty === 2 ? 45 : 30;
 
@@ -42,12 +43,16 @@ export default function TextPuzzleComponent(props: {
     const [timeRemaining, setTimeRemaining] = useState(timeLimit);
     const [isRunning, setIsRunning] = useState(true);
     const [isSubmitted, setIsSubmitted] = useState(false);
+    const [failedSubs, setFailedSubs] = useState(0);
     const timerIntervalRef = useRef<NodeJS.Timeout | null>(null);
     const { colors, roundness } = useTheme();
 
-    const onTimeout = () => {
-        // To be defined later
-    };
+    useEffect(() => {
+        if (failedSubs === 3) {
+            setIsRunning(false);
+            onFailure();
+        }
+    }, [failedSubs, onFailure]);
 
     useEffect(() => {
         if (isRunning && timeRemaining > 0) {
@@ -56,14 +61,14 @@ export default function TextPuzzleComponent(props: {
             }, 1000);
         } else if (timeRemaining === 0) {
             setIsRunning(false);
-            onTimeout();
+            onFailure();
         }
         return () => {
             if (timerIntervalRef.current) {
                 clearInterval(timerIntervalRef.current);
             }
         };
-    }, [isRunning, timeRemaining]);
+    }, [isRunning, onFailure, timeRemaining]);
 
     useEffect(() => {
         if (isSubmitted && inputValue === solveTarget) {
@@ -75,6 +80,7 @@ export default function TextPuzzleComponent(props: {
             inputValue !== solveTarget
         ) {
             setIsErrored(true);
+            setFailedSubs((prev) => prev + 1);
             setTimeout(() => {
                 setIsSubmitted(false);
                 setIsErrored(false);
