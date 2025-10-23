@@ -38,10 +38,9 @@ export default function Settings() {
             <View style={{ flex: 2 }}>
                 <FlatList
                     scrollEnabled
-                    fadingEdgeLength={{ start: 0, end: 40 }}
                     contentContainerStyle={{
                         height: "100%",
-                        gap: 15,
+                        gap: 10,
                     }}
                     data={[
                         {

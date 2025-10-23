@@ -219,7 +219,7 @@ export default function Alarms() {
                 onPress={() => {
                     void scheduleAlarm(
                         alarms.at(0)!.id,
-                        Date.now() + 15000,
+                        Date.now() + 5000,
                         false
                     );
                 }}
@@ -237,7 +237,7 @@ export default function Alarms() {
                 renderItem={renderAlarmItem}
                 keyExtractor={keyExtractor}
                 showsVerticalScrollIndicator={false}
-                fadingEdgeLength={{ start: 0, end: 40 }}
+                fadingEdgeLength={{ start: 0, end: 5 }}
                 ItemSeparatorComponent={() => (
                     <View style={{ height: 10 }}></View>
                 )}

@@ -4,37 +4,65 @@ import { View } from "react-native";
 import { Text, useTheme } from "react-native-paper";
 import AnimatedIcon, { AnimatedIconRef } from "@/components/AnimatedIcon";
 import { useNFCScanner } from "@/hooks/useNFCScanner";
+import CountdownTimerBadge from "./CountdownTimerBadge";
 
 export default function NFCPuzzleComponent(props: {
     puzzle: NFCPuzzle;
     onSuccess: () => void;
+    onFailure: () => void;
 }) {
-    const { onSuccess, puzzle } = props;
+    const { onSuccess, puzzle, onFailure } = props;
+    const { difficulty } = puzzle;
+    const timeLimit = difficulty === 1 ? 90 : difficulty === 2 ? 75 : 60;
+
     const currentTagTarget = useRef(0);
     const [currentTagName, setCurrentTagName] = useState(
         puzzle.sequence.at(0)?.name
     );
     const [isError, setIsError] = useState(false);
+    const [timeRemaining, setTimeRemaining] = useState(timeLimit);
+    const [isRunning, setIsRunning] = useState(true);
+    const timerIntervalRef = useRef<NodeJS.Timeout | null>(null);
     const { colors } = useTheme();
     const iconRef = useRef<AnimatedIconRef>(null);
-
     const puzzleRef = useRef(puzzle);
 
     useEffect(() => {
         puzzleRef.current = puzzle;
     }, [puzzle]);
 
-    const onTagRead = useCallback((tagData: NFCTag) => {
-        const currentPuzzle = puzzleRef.current;
-        const targetIndex = currentTagTarget.current;
-        if (tagData.id === currentPuzzle?.sequence.at(targetIndex)?.id) {
-            currentTagTarget.current = targetIndex + 1;
-            iconRef.current?.triggerAnimation();
-        } else {
-            setIsError(true);
-            iconRef.current?.triggerAnimation();
+    useEffect(() => {
+        if (isRunning && timeRemaining > 0) {
+            timerIntervalRef.current = setInterval(() => {
+                setTimeRemaining((prev) => prev - 1);
+            }, 1000);
+        } else if (timeRemaining === 0) {
+            setIsRunning(false);
+            onFailure();
         }
-    }, []);
+        return () => {
+            if (timerIntervalRef.current) {
+                clearInterval(timerIntervalRef.current);
+            }
+        };
+    }, [isRunning, onFailure, timeRemaining]);
+
+    const onTagRead = useCallback(
+        (tagData: NFCTag) => {
+            if (timeRemaining === 0) return;
+
+            const currentPuzzle = puzzleRef.current;
+            const targetIndex = currentTagTarget.current;
+            if (tagData.id === currentPuzzle?.sequence.at(targetIndex)?.id) {
+                currentTagTarget.current = targetIndex + 1;
+                iconRef.current?.triggerAnimation();
+            } else {
+                setIsError(true);
+                iconRef.current?.triggerAnimation();
+            }
+        },
+        [timeRemaining]
+    );
 
     const { startNFCScanning } = useNFCScanner(onTagRead);
 
@@ -45,8 +73,11 @@ export default function NFCPuzzleComponent(props: {
     return (
         <View
             style={{
-                paddingVertical: 20,
-                gap: 30,
+                flex: 1,
+                gap: 15,
+                padding: 20,
+                justifyContent: "center",
+                overflow: "hidden",
                 alignItems: "center",
             }}
         >
@@ -59,6 +90,7 @@ export default function NFCPuzzleComponent(props: {
                 onAnimationComplete={() => {
                     setIsError(false);
                     if (currentTagTarget.current >= puzzle!.sequence.length) {
+                        setIsRunning(false);
                         onSuccess();
                     } else {
                         setCurrentTagName(
@@ -70,6 +102,19 @@ export default function NFCPuzzleComponent(props: {
             <Text variant="displayMedium" style={{ textAlign: "center" }}>
                 {"Scan " + currentTagName}
             </Text>
+            <View
+                style={{
+                    position: "absolute",
+                    bottom: 10,
+                    right: 10,
+                }}
+            >
+                <CountdownTimerBadge
+                    timeRemaining={timeRemaining}
+                    warningThreshold={11}
+                    size={40}
+                />
+            </View>
         </View>
     );
 }

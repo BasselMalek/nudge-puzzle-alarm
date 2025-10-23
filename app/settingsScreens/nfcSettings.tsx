@@ -132,7 +132,7 @@ export default function NFCSettings() {
             <View style={{ flex: 1, gap: 15 }}>
                 <Text variant="titleMedium">{"Registered Tags"}</Text>
                 <FlatList
-                    fadingEdgeLength={{ start: 0, end: 40 }}
+                    fadingEdgeLength={{ start: 0, end: 5 }}
                     data={registeredTags}
                     contentContainerStyle={{ gap: 10 }}
                     ListFooterComponent={() => (
