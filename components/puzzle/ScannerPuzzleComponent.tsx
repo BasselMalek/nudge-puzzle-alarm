@@ -11,7 +11,7 @@ export default function ScannerPuzzleComponent(props: {
     onSuccess: () => void;
     onFailure: () => void;
 }) {
-    const { onSuccess, puzzle } = props;
+    const { onSuccess, puzzle, onFailure } = props;
     const { difficulty } = puzzle;
     const timeLimit = difficulty === 1 ? 90 : difficulty === 2 ? 75 : 60;
 
@@ -28,10 +28,6 @@ export default function ScannerPuzzleComponent(props: {
     const { colors, roundness } = useTheme();
     const iconRef = useRef<AnimatedIconRef>(null);
 
-    const onTimeout = () => {
-        // To be defined later
-    };
-
     useEffect(() => {
         if (isRunning && timeRemaining > 0) {
             timerIntervalRef.current = setInterval(() => {
@@ -40,14 +36,14 @@ export default function ScannerPuzzleComponent(props: {
         } else if (timeRemaining === 0) {
             setIsRunning(false);
             setIsScanning(false);
-            onTimeout();
+            onFailure();
         }
         return () => {
             if (timerIntervalRef.current) {
                 clearInterval(timerIntervalRef.current);
             }
         };
-    }, [isRunning, timeRemaining]);
+    }, [isRunning, onFailure, timeRemaining]);
 
     const onBarcodeScanned = useCallback(
         (scannedData: { type: string; data: string }) => {

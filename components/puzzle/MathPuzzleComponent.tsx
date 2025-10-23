@@ -10,7 +10,7 @@ export default function MathPuzzleComponent(props: {
     onSuccess: () => void;
     onFailure: () => void;
 }) {
-    const { onSuccess, puzzle } = props;
+    const { onSuccess, puzzle, onFailure } = props;
     const { difficulty } = puzzle;
     const timeLimit = difficulty === 1 ? 60 : difficulty === 2 ? 45 : 30;
 
@@ -24,10 +24,13 @@ export default function MathPuzzleComponent(props: {
     const [isRunning, setIsRunning] = useState(true);
     const timerIntervalRef = useRef<NodeJS.Timeout | null>(null);
     const { colors, roundness } = useTheme();
-
-    const onTimeout = () => {
-        // To be defined later
-    };
+    const [failedSubs, setFailedSubs] = useState(0);
+    useEffect(() => {
+        if (failedSubs >= 3) {
+            setIsRunning(false);
+            onFailure();
+        }
+    }, [failedSubs, onFailure]);
 
     useEffect(() => {
         if (isRunning && timeRemaining > 0) {
@@ -36,14 +39,14 @@ export default function MathPuzzleComponent(props: {
             }, 1000);
         } else if (timeRemaining === 0) {
             setIsRunning(false);
-            onTimeout();
+            onFailure();
         }
         return () => {
             if (timerIntervalRef.current) {
                 clearInterval(timerIntervalRef.current);
             }
         };
-    }, [isRunning, timeRemaining]);
+    }, [isRunning, onFailure, timeRemaining]);
 
     useEffect(() => {
         if (isSubmitted && parseInt(inputValue) === solveTarget.result) {
@@ -56,6 +59,7 @@ export default function MathPuzzleComponent(props: {
         ) {
             setIsErrored(true);
             setTimeout(() => {
+                setFailedSubs((prev) => prev + 1);
                 setIsSubmitted(false);
                 setIsErrored(false);
                 setInputValue("");

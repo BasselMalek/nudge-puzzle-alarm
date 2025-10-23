@@ -43,12 +43,12 @@ export default function TextPuzzleComponent(props: {
     const [timeRemaining, setTimeRemaining] = useState(timeLimit);
     const [isRunning, setIsRunning] = useState(true);
     const [isSubmitted, setIsSubmitted] = useState(false);
-    const [failedSubs, setFailedSubs] = useState(0);
     const timerIntervalRef = useRef<NodeJS.Timeout | null>(null);
     const { colors, roundness } = useTheme();
 
+    const [failedSubs, setFailedSubs] = useState(0);
     useEffect(() => {
-        if (failedSubs === 3) {
+        if (failedSubs >= 3) {
             setIsRunning(false);
             onFailure();
         }
@@ -80,8 +80,8 @@ export default function TextPuzzleComponent(props: {
             inputValue !== solveTarget
         ) {
             setIsErrored(true);
-            setFailedSubs((prev) => prev + 1);
             setTimeout(() => {
+                setFailedSubs((prev) => prev + 1);
                 setIsSubmitted(false);
                 setIsErrored(false);
                 setInputValue("");

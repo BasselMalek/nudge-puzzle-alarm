@@ -21,7 +21,7 @@ export default function MemoryPuzzleComponent(props: {
     onSuccess: () => void;
     onFailure: () => void;
 }) {
-    const { onSuccess, puzzle } = props;
+    const { onSuccess, puzzle, onFailure } = props;
     const { difficulty } = puzzle;
     const timeLimit = difficulty === 1 ? 80 : difficulty === 2 ? 60 : 45;
     const pops = difficulty === 1 ? 5 : difficulty === 2 ? 6 : 7;
@@ -37,6 +37,13 @@ export default function MemoryPuzzleComponent(props: {
     const timerIntervalRef = useRef<NodeJS.Timeout | null>(null);
     const [isRunning, setIsRunning] = useState(false);
     const [isDisabled, setIsDisabled] = useState(true);
+    const [failedSubs, setFailedSubs] = useState(0);
+    useEffect(() => {
+        if (failedSubs >= 3) {
+            setIsRunning(false);
+            onFailure();
+        }
+    }, [failedSubs, onFailure]);
 
     const revealPattern = (pattern: string, start?: boolean) => {
         const refs = [
@@ -74,13 +81,14 @@ export default function MemoryPuzzleComponent(props: {
             }, 1000);
         } else if (isRunning && timeRemaining === 0) {
             setIsRunning(false);
+            onFailure();
         }
         return () => {
             if (timerIntervalRef.current) {
                 clearInterval(timerIntervalRef.current);
             }
         };
-    }, [isRunning, timeRemaining]);
+    }, [isRunning, onFailure, timeRemaining]);
 
     useEffect(() => {
         if (
@@ -106,14 +114,13 @@ export default function MemoryPuzzleComponent(props: {
             inputValue.length > 0 &&
             inputValue !== solveTarget.slice(0, inputValue.length)
         ) {
-            console.log("ERROR");
             setIsErrored(true);
             firstButtonRef.current?.triggerPress();
             secondButtonRef.current?.triggerPress();
             thirdButtonRef.current?.triggerPress();
             fourthButtonRef.current?.triggerPress();
-
             setTimeout(() => {
+                setFailedSubs((prev) => prev + 1);
                 setIsErrored(false);
                 setInputValue("");
                 setSolveTarget(generateSequence(pops));
@@ -143,7 +150,6 @@ export default function MemoryPuzzleComponent(props: {
             <View
                 style={{
                     gap: 15,
-                    // backgroundColor: "red",
                     transform: [
                         {
                             rotate: "45deg",

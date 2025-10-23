@@ -11,7 +11,7 @@ export default function NFCPuzzleComponent(props: {
     onSuccess: () => void;
     onFailure: () => void;
 }) {
-    const { onSuccess, puzzle } = props;
+    const { onSuccess, puzzle, onFailure } = props;
     const { difficulty } = puzzle;
     const timeLimit = difficulty === 1 ? 90 : difficulty === 2 ? 75 : 60;
 
@@ -27,10 +27,6 @@ export default function NFCPuzzleComponent(props: {
     const iconRef = useRef<AnimatedIconRef>(null);
     const puzzleRef = useRef(puzzle);
 
-    const onTimeout = () => {
-        // To be defined later
-    };
-
     useEffect(() => {
         puzzleRef.current = puzzle;
     }, [puzzle]);
@@ -42,14 +38,14 @@ export default function NFCPuzzleComponent(props: {
             }, 1000);
         } else if (timeRemaining === 0) {
             setIsRunning(false);
-            onTimeout();
+            onFailure();
         }
         return () => {
             if (timerIntervalRef.current) {
                 clearInterval(timerIntervalRef.current);
             }
         };
-    }, [isRunning, timeRemaining]);
+    }, [isRunning, onFailure, timeRemaining]);
 
     const onTagRead = useCallback(
         (tagData: NFCTag) => {
