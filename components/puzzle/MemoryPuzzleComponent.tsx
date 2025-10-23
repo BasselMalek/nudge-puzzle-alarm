@@ -1,8 +1,9 @@
 import { MemoryPuzzle } from "@/types/Puzzles";
 import { useEffect, useRef, useState } from "react";
 import { View } from "react-native";
-import { IconButton, useTheme, Text } from "react-native-paper";
+import { IconButton, useTheme } from "react-native-paper";
 import GamePadButton, { GamePadButtonRef } from "./GamePadButton";
+import CountdownTimerBadge from "./CountdownTimerBadge";
 
 const generateSequence = (length: number) => {
     const charset = "0123";
@@ -115,7 +116,6 @@ export default function MemoryPuzzleComponent(props: {
                 setIsErrored(false);
                 setInputValue("");
                 setSolveTarget(generateSequence(pops));
-                // revealPattern(solveTarget);
             }, 1000);
         }
     }, [inputValue, onSuccess, pops, solveTarget]);
@@ -248,39 +248,14 @@ export default function MemoryPuzzleComponent(props: {
                 </View>
                 <View
                     style={{
-                        backgroundColor: colors.surfaceVariant,
-                        borderRadius: 100,
                         transform: [{ rotate: "-45deg" }],
-                        elevation: 5,
-                        height: 50,
-                        width: 50,
-                        justifyContent: "center",
-                        alignItems: "center",
                     }}
                 >
-                    <View
-                        style={{
-                            borderRadius: 100,
-                            borderWidth: 2,
-                            borderColor:
-                                timeRemaining < 11 ? "#d74242" : colors.primary,
-                            height: 40,
-                            width: 40,
-                            justifyContent: "center",
-                            alignItems: "center",
-                        }}
-                    >
-                        <Text
-                            style={{
-                                color:
-                                    timeRemaining < 11
-                                        ? "#d74242"
-                                        : colors.primary,
-                            }}
-                        >
-                            {timeRemaining}
-                        </Text>
-                    </View>
+                    <CountdownTimerBadge
+                        timeRemaining={timeRemaining}
+                        warningThreshold={11}
+                        size={50}
+                    />
                 </View>
             </View>
         </View>

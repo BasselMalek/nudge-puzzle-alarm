@@ -28,7 +28,6 @@ export type TextPuzzle = {
     title: "Text";
     icon: "text-box";
     difficulty: 1 | 2 | 3;
-    length: number;
 };
 
 export type NFCPuzzle = {
@@ -38,7 +37,6 @@ export type NFCPuzzle = {
     icon: "nfc";
     difficulty: 1 | 2 | 3;
     sequence: NFCTag[];
-    timeLimit: number;
 };
 
 export type MathPuzzle = {
@@ -56,7 +54,6 @@ export type ScannerPuzzle = {
     icon: "line-scan";
     difficulty: 1 | 2 | 3;
     codeType: "qr" | "code128" | "ean13";
-    timeLimit: number;
     sequence: Barcode[];
 };
 
