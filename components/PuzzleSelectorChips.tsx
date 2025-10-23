@@ -23,7 +23,7 @@ export default function PuzzleTypeChips(props: {
                 { type: "nfc", title: "NFC", icon: "nfc" },
                 { type: "math", title: "Math", icon: "calculator" },
                 { type: "scanner", title: "Scanner", icon: "line-scan" },
-                // { type: "memory", title: "Memory", icon: "brain" },
+                { type: "memory", title: "Memory", icon: "brain" },
             ]}
             renderItem={({ item }) => (
                 <Chip
