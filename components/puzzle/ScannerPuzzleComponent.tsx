@@ -56,16 +56,18 @@ export default function ScannerPuzzleComponent(props: {
                     active={isScanning}
                     style={{
                         flex: 1,
-                        borderRadius: roundness + 10,
+                        borderRadius: roundness + 5,
                     }}
                     onBarcodeScanned={onBarcodeScanned}
                 />
             )}
             <View
                 style={{
-                    paddingVertical: 20,
-                    gap: 25,
+                    padding: 20,
+                    gap: 10,
                     alignItems: "center",
+                    justifyContent: "center",
+
                     flex: 1,
                     display: isScanning ? "none" : "flex",
                 }}

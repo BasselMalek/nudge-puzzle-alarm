@@ -47,9 +47,12 @@ export default function TextPuzzleComponent(props: {
     return (
         <View
             style={{
-                paddingVertical: 20,
-                gap: 30,
                 flex: 1,
+                paddingTop: 20,
+                gap: 30,
+                padding: 20,
+                overflow: "hidden",
+                justifyContent: "center",
             }}
         >
             <Text variant="displayMedium" style={{ textAlign: "center" }}>

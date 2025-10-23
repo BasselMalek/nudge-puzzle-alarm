@@ -45,8 +45,11 @@ export default function NFCPuzzleComponent(props: {
     return (
         <View
             style={{
-                paddingVertical: 20,
-                gap: 30,
+                flex: 1,
+                gap: 15,
+                padding: 20,
+                justifyContent: "center",
+                overflow: "hidden",
                 alignItems: "center",
             }}
         >
