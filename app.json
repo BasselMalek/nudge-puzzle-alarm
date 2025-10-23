@@ -18,6 +18,7 @@
             "bundleIdentifier": "com.benjipine.nudge"
         },
         "android": {
+            "icon": "./assets/images/icon.png",
             "permissions": [
                 "android.permission.SCHEDULE_EXACT_ALARM",
                 "android.permission.USE_EXACT_ALARM",
@@ -33,7 +34,7 @@
             ],
             "adaptiveIcon": {
                 "foregroundImage": "./assets/images/adaptive-icon.png",
-                "backgroundColor": "#ffffff"
+                "monochromeImage": "./assets/images/adaptive-icon.png"
             },
             "edgeToEdgeEnabled": true,
             "package": "com.benjipine.nudge"

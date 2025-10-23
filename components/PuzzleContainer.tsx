@@ -153,6 +153,9 @@ export default function PuzzleContainer(
                     <View
                         style={{
                             flex: 1,
+                            borderWidth: 2,
+                            borderColor: colors.primary,
+                            borderRadius: roundness,
                         }}
                     >
                         {
@@ -164,7 +167,11 @@ export default function PuzzleContainer(
                                     setShowAnimation(false);
                                 }}
                                 ref={animationRef}
-                                style={showAnimation && { flex: 1 }}
+                                style={
+                                    showAnimation && {
+                                        flex: 1,
+                                    }
+                                }
                                 colorFilters={[
                                     {
                                         keypath: "check",
