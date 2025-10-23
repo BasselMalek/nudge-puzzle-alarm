@@ -294,7 +294,7 @@ export default function AlarmOptions() {
                         <View style={{ height: 10 }} />
                     )}
                     data={alarm.puzzles}
-                    fadingEdgeLength={{ start: 0, end: 40 }}
+                    fadingEdgeLength={{ start: 0, end: 5 }}
                     onReorder={({ from, to }: ReorderableListReorderEvent) => {
                         setAlarm((prevAlarm) => ({
                             ...prevAlarm,
@@ -355,7 +355,7 @@ export default function AlarmOptions() {
             >
                 <Text variant="titleMedium">{"Boosters"}</Text>
                 <FlatList
-                    fadingEdgeLength={{ start: 0, end: 40 }}
+                    fadingEdgeLength={{ start: 0, end: 5 }}
                     ItemSeparatorComponent={() => (
                         <View style={{ height: 10 }} />
                     )}
