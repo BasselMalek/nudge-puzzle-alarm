@@ -129,66 +129,97 @@ export default function MemoryPuzzleComponent(props: {
     return (
         <View
             style={{
+                flex: 1,
                 paddingTop: 20,
                 justifyContent: "center",
                 alignItems: "center",
-                transform: [{ rotate: "45deg" }],
+                flexDirection: "row",
                 gap: 15,
+                padding: 20,
+                overflow: "hidden",
             }}
         >
-            <View style={{ flexDirection: "row", gap: 15 }}>
-                <GamePadButton
-                    disabled={isDisabled}
-                    ref={firstButtonRef}
-                    icon={"triangle-outline"}
-                    activationColor={
-                        isErrored ? colors.errorContainer : "#42d742"
-                    }
-                    onPress={() => {
-                        setInputValue(inputValue + "0");
-                        console.log(inputValue);
+            <View
+                style={{
+                    gap: 15,
+                    // backgroundColor: "red",
+                    transform: [
+                        {
+                            rotate: "45deg",
+                        },
+                    ],
+                }}
+            >
+                <View
+                    style={{
+                        flexDirection: "row",
+                        gap: 15,
                     }}
-                />
-                <GamePadButton
-                    disabled={isDisabled}
-                    ref={secondButtonRef}
-                    icon={"circle-outline"}
-                    activationColor={
-                        isErrored ? colors.errorContainer : "#d74242"
-                    }
-                    onPress={() => {
-                        setInputValue(inputValue + "1");
-                        console.log(inputValue);
-                    }}
-                />
+                >
+                    <GamePadButton
+                        disabled={isDisabled}
+                        ref={firstButtonRef}
+                        icon={"triangle-outline"}
+                        activationColor={
+                            isErrored ? colors.errorContainer : "#42d742"
+                        }
+                        onPress={() => {
+                            setInputValue(inputValue + "0");
+                            console.log(inputValue);
+                        }}
+                    />
+                    <GamePadButton
+                        disabled={isDisabled}
+                        ref={secondButtonRef}
+                        icon={"circle-outline"}
+                        activationColor={
+                            isErrored ? colors.errorContainer : "#d74242"
+                        }
+                        onPress={() => {
+                            setInputValue(inputValue + "1");
+                            console.log(inputValue);
+                        }}
+                    />
+                </View>
+                <View style={{ flexDirection: "row", gap: 15 }}>
+                    <GamePadButton
+                        disabled={isDisabled}
+                        ref={fourthButtonRef}
+                        icon={"square-outline"}
+                        activationColor={
+                            isErrored ? colors.errorContainer : "#d7d742"
+                        }
+                        onPress={() => {
+                            setInputValue(inputValue + "3");
+                            console.log(inputValue);
+                        }}
+                    />
+                    <GamePadButton
+                        disabled={isDisabled}
+                        ref={thirdButtonRef}
+                        icon={"window-close"}
+                        activationColor={
+                            isErrored ? colors.errorContainer : "#4242d7"
+                        }
+                        onPress={() => {
+                            setInputValue(inputValue + "2");
+                            console.log(inputValue);
+                        }}
+                    />
+                </View>
             </View>
-            <View style={{ flexDirection: "row", gap: 15 }}>
-                <GamePadButton
-                    disabled={isDisabled}
-                    ref={fourthButtonRef}
-                    icon={"square-outline"}
-                    activationColor={
-                        isErrored ? colors.errorContainer : "#d7d742"
-                    }
-                    onPress={() => {
-                        setInputValue(inputValue + "3");
-                        console.log(inputValue);
-                    }}
-                />
-                <GamePadButton
-                    disabled={isDisabled}
-                    ref={thirdButtonRef}
-                    icon={"window-close"}
-                    activationColor={
-                        isErrored ? colors.errorContainer : "#4242d7"
-                    }
-                    onPress={() => {
-                        setInputValue(inputValue + "2");
-                        console.log(inputValue);
-                    }}
-                />
-            </View>
-            <View style={{ position: "absolute", gap: 15, right: 5 }}>
+            <View
+                style={{
+                    gap: 15,
+                    // backgroundColor: "red",
+                    marginTop: 100,
+                    transform: [
+                        {
+                            rotate: "45deg",
+                        },
+                    ],
+                }}
+            >
                 <View
                     style={{
                         borderRadius: 100,

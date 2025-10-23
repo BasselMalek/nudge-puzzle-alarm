@@ -80,8 +80,8 @@ const GamePadButton = forwardRef<GamePadButtonRef, GamePadButtonProps>(
                     <Animated.View
                         style={[
                             {
-                                width: 80,
-                                height: 80,
+                                width: 70,
+                                height: 70,
                                 borderRadius: 40,
                                 justifyContent: "center",
                                 alignItems: "center",

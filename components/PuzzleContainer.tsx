@@ -155,7 +155,7 @@ export default function PuzzleContainer(
                             flex: 1,
                             borderWidth: 2,
                             borderColor: colors.primary,
-                            borderRadius: roundness,
+                            borderRadius: roundness + 5,
                         }}
                     >
                         {
