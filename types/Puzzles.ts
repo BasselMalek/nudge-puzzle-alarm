@@ -47,7 +47,6 @@ export type MathPuzzle = {
     title: "Math";
     icon: "calculator";
     difficulty: 1 | 2 | 3;
-    //? WIP - params were empty
 };
 
 export type ScannerPuzzle = {
@@ -67,9 +66,6 @@ export type MemoryPuzzle = {
     title: "Memory";
     icon: "brain";
     difficulty: 1 | 2 | 3;
-    speed: number;
-    timeLimit: number;
-    repetitions?: number;
 };
 
 export type Puzzle =

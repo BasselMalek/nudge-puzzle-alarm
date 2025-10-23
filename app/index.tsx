@@ -219,7 +219,7 @@ export default function Alarms() {
                 onPress={() => {
                     void scheduleAlarm(
                         alarms.at(0)!.id,
-                        Date.now() + 15000,
+                        Date.now() + 5000,
                         false
                     );
                 }}

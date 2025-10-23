@@ -7,6 +7,7 @@ import Animated, {
     withSpring,
     withTiming,
     withSequence,
+    interpolateColor,
 } from "react-native-reanimated";
 // import {} from "expo-ha";
 export interface GamePadButtonRef {
@@ -16,53 +17,63 @@ export interface GamePadButtonRef {
 interface GamePadButtonProps {
     icon: string;
     onPress: () => void;
+    activationColor: string;
+    disabled: boolean;
 }
 
 const GamePadButton = forwardRef<GamePadButtonRef, GamePadButtonProps>(
     (props, ref) => {
-        const { icon, onPress } = props;
-        const theme = useTheme();
+        const { icon, onPress, activationColor, disabled } = props;
+        const { colors } = useTheme();
 
         const scale = useSharedValue(1);
         const opacity = useSharedValue(1);
+        const color = useSharedValue(0);
 
         const triggerPressIn = () => {
             scale.value = withTiming(0.85, { duration: 100 });
             opacity.value = withTiming(0.6, { duration: 100 });
+            color.value = withTiming(1, { duration: 100 });
         };
+
         const triggerPressOut = () => {
-            scale.value = withSpring(1, { damping: 20, stiffness: 1400 });
+            scale.value = withSpring(1, { damping: 50, stiffness: 2400 });
             opacity.value = withTiming(1, { duration: 100 });
+            color.value = withTiming(0, { duration: 750 });
             onPress();
         };
 
         const triggerPress = () => {
             scale.value = withSequence(
                 withTiming(0.85, { duration: 100 }),
-                withSpring(1, { damping: 10, stiffness: 300 })
+                withSpring(1, { damping: 50, stiffness: 2400 })
             );
-
+            color.value = withSequence(
+                withTiming(1, { duration: 100 }),
+                withTiming(0, { duration: 750 })
+            );
             opacity.value = withSequence(
                 withTiming(0.6, { duration: 100 }),
                 withTiming(1, { duration: 100 })
             );
         };
+
         useImperativeHandle(ref, () => ({
             triggerPress,
         }));
-
         const animatedStyle = useAnimatedStyle(() => ({
             transform: [{ scale: scale.value }],
             opacity: opacity.value,
+            backgroundColor: interpolateColor(
+                color.value,
+                [0, 1],
+                [colors.surfaceVariant, activationColor]
+            ),
         }));
-
         return (
-            <View
-                style={{
-                    transform: [{ rotate: "-45deg" }],
-                }}
-            >
+            <View style={{ transform: [{ rotate: "-45deg" }] }}>
                 <Pressable
+                    disabled={disabled}
                     onPressIn={triggerPressIn}
                     onPressOut={triggerPressOut}
                 >
@@ -77,24 +88,16 @@ const GamePadButton = forwardRef<GamePadButtonRef, GamePadButtonProps>(
                                 elevation: 4,
                                 position: "relative",
                             },
-                            {
-                                backgroundColor: theme.colors.primaryContainer,
-                            },
                             animatedStyle,
                         ]}
                     >
-                        <Icon
-                            source={icon}
-                            size={36}
-                            color={theme.colors.onPrimaryContainer}
-                        />
+                        <Icon source={icon} size={36} color={colors.primary} />
                     </Animated.View>
                 </Pressable>
             </View>
         );
     }
 );
-
 GamePadButton.displayName = "GamePadButton";
 
 export default GamePadButton;
