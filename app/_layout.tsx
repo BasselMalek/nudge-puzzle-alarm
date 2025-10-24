@@ -1,41 +1,32 @@
-import { Stack, useRouter } from "expo-router";
+import { Stack } from "expo-router";
 import {
     SafeAreaProvider,
     useSafeAreaInsets,
 } from "react-native-safe-area-context";
 import { MD3DarkTheme, MD3LightTheme, PaperProvider } from "react-native-paper";
-import { Linking, useColorScheme } from "react-native";
+import { useColorScheme } from "react-native";
 import { useMaterial3Theme } from "@pchmn/expo-material3-theme";
 import { lightPalette, darkPalette } from "@/constants/customTheme";
 import { SQLiteProvider } from "expo-sqlite";
 import AsyncStorage from "expo-sqlite/kv-store";
-import { useEffect } from "react";
-import { checkExtras } from "@/modules/expo-alarm-manager";
-
 export default function RootLayout() {
     const colorScheme = useColorScheme();
     const safeInsets = useSafeAreaInsets();
     const { theme } = useMaterial3Theme();
-    const router = useRouter();
-
-    useEffect(() => {
-        void (async () => {
-            try {
-                const url = await Linking.getInitialURL();
-                if (url?.match("nudge://alarms/*")) {
-                    const path = url.replace(/^nudge:\/\//, "/");
-                    router.push(path as any);
-                } else {
-                    const extras = checkExtras();
-                    if (extras) {
-                        router.push(`/alarms/${extras.alarmId}`);
-                    }
-                }
-            } catch (err) {
-                console.error("Failed to handle initial URL:", err);
-            }
-        })();
-    }, [router]);
+    // useEffect(() => {
+    //     if (!url || !router) {
+    //         return;
+    //     }
+    //     console.log("Linking.useURL() detected URL:", url);
+    //     const parsedUrl = parse(url);
+    //     if (parsedUrl.scheme === "nudge") {
+    //         const alarmId = parsedUrl.path;
+    //         if (alarmId) {
+    //             console.log(`URL path is '${alarmId}'. Pushing to router...`);
+    //             // router.push(`/alarms/${alarmId}`);
+    //         }
+    //     }
+    // }, [url, router]);
 
     let paperTheme;
     const colorSettings = AsyncStorage.getItemSync("systemColors");
