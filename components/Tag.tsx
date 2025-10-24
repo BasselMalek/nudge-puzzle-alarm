@@ -1,4 +1,3 @@
-import { useTheme } from "react-native-paper";
 import { Surface, Text } from "react-native-paper";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 
@@ -8,7 +7,6 @@ export default function Tag(props: {
     iconColor: string;
     size?: "small" | "medium" | "large";
 }) {
-    const theme = useTheme();
     const size = props.size || "medium";
 
     const sizeConfig = {

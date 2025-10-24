@@ -14,7 +14,7 @@ import {
 } from "react-native-paper";
 import { CameraView, useCameraPermissions } from "expo-camera";
 
-export default function barcodeSettings() {
+export default function BarcodeSettings() {
     const [scannedCode, setScannedCode] = useState<Barcode | null>(null);
     const [registeredCodes, setRegisteredCodes] = useState<Barcode[]>([]);
     const [error, setError] = useState(false);
@@ -22,7 +22,7 @@ export default function barcodeSettings() {
     const [isScanning, setIsScanning] = useState(false);
     const [permission, requestPermission] = useCameraPermissions();
     const db = useSQLiteContext();
-    const { colors, roundness } = useTheme();
+    const { roundness } = useTheme();
 
     const checkifRegistered = useCallback(
         (id: string) => registeredCodes.map((val) => val.id).includes(id),
@@ -31,7 +31,7 @@ export default function barcodeSettings() {
 
     const saveTag = async () => {
         if (checkifRegistered(scannedCode!.id)) {
-            db.runAsync("UPDATE physical SET name = ? WHERE id = ?", [
+            void db.runAsync("UPDATE physical SET name = ? WHERE id = ?", [
                 customName,
                 scannedCode!.id,
             ]);
@@ -40,7 +40,7 @@ export default function barcodeSettings() {
                 { ...scannedCode!, name: customName },
             ]);
         } else {
-            db.runAsync(
+            void db.runAsync(
                 "INSERT INTO physical (id, type, name) VALUES (?,?,?)",
                 [scannedCode!.id, "BAR", customName]
             );
@@ -66,22 +66,25 @@ export default function barcodeSettings() {
 
     useFocusEffect(
         useCallback(() => {
-            const rows = db
-                .getAllAsync<Barcode>("SELECT * FROM physical WHERE type = ?", [
-                    "BAR",
-                ])
-                .then((items) => {
-                    setRegisteredCodes(items);
-                });
+            void (async () => {
+                await db
+                    .getAllAsync<Barcode>(
+                        "SELECT * FROM physical WHERE type = ?",
+                        ["BAR"]
+                    )
+                    .then((items) => {
+                        setRegisteredCodes(items);
+                    });
+            })();
         }, [db])
     );
 
     const handleDelete = useCallback(
         (id: string) => {
             setRegisteredCodes(registeredCodes.filter((val) => val.id !== id));
-            db.runAsync("DELETE FROM physical where id = ?", [id]);
+            void db.runAsync("DELETE FROM physical where id = ?", [id]);
         },
-        [db]
+        [db, registeredCodes]
     );
 
     return (
@@ -107,7 +110,9 @@ export default function barcodeSettings() {
                     </Text>
                     <Button
                         mode="contained"
-                        onPress={handleStartScanning}
+                        onPress={() => {
+                            void handleStartScanning();
+                        }}
                         icon="line-scan"
                     >
                         {isScanning ? "Stop Scanning" : "Start Scanning"}
@@ -163,7 +168,12 @@ export default function barcodeSettings() {
                             mode="outlined"
                             placeholder="Enter a custom name"
                         />
-                        <Button mode="contained" onPress={saveTag}>
+                        <Button
+                            mode="contained"
+                            onPress={() => {
+                                void saveTag();
+                            }}
+                        >
                             {"Save Tag"}
                         </Button>
                     </Card.Content>
@@ -172,7 +182,7 @@ export default function barcodeSettings() {
             <View style={{ flex: 3, gap: 15 }}>
                 <Text variant="titleMedium">{"Registered Codes"}</Text>
                 <FlatList
-                    fadingEdgeLength={40}
+                    fadingEdgeLength={{ start: 0, end: 5 }}
                     data={registeredCodes}
                     contentContainerStyle={{ gap: 10 }}
                     ListFooterComponent={() => (

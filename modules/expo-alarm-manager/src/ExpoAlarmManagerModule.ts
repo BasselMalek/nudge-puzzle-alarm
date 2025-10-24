@@ -105,7 +105,7 @@ declare class ExpoAlarmManagerModule extends NativeModule<ExpoAlarmManagerModule
      * Sets the activity's showWhenLocked for managing alarm visibilty.
      * @Platform android
      */
-    setShowWhenLocked(show: boolean): void;
+    setShowWhenLocked(show: boolean, id: string | null): void;
 
     /**
      * Opens the "Alarms & Reminders" options screen.
@@ -118,6 +118,15 @@ declare class ExpoAlarmManagerModule extends NativeModule<ExpoAlarmManagerModule
      * @Platform android
      */
     requestKeyguardDismiss(): void;
+
+    /**
+     * Returns intent extras if exist and valid.
+     * @Platform android
+     */
+    checkExtras(): {
+        alarmId: string;
+        timestamp: number;
+    };
 }
 
 // This call loads the native module object from the JSI.
@@ -160,17 +169,17 @@ export class AlarmPlayer implements IAlarmPlayer {
         return ExpoAlarmManagerNative.playPlayer();
     }
 
-    stop(): void {
-        ExpoAlarmManagerNative.stopPlayer();
+    stop(): Promise<void> {
         this._isFinished = true;
+        return ExpoAlarmManagerNative.stopPlayer();
     }
 
-    release(): void {
-        ExpoAlarmManagerNative.releasePlayer();
+    release(): Promise<void> {
+        return ExpoAlarmManagerNative.releasePlayer();
     }
 
-    setVolume(vol: number): void {
-        ExpoAlarmManagerNative.setPlayerVolume(vol);
+    setVolume(vol: number): Promise<void> {
+        return ExpoAlarmManagerNative.setPlayerVolume(vol);
     }
 
     get isFinished(): boolean {

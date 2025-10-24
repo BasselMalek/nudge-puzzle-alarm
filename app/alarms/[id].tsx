@@ -1,13 +1,5 @@
-import { View, BackHandler, TouchableOpacity } from "react-native";
-import {
-    Button,
-    Card,
-    Icon,
-    IconButton,
-    Text,
-    TouchableRipple,
-    useTheme,
-} from "react-native-paper";
+import { View } from "react-native";
+import { Button, IconButton, Text, useTheme } from "react-native-paper";
 import { StatusBar } from "expo-status-bar";
 import { router, useLocalSearchParams, useNavigation } from "expo-router";
 import { useEffect, useState } from "react";
@@ -19,13 +11,12 @@ import ClockText from "@/components/ClockText";
 import PuzzleContainer from "@/components/PuzzleContainer";
 import {
     handleDaisyChainAfterRing,
-    scheduleNextInstance,
     scheduleSnoozedAlarm,
 } from "@/utils/alarmSchedulingHelpers";
 
 export default function AlarmScreen() {
     const { id } = useLocalSearchParams();
-    const { colors, roundness } = useTheme();
+    const { colors } = useTheme();
     const [alarm, setAlarm] = useState<Alarm>();
     const db = useSQLiteContext();
     const alarmAud = AlarmManager.useAlarmPlayer();
@@ -49,17 +40,22 @@ export default function AlarmScreen() {
         }
     }, [db, id]);
 
-    const dismissAlarm = () => {
-        AlarmManager.setShowWhenLocked(false);
-        handleDaisyChainAfterRing(alarm!).then((newAlarm) => {
-            saveAlarmDirect(newAlarm.id, db, newAlarm).then(() => {
-                alarmAud?.stop();
-                alarmAud?.release();
-                router.navigate("/?dismiss=true");
-            });
-        });
+    const dismissAlarm = async () => {
+        AlarmManager.setShowWhenLocked(false, alarm?.id);
+        const newAlarm = await handleDaisyChainAfterRing(alarm!);
+        await saveAlarmDirect(newAlarm.id, db, newAlarm);
+        await alarmAud?.stop();
+        // await alarmAud?.release();
+        router.navigate("/?dismiss=true");
     };
 
+    const snoozeAlarm = async () => {
+        AlarmManager.setShowWhenLocked(false, alarm?.id);
+        await scheduleSnoozedAlarm(alarm!, 5);
+        await alarmAud?.stop();
+        await alarmAud?.release();
+        router.navigate("/?dismiss=true");
+    };
     const nav = useNavigation();
 
     useEffect(() => {
@@ -70,10 +66,12 @@ export default function AlarmScreen() {
     }, [nav]);
 
     useEffect(() => {
-        if (alarmAud && alarm?.ringtone && alarm.ringtone.uri != "none") {
-            alarmAud.setSource(alarm.ringtone.uri);
-            alarmAud.play();
-        }
+        void (async () => {
+            if (alarmAud && alarm?.ringtone && alarm.ringtone.uri !== "none") {
+                await alarmAud.setSource(alarm.ringtone.uri);
+                await alarmAud.play();
+            }
+        })();
     }, [alarmAud, alarm]);
 
     return (
@@ -148,7 +146,7 @@ export default function AlarmScreen() {
                         }}
                         onPress={() => {
                             if (puzzlesComplete) {
-                                dismissAlarm();
+                                void dismissAlarm();
                             } else {
                                 if (
                                     alarm?.puzzles.some(
@@ -168,6 +166,9 @@ export default function AlarmScreen() {
                             setIsPuzzleVisible(false);
                             setPuzzlesComplete(true);
                         }}
+                        onPuzzleFailure={() => {
+                            setIsPuzzleVisible(false);
+                        }}
                         puzzles={alarm?.puzzles!}
                     />
                 </View>
@@ -178,31 +179,31 @@ export default function AlarmScreen() {
                         justifyContent: "center",
                     }}
                 >
-                    <Button
-                        mode="outlined"
-                        icon="sleep"
-                        buttonColor={colors.background}
-                        textColor={colors.onBackground}
-                        contentStyle={{
-                            paddingVertical: 8,
-                            paddingHorizontal: 16,
-                        }}
-                        labelStyle={{
-                            fontSize: 24,
-                            lineHeight: 24,
-                        }}
-                        style={{
-                            borderWidth: 2,
-                            borderColor: colors.primary,
-                        }}
-                        onPress={() => {
-                            scheduleSnoozedAlarm(alarm!, 5).then(() => {
-                                router.navigate("/?dismiss=true");
-                            });
-                        }}
-                    >
-                        {"Snooze"}
-                    </Button>
+                    {!puzzlesComplete && (
+                        <Button
+                            mode="outlined"
+                            icon="sleep"
+                            buttonColor={colors.background}
+                            textColor={colors.onBackground}
+                            contentStyle={{
+                                paddingVertical: 8,
+                                paddingHorizontal: 16,
+                            }}
+                            labelStyle={{
+                                fontSize: 24,
+                                lineHeight: 24,
+                            }}
+                            style={{
+                                borderWidth: 2,
+                                borderColor: colors.primary,
+                            }}
+                            onPress={() => {
+                                void snoozeAlarm();
+                            }}
+                        >
+                            {"Snooze"}
+                        </Button>
+                    )}
                 </View>
             </View>
         </View>

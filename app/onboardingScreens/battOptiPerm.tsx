@@ -54,7 +54,7 @@ export default function BatteryOptimization() {
                         if (requestSent) {
                             router.dismissTo("/");
                         } else {
-                            startActivityAsync(
+                            void startActivityAsync(
                                 ActivityAction.IGNORE_BATTERY_OPTIMIZATION_SETTINGS
                             );
                             setRequestSent(true);

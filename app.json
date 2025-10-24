@@ -3,7 +3,7 @@
         "name": "Nudge",
         "slug": "nudge",
         "scheme": "nudge",
-        "version": "0.1.2",
+        "version": "0.2.3",
         "orientation": "portrait",
         "newArchEnabled": true,
         "icon": "./assets/images/icon.png",
@@ -18,6 +18,7 @@
             "bundleIdentifier": "com.benjipine.nudge"
         },
         "android": {
+            "icon": "./assets/images/icon.png",
             "permissions": [
                 "android.permission.SCHEDULE_EXACT_ALARM",
                 "android.permission.USE_EXACT_ALARM",
@@ -33,7 +34,7 @@
             ],
             "adaptiveIcon": {
                 "foregroundImage": "./assets/images/adaptive-icon.png",
-                "backgroundColor": "#ffffff"
+                "monochromeImage": "./assets/images/adaptive-icon.png"
             },
             "edgeToEdgeEnabled": true,
             "package": "com.benjipine.nudge"
@@ -64,6 +65,7 @@
         ],
         "experiments": {
             "typedRoutes": true
+            // "reactCompiler": true //! not even sure if it's my code that's so bad the compiler breaks half of it or the compiler is strict asl.
         },
         "extra": {
             "router": {},

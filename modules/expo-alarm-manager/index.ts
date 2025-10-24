@@ -81,8 +81,8 @@ export const addListener = ExpoAlarmManagerModule.addListener;
  * Sets the activity's showWhenLocked for managing alarm visibilty.
  * @Platform android
  */
-export const setShowWhenLocked = (show: boolean) => {
-    ExpoAlarmManagerModule.setShowWhenLocked(show);
+export const setShowWhenLocked = (show: boolean, id?: string) => {
+    ExpoAlarmManagerModule.setShowWhenLocked(show, id ?? null);
 };
 
 /**
@@ -106,9 +106,15 @@ export const requestFullScreenAlertsPerm = () => {
  * @Platform android
  */
 export const requestScheduleExactPerm = () => {
-    console.log("d");
-
     ExpoAlarmManagerModule.requestScheduleExactPerm();
+};
+
+/**
+ * Returns intent extras if exist and valid.
+ * @Platform android
+ */
+export const checkExtras = () => {
+    return ExpoAlarmManagerModule.checkExtras();
 };
 
 /**

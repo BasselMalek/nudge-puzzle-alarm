@@ -1,4 +1,4 @@
-import { View, ScrollView } from "react-native";
+import { View } from "react-native";
 import {
     useTheme,
     SegmentedButtons,
@@ -88,9 +88,10 @@ export default function PuzzleSelectionModal(props: {
     );
 
     useEffect(() => {
-        db.getAllAsync<Barcode & { type: string }>(
-            "SELECT * FROM physical"
-        ).then((values) => {
+        void (async () => {
+            const values = await db.getAllAsync<Barcode & { type: string }>(
+                "SELECT * FROM physical"
+            );
             setAvailTags(
                 values
                     .filter((val) => val.type === "NFC")
@@ -108,7 +109,7 @@ export default function PuzzleSelectionModal(props: {
                         tech: value.tech,
                     }))
             );
-        });
+        })();
     }, [db]);
 
     const handleSave = useCallback(() => {
@@ -188,8 +189,8 @@ export default function PuzzleSelectionModal(props: {
                     flex: 1,
                     maxHeight:
                         puzzle.type === "nfc" || puzzle.type === "scanner"
-                            ? "70%"
-                            : "45%",
+                            ? "50%"
+                            : "35%",
                     backgroundColor: colors.background,
                     borderTopLeftRadius: roundness + 10,
                     borderTopRightRadius: roundness + 10,
@@ -222,10 +223,10 @@ export default function PuzzleSelectionModal(props: {
                     />
                 </View>
                 <View style={{ flex: 1 }}>
-                    <Card style={{ flex: 1 }}>
+                    <Card style={{ flex: 1, justifyContent: "center" }}>
                         <Card.Content style={{ gap: 15 }}>
-                            <View style={{ gap: 5 }}>
-                                <Text variant="titleSmall">Difficulty</Text>
+                            <View style={{ gap: 15 }}>
+                                <Text variant="titleSmall">{"Difficulty"}</Text>
                                 <SegmentedButtons
                                     value={puzzle.difficulty.toString()}
                                     onValueChange={(value) => {
@@ -243,7 +244,7 @@ export default function PuzzleSelectionModal(props: {
                                     ]}
                                 />
                             </View>
-                            <View style={{ gap: 5 }}>
+                            {/* <View style={{ gap: 5 }}>
                                 <Text variant="titleSmall">Repetitions</Text>
                                 <SegmentedButtons
                                     //TODO: implement repetitions.
@@ -260,7 +261,7 @@ export default function PuzzleSelectionModal(props: {
                                         { value: "3", label: "3" },
                                     ]}
                                 />
-                            </View>
+                            </View> */}
                         </Card.Content>
                     </Card>
                 </View>
@@ -400,12 +401,6 @@ export default function PuzzleSelectionModal(props: {
                     mode="contained"
                     onPress={handleSave}
                     disabled={!canSave}
-                    onLongPress={() => {
-                        console.log(selectedCodes);
-                        console.log(selectedTags);
-
-                        console.log(puzzle);
-                    }}
                 >
                     {"Save"}
                 </Button>

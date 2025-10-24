@@ -4,14 +4,15 @@ import { useCallback, useState } from "react";
 import { View, ScrollView } from "react-native";
 import { Card, useTheme, Text, Switch, Icon } from "react-native-paper";
 
-export default function miscSettings() {
-    const { colors, roundness } = useTheme();
+export default function MiscSettings() {
+    const { colors } = useTheme();
     const [colorsM3, setColorsM3] = useState(false);
     useFocusEffect(
         useCallback(() => {
-            AsyncStorage.getItemAsync("systemColors").then((value) => {
+            void (async () => {
+                const value = await AsyncStorage.getItemAsync("systemColors");
                 setColorsM3(value === "true" ? true : false);
-            });
+            })();
         }, [])
     );
     return (
@@ -65,7 +66,7 @@ export default function miscSettings() {
                                 value={colorsM3}
                                 onValueChange={(newVal) => {
                                     setColorsM3(newVal);
-                                    AsyncStorage.setItemAsync(
+                                    void AsyncStorage.setItemAsync(
                                         "systemColors",
                                         newVal ? "true" : "false"
                                     );

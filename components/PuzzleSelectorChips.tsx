@@ -1,5 +1,5 @@
 import { Puzzle } from "@/types/Puzzles";
-import { View, ScrollView, FlatList } from "react-native";
+import { FlatList } from "react-native";
 import { Chip, useTheme } from "react-native-paper";
 
 export default function PuzzleTypeChips(props: {
@@ -21,9 +21,9 @@ export default function PuzzleTypeChips(props: {
             data={[
                 { type: "text", title: "Text", icon: "text-box" },
                 { type: "nfc", title: "NFC", icon: "nfc" },
-                // { type: "math", title: "Math", icon: "calculator" },
+                { type: "math", title: "Math", icon: "calculator" },
                 { type: "scanner", title: "Scanner", icon: "line-scan" },
-                // { type: "memory", title: "Memory", icon: "brain" },
+                { type: "memory", title: "Memory", icon: "brain" },
             ]}
             renderItem={({ item }) => (
                 <Chip

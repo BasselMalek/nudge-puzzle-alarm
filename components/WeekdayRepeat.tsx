@@ -76,7 +76,7 @@ export default function WeekdayRepeat(props: {
 
                             return (
                                 <TouchableRipple
-                                    key={dayIndex}
+                                    key={`${dayIndex}-${localDaySet[dayIndex].enabled}`}
                                     onPress={() => toggleDay(dayIndex)}
                                     style={{
                                         width: 32,

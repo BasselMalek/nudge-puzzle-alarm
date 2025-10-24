@@ -115,31 +115,34 @@ export default function SoundOptionsModal(props: {
                     </Card.Content>
                 </Card>
                 <Card
-                    onPress={async () => {
-                        const uri = await pickAlarmTone(
-                            alarm.ringtone.uri === "none"
-                                ? undefined
-                                : alarm.ringtone.uri
-                        );
-                        if (uri !== null)
-                            if (uri.name === "") {
-                                setAlarm({
-                                    ...alarm,
-                                    ringtone: {
-                                        name: "Silent",
-                                        uri: "none",
-                                    },
-                                });
-                            } else {
-                                setAlarm({
-                                    ...alarm,
-                                    ringtone: {
-                                        name: uri.name,
-                                        uri: uri.uri,
-                                    },
-                                });
+                    onPress={() => {
+                        void (async () => {
+                            const uri = await pickAlarmTone(
+                                alarm.ringtone.uri === "none"
+                                    ? undefined
+                                    : alarm.ringtone.uri
+                            );
+                            if (uri !== null) {
+                                if (uri.name === "") {
+                                    setAlarm({
+                                        ...alarm,
+                                        ringtone: {
+                                            name: "Silent",
+                                            uri: "none",
+                                        },
+                                    });
+                                } else {
+                                    setAlarm({
+                                        ...alarm,
+                                        ringtone: {
+                                            name: uri.name,
+                                            uri: uri.uri,
+                                        },
+                                    });
+                                }
                             }
-                        setVis(false);
+                            setVis(false);
+                        })();
                     }}
                     style={{
                         borderRadius: roundness + 10,
@@ -188,13 +191,15 @@ export default function SoundOptionsModal(props: {
                     </Card.Content>
                 </Card>
                 <Card
-                    onPress={async () => {
-                        const uri = await pickAudioFile();
-                        if (uri)
-                            setAlarm({
-                                ...alarm,
-                                ringtone: { name: "Music", uri },
-                            });
+                    onPress={() => {
+                        void (async () => {
+                            const uri = await pickAudioFile();
+                            if (uri)
+                                setAlarm({
+                                    ...alarm,
+                                    ringtone: { name: "Music", uri },
+                                });
+                        })();
                     }}
                     style={{
                         borderRadius: roundness + 10,

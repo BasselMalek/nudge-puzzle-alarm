@@ -28,7 +28,6 @@ export type TextPuzzle = {
     title: "Text";
     icon: "text-box";
     difficulty: 1 | 2 | 3;
-    length: number;
 };
 
 export type NFCPuzzle = {
@@ -38,7 +37,6 @@ export type NFCPuzzle = {
     icon: "nfc";
     difficulty: 1 | 2 | 3;
     sequence: NFCTag[];
-    timeLimit: number;
 };
 
 export type MathPuzzle = {
@@ -47,7 +45,6 @@ export type MathPuzzle = {
     title: "Math";
     icon: "calculator";
     difficulty: 1 | 2 | 3;
-    //? WIP - params were empty
 };
 
 export type ScannerPuzzle = {
@@ -57,7 +54,6 @@ export type ScannerPuzzle = {
     icon: "line-scan";
     difficulty: 1 | 2 | 3;
     codeType: "qr" | "code128" | "ean13";
-    timeLimit: number;
     sequence: Barcode[];
 };
 
@@ -67,9 +63,6 @@ export type MemoryPuzzle = {
     title: "Memory";
     icon: "brain";
     difficulty: 1 | 2 | 3;
-    speed: number;
-    timeLimit: number;
-    repetitions?: number;
 };
 
 export type Puzzle =

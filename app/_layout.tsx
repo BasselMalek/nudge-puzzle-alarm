@@ -4,13 +4,13 @@ import {
     useSafeAreaInsets,
 } from "react-native-safe-area-context";
 import { MD3DarkTheme, MD3LightTheme, PaperProvider } from "react-native-paper";
-import { useColorScheme } from "react-native";
+import { Linking, useColorScheme } from "react-native";
 import { useMaterial3Theme } from "@pchmn/expo-material3-theme";
 import { lightPalette, darkPalette } from "@/constants/customTheme";
 import { SQLiteProvider } from "expo-sqlite";
 import AsyncStorage from "expo-sqlite/kv-store";
-import { Linking } from "react-native";
 import { useEffect } from "react";
+import { checkExtras } from "@/modules/expo-alarm-manager";
 
 export default function RootLayout() {
     const colorScheme = useColorScheme();
@@ -19,19 +19,28 @@ export default function RootLayout() {
     const router = useRouter();
 
     useEffect(() => {
-        Linking.getInitialURL().then((url) => {
-            if (url?.match("nudge://alarms/*")) {
-                console.log("f");
-                const path = url.replace(/^nudge:\/\//, "/");
-                router.push(path as any);
+        void (async () => {
+            try {
+                const url = await Linking.getInitialURL();
+                if (url?.match("nudge://alarms/*")) {
+                    const path = url.replace(/^nudge:\/\//, "/");
+                    router.push(path as any);
+                } else {
+                    const extras = checkExtras();
+                    if (extras) {
+                        router.push(`/alarms/${extras.alarmId}`);
+                    }
+                }
+            } catch (err) {
+                console.error("Failed to handle initial URL:", err);
             }
-        });
-    }, []);
+        })();
+    }, [router]);
 
     let paperTheme;
     const colorSettings = AsyncStorage.getItemSync("systemColors");
     if (colorSettings === null || colorSettings === "false") {
-        AsyncStorage.setItemAsync("systemColors", "false");
+        void AsyncStorage.setItemAsync("systemColors", "false");
         paperTheme =
             colorScheme === "dark"
                 ? { ...MD3DarkTheme, colors: darkPalette.colors }
@@ -68,10 +77,6 @@ export default function RootLayout() {
                         <Stack.Screen
                             name="alarms/[id]"
                             options={{ headerShown: false }}
-                        />
-                        <Stack.Screen
-                            name="themeDisplay"
-                            options={{ presentation: "modal" }}
                         />
                         <Stack.Screen
                             name="settings"

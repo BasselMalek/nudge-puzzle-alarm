@@ -13,7 +13,7 @@ import AlarmCard from "@/components/AlarmCard";
 import Storage from "expo-sqlite/kv-store";
 import { scheduleAlarm } from "@/modules/expo-alarm-manager";
 
-preventAutoHideAsync();
+void preventAutoHideAsync();
 
 export default function Alarms() {
     const db = useSQLiteContext();
@@ -32,7 +32,7 @@ export default function Alarms() {
         if (first === null) {
             router.navigate("/onboardingScreens/welcome");
         }
-    }, []);
+    }, [first]);
 
     useEffect(() => {
         if (shouldDismiss) {
@@ -45,20 +45,20 @@ export default function Alarms() {
         useCallback(() => {
             setLoadStale(first !== null && update === "true");
             setShouldDismiss(dismiss === "true");
-        }, [update, shouldDismiss, first])
+        }, [first, update, dismiss])
     );
 
     useEffect(() => {
         if (loadStale) {
-            loadAlarms().finally(() => setLoadStale(false));
+            void loadAlarms().finally(() => setLoadStale(false));
         }
         return () => {
-            hide();
+            void hide();
         };
     }, [loadStale, loadAlarms]);
 
     useEffect(() => {
-        saveAlarms();
+        void saveAlarms();
     }, [alarms, saveAlarms]);
 
     const soonestAlarm = useMemo(() => {
@@ -73,24 +73,41 @@ export default function Alarms() {
     }, [alarms]);
 
     useEffect(() => {
-        if (soonestAlarm !== undefined) {
-            setAlarmGradientDim(true);
-            setSoonestRingTime(
-                "Next alarm in " +
-                    formatDistanceStrictShortened(
-                        new Date(
-                            new Date().setHours(
-                                soonestAlarm.ringHours,
-                                soonestAlarm.ringMins
-                            )
-                        ),
-                        new Date()
-                    )
-            );
-        } else {
-            setAlarmGradientDim(false);
-            setSoonestRingTime("No alarms for now");
-        }
+        let interval: NodeJS.Timeout;
+
+        const updateSoonest = () => {
+            if (soonestAlarm !== undefined) {
+                setAlarmGradientDim(true);
+                setSoonestRingTime(
+                    "Next alarm in " +
+                        formatDistanceStrictShortened(
+                            new Date(
+                                new Date().setHours(
+                                    soonestAlarm.ringHours,
+                                    soonestAlarm.ringMins
+                                )
+                            ),
+                            new Date()
+                        )
+                );
+            } else {
+                setAlarmGradientDim(false);
+                setSoonestRingTime("No alarms for now");
+            }
+        };
+        updateSoonest();
+        const now = new Date();
+        const msToNextMinute =
+            (60 - now.getSeconds()) * 1000 - now.getMilliseconds();
+        const timeout = setTimeout(() => {
+            updateSoonest();
+            interval = setInterval(updateSoonest, 60 * 1000);
+        }, msToNextMinute);
+
+        return () => {
+            clearTimeout(timeout);
+            clearInterval(interval);
+        };
     }, [soonestAlarm]);
 
     const gradientColors = useMemo(() => {
@@ -107,11 +124,11 @@ export default function Alarms() {
 
     const handleSettingsPress = useCallback(() => {
         router.push("/settings");
-    }, [router]);
+    }, []);
 
     const handleFABPress = useCallback(() => {
         router.navigate("./alarmOptions?id=new");
-    }, [router]);
+    }, []);
 
     const renderAlarmItem = useCallback(
         ({ item }: { item: Alarm }) => (
@@ -124,11 +141,11 @@ export default function Alarms() {
                     router.navigate(`./alarmOptions?id=${item.id}`);
                 }}
                 onToggle={(nextVal: boolean) => {
-                    toggleAlarm(item.id, nextVal);
+                    void toggleAlarm(item.id, nextVal);
                 }}
             />
         ),
-        [deleteAlarm, toggleAlarm, router]
+        [deleteAlarm, toggleAlarm]
     );
 
     const keyExtractor = useCallback((item: Alarm) => item.id, []);
@@ -187,6 +204,9 @@ export default function Alarms() {
                     right: safeInsets.right + 20,
                 }}
                 onPress={handleFABPress}
+                onLongPress={() => {
+                    console.log(alarms);
+                }}
             />
             <FAB
                 icon={"alarm"}
@@ -197,7 +217,11 @@ export default function Alarms() {
                     right: safeInsets.right + 20,
                 }}
                 onPress={() => {
-                    scheduleAlarm(alarms.at(0)!.id, Date.now() + 15000, false);
+                    void scheduleAlarm(
+                        alarms.at(0)!.id,
+                        Date.now() + 5000,
+                        false
+                    );
                 }}
                 onLongPress={() => {
                     router.push("/onboardingScreens/welcome");
@@ -213,7 +237,7 @@ export default function Alarms() {
                 renderItem={renderAlarmItem}
                 keyExtractor={keyExtractor}
                 showsVerticalScrollIndicator={false}
-                fadingEdgeLength={40}
+                fadingEdgeLength={{ start: 0, end: 5 }}
                 ItemSeparatorComponent={() => (
                     <View style={{ height: 10 }}></View>
                 )}

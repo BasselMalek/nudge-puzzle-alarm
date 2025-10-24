@@ -7,8 +7,9 @@ import {
     IconButton,
     CardProps,
 } from "react-native-paper";
+import { useReorderableDrag } from "react-native-reorderable-list";
 
-export default function ListItem(
+export default function DraggableListItem(
     props: {
         title: string;
         size?: number;
@@ -29,9 +30,10 @@ export default function ListItem(
         buttonTwoAction,
         size = 24,
     } = props;
+    const drag = useReorderableDrag();
 
     return (
-        <Card onPress={props.onPress} style={props.style}>
+        <Card onLongPress={drag} onPress={props.onPress} style={props.style}>
             <Card.Content
                 style={{
                     height: "100%",

@@ -11,7 +11,6 @@ import {
     disableNextInstance,
 } from "@/utils/alarmSchedulingHelpers";
 import { setLinkingScheme } from "@/modules/expo-alarm-manager";
-import { addDays, isFuture } from "date-fns";
 
 type AlarmAction =
     | { type: "UPDATE_ALARM"; payload: Partial<Alarm> & { id: string } }
@@ -167,33 +166,39 @@ export const useAlarms = (db: SQLiteDatabase, linkingScheme: string) => {
     }, [db]);
 
     const saveAlarms = useCallback(async () => {
-        await db.withTransactionAsync(async () => {
-            alarms.forEach((v) => {
-                if (v.lastModified.getTime() > diff!) {
-                    db.runAsync(
-                        `UPDATE alarms
-             SET name = ?, ring_hours = ?, ring_mins = ?, repeat = ?, repeat_days = ?,
-                 ringtone = ?, vibrate = ?, puzzles = ?, power_ups = ?,
-                 is_enabled = ?, last_modified = ?
-             WHERE id = ?`,
-                        [
-                            v.name,
-                            v.ringHours,
-                            v.ringMins,
-                            v.repeat ? 1 : 0,
-                            JSON.stringify(v.repeatDays),
-                            JSON.stringify(v.ringtone),
-                            v.vibrate ? 1 : 0,
-                            JSON.stringify(v.puzzles),
-                            JSON.stringify(v.powerUps),
-                            v.isEnabled ? 1 : 0,
-                            v.lastModified.toISOString(),
-                            v.id,
-                        ]
-                    );
+        if (!diff) return;
+
+        try {
+            await db.withExclusiveTransactionAsync(async (tx) => {
+                for (const v of alarms) {
+                    if (v.lastModified.getTime() > diff) {
+                        await tx.runAsync(
+                            `UPDATE alarms
+                         SET name = ?, ring_hours = ?, ring_mins = ?, repeat = ?, repeat_days = ?,
+                             ringtone = ?, vibrate = ?, puzzles = ?, power_ups = ?,
+                             is_enabled = ?, last_modified = ?
+                         WHERE id = ?`,
+                            [
+                                v.name,
+                                v.ringHours,
+                                v.ringMins,
+                                v.repeat ? 1 : 0,
+                                JSON.stringify(v.repeatDays),
+                                JSON.stringify(v.ringtone),
+                                v.vibrate ? 1 : 0,
+                                JSON.stringify(v.puzzles),
+                                JSON.stringify(v.powerUps),
+                                v.isEnabled ? 1 : 0,
+                                v.lastModified.toISOString(),
+                                v.id,
+                            ]
+                        );
+                    }
                 }
             });
-        });
+        } catch (e) {
+            console.warn("saveAlarms transaction failed:", e);
+        }
     }, [alarms, diff, db]);
 
     const updateAlarm = useCallback(
@@ -202,21 +207,25 @@ export const useAlarms = (db: SQLiteDatabase, linkingScheme: string) => {
                 type: "UPDATE_ALARM",
                 payload: { id, isEnabled: true, ...updates },
             });
-            modifyNextInstance({
-                ...alarms.find((v) => v.id === id)!,
-                ...updates,
-            });
+            void (async () => {
+                const alarm = alarms.find((v) => v.id === id);
+                if (alarm) await modifyNextInstance({ ...alarm, ...updates });
+            })();
         },
         [dispatch, alarms]
     );
 
     const deleteAlarm = useCallback(
         (id: string) => {
-            disableNextInstance(alarms.find((v) => v.id === id)!);
-            dispatch({ type: "DELETE_ALARM", payload: id });
-            db.runAsync("DELETE FROM alarms WHERE id = ?", [id]);
+            void (async () => {
+                const alarm = alarms.find((v) => v.id === id);
+                if (!alarm) return;
+                await disableNextInstance(alarm);
+                dispatch({ type: "DELETE_ALARM", payload: id });
+                await db.runAsync("DELETE FROM alarms WHERE id = ?", [id]);
+            })();
         },
-        [db, dispatch]
+        [alarms, db]
     );
 
     const toggleAlarm = async (id: string, nextEnabled: boolean) => {

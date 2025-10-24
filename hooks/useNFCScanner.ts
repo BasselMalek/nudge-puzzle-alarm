@@ -2,7 +2,7 @@ import { NFCTag } from "@/types/Puzzles";
 import NfcManager, { NfcEvents, TagEvent } from "react-native-nfc-manager";
 
 export const useNFCScanner = (onValidScan: (tagData: NFCTag) => void) => {
-    const startNFCScanning = () => {
+    const startNFCScanning = async () => {
         NfcManager.setEventListener(NfcEvents.DiscoverTag, (tag: TagEvent) => {
             if (tag.id) {
                 const tagData: NFCTag = {
@@ -10,17 +10,24 @@ export const useNFCScanner = (onValidScan: (tagData: NFCTag) => void) => {
                 };
                 onValidScan(tagData);
             }
-            NfcManager.unregisterTagEvent();
-            NfcManager.registerTagEvent();
+            NfcManager.unregisterTagEvent()
+                .then(() => {
+                    void NfcManager.registerTagEvent();
+                })
+                .catch((err) => {
+                    console.log(err);
+                });
         });
-        NfcManager.registerTagEvent();
+        await NfcManager.registerTagEvent();
     };
 
-    const stopNFCScanning = () => {
-        NfcManager.unregisterTagEvent();
-        NfcManager.setEventListener(NfcEvents.DiscoverTag, null);
-        NfcManager.setEventListener(NfcEvents.SessionClosed, null);
-        NfcManager.close();
+    const stopNFCScanning = async () => {
+        if (NfcManager) {
+            await NfcManager.unregisterTagEvent();
+            NfcManager.setEventListener(NfcEvents.DiscoverTag, null);
+            NfcManager.setEventListener(NfcEvents.SessionClosed, null);
+            void NfcManager.close();
+        }
     };
 
     return { startNFCScanning, stopNFCScanning };
