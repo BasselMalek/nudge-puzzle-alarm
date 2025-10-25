@@ -5,9 +5,18 @@ import { useFocusEffect } from "expo-router";
 import { useSQLiteContext } from "expo-sqlite";
 import { useCallback, useState } from "react";
 import { View, FlatList } from "react-native";
-import { Text, TextInput, Button, Card, Icon } from "react-native-paper";
+import {
+    Text,
+    TextInput,
+    Button,
+    Card,
+    Icon,
+    IconButton,
+    useTheme,
+} from "react-native-paper";
 
 export default function NFCSettings() {
+    const { colors, roundness } = useTheme();
     const [scannedTag, setScannedTag] = useState<NFCTag | null>(null);
     const [registeredTags, setRegisteredTags] = useState<NFCTag[]>([]);
     const [error, setError] = useState(false);
@@ -157,14 +166,41 @@ export default function NFCSettings() {
                         <ListItem
                             title={item.name!}
                             style={{ height: 70 }}
-                            buttons
-                            buttonOneAction={() => {
-                                setCustomName(item.name!);
-                                setScannedTag(item);
-                            }}
-                            buttonTwoAction={() => {
-                                handleDelete(item.id);
-                            }}
+                            rightContent={
+                                <>
+                                    <IconButton
+                                        icon={"pencil"}
+                                        mode="contained"
+                                        style={{
+                                            borderRadius: roundness,
+                                        }}
+                                        size={14}
+                                        contentStyle={{
+                                            padding: 0,
+                                        }}
+                                        containerColor={colors.elevation.level5}
+                                        onPress={() => {
+                                            setCustomName(item.name!);
+                                            setScannedTag(item);
+                                        }}
+                                    />
+                                    <IconButton
+                                        icon={"delete"}
+                                        mode="contained"
+                                        style={{
+                                            borderRadius: roundness,
+                                        }}
+                                        size={14}
+                                        contentStyle={{
+                                            padding: 0,
+                                        }}
+                                        containerColor={colors.elevation.level5}
+                                        onPress={() => {
+                                            handleDelete(item.id);
+                                        }}
+                                    />
+                                </>
+                            }
                         />
                     )}
                 />
