@@ -2,7 +2,6 @@ import { useReducer, useState, useCallback, useEffect } from "react";
 import { Alarm, AlarmDto } from "@/types/Alarm";
 import { SQLiteDatabase } from "expo-sqlite";
 import { DaySet } from "@/types/DaySet";
-import { PowerUp } from "@/types/PowerUp";
 import { Puzzle } from "@/types/Puzzles";
 import { randomUUID } from "expo-crypto";
 import {
@@ -11,6 +10,7 @@ import {
     disableNextInstance,
 } from "@/utils/alarmSchedulingHelpers";
 import { setLinkingScheme } from "@/modules/expo-alarm-manager";
+import { BoosterSet } from "@/types/Boosters";
 
 type AlarmAction =
     | { type: "UPDATE_ALARM"; payload: Partial<Alarm> & { id: string } }
@@ -39,7 +39,7 @@ export const saveAlarmDirect = async (
         const result = await db.runAsync(
             `INSERT INTO alarms
        (id, name, ring_hours, ring_mins, repeat, repeat_days,
-        ringtone, vibrate, puzzles, power_ups, is_enabled, last_modified)
+        ringtone, vibrate, puzzles, booster_set, is_enabled, last_modified)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             [
                 alarm.id,
@@ -51,7 +51,7 @@ export const saveAlarmDirect = async (
                 JSON.stringify(alarm.ringtone),
                 alarm.vibrate ? 1 : 0,
                 JSON.stringify(alarm.puzzles),
-                JSON.stringify(alarm.powerUps),
+                JSON.stringify(alarm.boosterSet),
                 alarm.isEnabled ? 1 : 0,
                 new Date().toISOString(),
             ]
@@ -61,7 +61,7 @@ export const saveAlarmDirect = async (
         const result = await db.runAsync(
             `UPDATE alarms
          SET name = ?, ring_hours = ?, ring_mins = ?, repeat = ?, repeat_days = ?,
-             ringtone = ?, vibrate = ?, puzzles = ?, power_ups = ?,
+             ringtone = ?, vibrate = ?, puzzles = ?, booster_set = ?,
              is_enabled = ?, last_modified = ?
          WHERE id = ?`,
             [
@@ -73,7 +73,7 @@ export const saveAlarmDirect = async (
                 JSON.stringify(alarm.ringtone),
                 alarm.vibrate ? 1 : 0,
                 JSON.stringify(alarm.puzzles),
-                JSON.stringify(alarm.powerUps),
+                JSON.stringify(alarm.boosterSet),
                 alarm.isEnabled ? 1 : 0,
                 alarm.lastModified.toISOString(),
                 alarm.id,
@@ -111,7 +111,7 @@ export const parseAlarm = (r: AlarmDto): Alarm => ({
     vibrate: r.vibrate === 1,
     ringtone: JSON.parse(r.ringtone),
     puzzles: r.puzzles ? JSON.parse(r.puzzles) : [],
-    powerUps: r.power_ups ? JSON.parse(r.power_ups) : [],
+    boosterSet: r.booster_set ? JSON.parse(r.booster_set) : [],
     ringHours: r.ring_hours,
     ringMins: r.ring_mins,
     lastModified: new Date(r.last_modified),
@@ -126,7 +126,7 @@ export const createAlarm = (p: {
     vibrate?: boolean;
     ringtone?: { name: string; uri: string };
     puzzles?: Puzzle[];
-    powerUps?: PowerUp[];
+    powerUps?: BoosterSet;
 }): Alarm => ({
     id: randomUUID(),
     name: p.name,
@@ -145,7 +145,29 @@ export const createAlarm = (p: {
         6: { dayName: "Saturday", letter: "S", enabled: false },
     },
     puzzles: p.puzzles ?? [],
-    powerUps: p.powerUps ?? [],
+    boosterSet: p.powerUps ?? {
+        postDismissLaunch: {
+            enabled: false,
+            config: {
+                packageName: "",
+            },
+        },
+        postDismissCheck: {
+            enabled: false,
+            config: {
+                postDismissDelay: 60,
+                checkerGraceTime: 60,
+            },
+        },
+        snoozeMods: {
+            enabled: false,
+            config: {
+                snoozeStartingTime: undefined,
+                snoozeUses: undefined,
+                snoozeDimishing: undefined,
+            },
+        },
+    },
     isEnabled: true,
     lastModified: new Date(),
 });
@@ -175,7 +197,7 @@ export const useAlarms = (db: SQLiteDatabase, linkingScheme: string) => {
                         await tx.runAsync(
                             `UPDATE alarms
                          SET name = ?, ring_hours = ?, ring_mins = ?, repeat = ?, repeat_days = ?,
-                             ringtone = ?, vibrate = ?, puzzles = ?, power_ups = ?,
+                             ringtone = ?, vibrate = ?, puzzles = ?, booster_set = ?,
                              is_enabled = ?, last_modified = ?
                          WHERE id = ?`,
                             [
@@ -187,7 +209,7 @@ export const useAlarms = (db: SQLiteDatabase, linkingScheme: string) => {
                                 JSON.stringify(v.ringtone),
                                 v.vibrate ? 1 : 0,
                                 JSON.stringify(v.puzzles),
-                                JSON.stringify(v.powerUps),
+                                JSON.stringify(v.boosterSet),
                                 v.isEnabled ? 1 : 0,
                                 v.lastModified.toISOString(),
                                 v.id,
