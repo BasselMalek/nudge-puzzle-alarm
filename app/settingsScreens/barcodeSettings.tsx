@@ -180,12 +180,12 @@ export default function BarcodeSettings() {
                     </Card.Content>
                 </Card>
             )}
-            <View style={{ flex: 3, gap: 15 }}>
+            <View style={{ flex: 3 }}>
                 <Text variant="titleMedium">{"Registered Codes"}</Text>
                 <FlatList
-                    fadingEdgeLength={{ start: 0, end: 5 }}
+                    fadingEdgeLength={{ start: 10, end: 10 }}
                     data={registeredCodes}
-                    contentContainerStyle={{ gap: 10 }}
+                    contentContainerStyle={{ gap: 10, paddingVertical: 10 }}
                     ListFooterComponent={() => (
                         <View
                             style={{

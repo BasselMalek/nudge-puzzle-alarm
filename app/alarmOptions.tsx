@@ -300,7 +300,7 @@ export default function AlarmOptions() {
                     //     paddingVertical: 10,
                     //     paddingHorizontal: 3,
                     // }}
-                    fadingEdgeLength={{ start: 0, end: 5 }}
+                    fadingEdgeLength={{ start: 10, end: 10 }}
                     onReorder={({ from, to }: ReorderableListReorderEvent) => {
                         setAlarm((prevAlarm) => ({
                             ...prevAlarm,

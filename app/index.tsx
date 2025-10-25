@@ -247,13 +247,14 @@ export default function Alarms() {
                 style={{
                     display: "flex",
                     flex: 1,
-                    marginTop: 5,
+                    // marginTop: 5,
+                    paddingVertical: 10,
                 }}
                 data={alarms}
                 renderItem={renderAlarmItem}
                 keyExtractor={keyExtractor}
                 showsVerticalScrollIndicator={false}
-                fadingEdgeLength={{ start: 0, end: 5 }}
+                fadingEdgeLength={{ start: 10, end: 10 }}
                 ItemSeparatorComponent={() => (
                     <View style={{ height: 10 }}></View>
                 )}
