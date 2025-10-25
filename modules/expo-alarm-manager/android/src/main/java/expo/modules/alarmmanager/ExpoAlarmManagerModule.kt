@@ -1,6 +1,7 @@
 package expo.modules.alarmmanager
 
 import android.annotation.SuppressLint
+import android.app.Activity
 import android.app.AlarmManager
 import android.app.NotificationManager
 import android.app.KeyguardManager
@@ -15,6 +16,7 @@ import android.util.Log
 import android.view.WindowManager
 import androidx.core.net.toUri
 import androidx.media3.common.AudioAttributes
+import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
@@ -31,12 +33,13 @@ class ExpoAlarmManagerModule : Module() {
     companion object {
         private var LINKING_SCHEME: String? = null
         const val REQUEST_CODE_RINGTONE = 42
+        const val REQUEST_CODE_APP_PICKER = 69
     }
 
     private var uriSelectionPendingPromise: Promise? = null
     private var alarmPlayer: AlarmPlayerInstance? = null
 
-    @SuppressLint("MissingPermission")
+    @SuppressLint("MissingPermission", "QueryPermissionsNeeded")
     override fun definition() = ModuleDefinition {
         Name("ExpoAlarmManager")
         Events("onPlaybackFinished", "onPlaybackError")
@@ -154,11 +157,38 @@ class ExpoAlarmManagerModule : Module() {
             }
         }
 
+        AsyncFunction("getLaunchableApps") { promise: Promise ->
+            try {
+                if (uriSelectionPendingPromise != null) {
+                    return@AsyncFunction promise.reject("E_PICKER_IN_USE", "App picker already in use", null)
+                }
+                val currentActivity = appContext.currentActivity ?: return@AsyncFunction promise.reject(
+                    "E_NO_ACTIVITY", "No current activity", null
+                )
+
+                val mainIntent = Intent(Intent.ACTION_MAIN).apply {
+                    addCategory(Intent.CATEGORY_LAUNCHER)
+                }
+
+                val pickIntent = Intent(Intent.ACTION_PICK_ACTIVITY).apply {
+                    putExtra(Intent.EXTRA_INTENT, mainIntent)
+                    putExtra(Intent.EXTRA_TITLE, "Select an App")
+                }
+
+                uriSelectionPendingPromise = promise
+                currentActivity.startActivityForResult(pickIntent, REQUEST_CODE_APP_PICKER)
+            } catch (e: Exception) {
+                uriSelectionPendingPromise = null
+                promise.reject("E_PICK_APP", "Failed to open app picker", e)
+            }
+        }
+
         OnActivityResult { _, payload ->
             val currentPromise = uriSelectionPendingPromise
+
             if (payload.requestCode == REQUEST_CODE_RINGTONE && currentPromise != null) {
                 try {
-                    if (payload.resultCode == android.app.Activity.RESULT_OK) {
+                    if (payload.resultCode == Activity.RESULT_OK) {
                         val uri: Uri? = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                             payload.data?.getParcelableExtra(RingtoneManager.EXTRA_RINGTONE_PICKED_URI, Uri::class.java)
                         } else {
@@ -172,7 +202,6 @@ class ExpoAlarmManagerModule : Module() {
                                 arrayOf(
                                     uri.toString(), ring.getTitle(appContext.reactContext)
                                 )
-
                             )
                         }
                     } else {
@@ -180,6 +209,35 @@ class ExpoAlarmManagerModule : Module() {
                     }
                 } catch (e: Exception) {
                     currentPromise.reject("E_ACTIVITY_RESULT", "Failed to process activity result", e)
+                } finally {
+                    uriSelectionPendingPromise = null
+                }
+            } else if (payload.requestCode == REQUEST_CODE_APP_PICKER && currentPromise != null) {
+                try {
+                    if (payload.resultCode == Activity.RESULT_OK) {
+                        val componentName = payload.data?.component
+                        val packageName = componentName?.packageName ?: ""
+                        val className = componentName?.className ?: ""
+                        val packageManager = appContext.reactContext?.packageManager
+                        val appLabel = try {
+                            packageManager?.getApplicationInfo(packageName, 0)?.let { appInfo ->
+                                packageManager.getApplicationLabel(appInfo).toString()
+                            } ?: packageName
+                        } catch (_: Exception) {
+                            packageName
+                        }
+                        currentPromise.resolve(
+                            mapOf(
+                                "packageName" to packageName,
+                                "className" to className,
+                                "label" to appLabel
+                            )
+                        )
+                    } else {
+                        currentPromise.reject("E_CANCELED", "User canceled app picker", null)
+                    }
+                } catch (e: Exception) {
+                    currentPromise.reject("E_ACTIVITY_RESULT", "Failed to process app picker result", e)
                 } finally {
                     uriSelectionPendingPromise = null
                 }
@@ -310,26 +368,26 @@ class ExpoAlarmManagerModule : Module() {
             }
         }
 
-        Function("checkExtras") {
-            val activity = appContext.currentActivity
-            val intent = activity?.intent
-
-            if (intent != null) {
-                val alarmId = intent.getStringExtra("alarm_id")
-                val timestamp = intent.getLongExtra("alarm_timestamp", 0L)
-
-                if (alarmId != null && timestamp > 0L) {
-                    intent.removeExtra("alarm_id")
-                    intent.removeExtra("alarm_timestamp")
-
-                    return@Function mapOf(
-                        "alarmId" to alarmId,
-                        "timestamp" to timestamp
-                    )
-                }
-            }
-            return@Function null
-        }
+//        AsyncFunction("getLaunchableApps") { promise: Promise ->
+//            try {
+//
+//            val intent = Intent(Intent.ACTION_MAIN).apply {
+//                addCategory(Intent.CATEGORY_LAUNCHER)
+//            }
+//            val apps = appContext.reactContext?.packageManager?.queryIntentActivities(intent, 0)
+//            if (apps?.isEmpty() ?: true){
+//                promise.resolve(intArrayOf())
+//            }else{
+//                promise.resolve(apps.map {resolveInfo ->
+//                    resolveInfo.activityInfo.packageName
+//                })
+//            }
+//            }catch (e: Exception){
+//                promise.reject(
+//                    "NO_APPS_FOUND", "No apps matching this filter found.", e
+//                )
+//            }
+//        }
 
         Function("requestKeyguardDismiss") {
             val activity = appContext.currentActivity;
@@ -371,11 +429,11 @@ class ExpoAlarmManagerModule : Module() {
                 val currentActivity = appContext.currentActivity;
                 val permGranted = getAlarmManager()?.canScheduleExactAlarms();
                 if (!permGranted!!) {
-                        val intent = Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM).apply {
-                            data = "package:${appContext.reactContext!!.packageName}".toUri()
-                        }
-                        currentActivity?.startActivity(intent)
+                    val intent = Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM).apply {
+                        data = "package:${appContext.reactContext!!.packageName}".toUri()
                     }
+                    currentActivity?.startActivity(intent)
+                }
 
             } catch (e: Exception) {
                 e.message?.let { Log.e("NUDGE", it) }
@@ -503,8 +561,8 @@ class AlarmPlayerInstance(
 
     init {
         try {
-            val attrs = AudioAttributes.Builder().setUsage(androidx.media3.common.C.USAGE_ALARM)
-                .setContentType(androidx.media3.common.C.AUDIO_CONTENT_TYPE_SONIFICATION).build()
+            val attrs = AudioAttributes.Builder().setUsage(C.USAGE_ALARM)
+                .setContentType(C.AUDIO_CONTENT_TYPE_SONIFICATION).build()
 
             exoPlayer = ExoPlayer.Builder(context).setAudioAttributes(attrs, false).build()
             exoPlayer?.repeatMode = Player.REPEAT_MODE_ONE

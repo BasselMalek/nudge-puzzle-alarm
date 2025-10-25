@@ -110,11 +110,11 @@ export const requestScheduleExactPerm = () => {
 };
 
 /**
- * Returns intent extras if exist and valid.
+ * Returns launchable installed packages with a android.intent.category.LAUNCHER filter
  * @Platform android
  */
-export const checkExtras = () => {
-    return ExpoAlarmManagerModule.checkExtras();
+export const getLaunchableApps = () => {
+    return ExpoAlarmManagerModule.getLaunchableApps();
 };
 
 /**

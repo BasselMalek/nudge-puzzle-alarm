@@ -120,13 +120,14 @@ declare class ExpoAlarmManagerModule extends NativeModule<ExpoAlarmManagerModule
     requestKeyguardDismiss(): void;
 
     /**
-     * Returns intent extras if exist and valid.
+     * Returns launchable installed packages with a android.intent.category.LAUNCHER filter
      * @Platform android
      */
-    checkExtras(): {
-        alarmId: string;
-        timestamp: number;
-    };
+    getLaunchableApps(): Promise<{
+        packageName: string;
+        className: string;
+        label: string;
+    }>;
 }
 
 // This call loads the native module object from the JSI.

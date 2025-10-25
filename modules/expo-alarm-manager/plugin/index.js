@@ -92,9 +92,60 @@ const withScreenWake = (config) => {
     });
 };
 
+const withQueryFilter = (config) => {
+    return withAndroidManifest(config, async (config) => {
+        const androidManifest = config.modResults;
+        const mainApplication = androidManifest.manifest;
+        if (!mainApplication.queries) {
+            mainApplication.queries = [];
+        }
+        const hasLauncherQuery = mainApplication.queries.some((query) => {
+            return query.intent?.some((intent) => {
+                const hasMainAction = intent.action?.some(
+                    (action) =>
+                        action.$["android:name"] ===
+                        "android.intent.action.MAIN"
+                );
+                const hasLauncherCategory = intent.category?.some(
+                    (category) =>
+                        category.$["android:name"] ===
+                        "android.intent.category.LAUNCHER"
+                );
+                return hasMainAction && hasLauncherCategory;
+            });
+        });
+        if (!hasLauncherQuery) {
+            mainApplication.queries.push({
+                intent: [
+                    {
+                        action: [
+                            {
+                                $: {
+                                    "android:name":
+                                        "android.intent.action.MAIN",
+                                },
+                            },
+                        ],
+                        category: [
+                            {
+                                $: {
+                                    "android:name":
+                                        "android.intent.category.LAUNCHER",
+                                },
+                            },
+                        ],
+                    },
+                ],
+            });
+        }
+        return config;
+    });
+};
+
 const withAlarmReceiverAndScreenWake = (config) => {
     config = withAlarmReceiver(config);
     config = withScreenWake(config);
+    config = withQueryFilter(config);
     return config;
 };
 
