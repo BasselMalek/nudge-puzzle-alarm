@@ -1,5 +1,6 @@
 type PostDismissLauncherConfig = {
     packageName: string;
+    label: string;
 };
 
 type SnoozeLimiterConfig = {

@@ -18,7 +18,7 @@ import { Alarm, AlarmDto } from "@/types/Alarm";
 import { createAlarm, parseAlarm, saveAlarmDirect } from "@/hooks/useAlarms";
 import { useSQLiteContext } from "expo-sqlite";
 import { StatusBar } from "expo-status-bar";
-import { FlatList, View } from "react-native";
+import { View } from "react-native";
 import { DaySet } from "@/types/DaySet";
 import { scheduleNextInstance } from "@/utils/alarmSchedulingHelpers";
 import SoundOptionsModal from "@/components/SoundOptionsModal";
@@ -31,6 +31,8 @@ import ReorderableList, {
 } from "react-native-reorderable-list";
 import DraggableListItem from "@/components/DraggableListItem";
 import ListItem from "@/components/ListItem";
+import BoosterConfigCards from "@/components/BoosterConfigCards";
+import { BoosterSet } from "@/types/Boosters";
 
 const blankRepeat: DaySet = {
     0: {
@@ -282,19 +284,22 @@ export default function AlarmOptions() {
             />
             <View
                 style={{
-                    flex: 1,
-                    gap: 10,
-                    paddingHorizontal: 10,
                     marginTop: 10,
+                    maxHeight: "30%",
+                    paddingHorizontal: 10,
                 }}
             >
                 <Text variant="titleMedium">{"Puzzles"}</Text>
                 <ReorderableList
                     showsVerticalScrollIndicator={false}
-                    ItemSeparatorComponent={() => (
-                        <View style={{ height: 10 }} />
-                    )}
+                    // ItemSeparatorComponent={() => (
+                    //     <View style={{ height: 10 }} />
+                    // )}
                     data={alarm.puzzles}
+                    // style={{
+                    //     paddingVertical: 10,
+                    //     paddingHorizontal: 3,
+                    // }}
                     fadingEdgeLength={{ start: 0, end: 5 }}
                     onReorder={({ from, to }: ReorderableListReorderEvent) => {
                         setAlarm((prevAlarm) => ({
@@ -303,6 +308,11 @@ export default function AlarmOptions() {
                         }));
                     }}
                     keyExtractor={(item) => item.id}
+                    contentContainerStyle={{
+                        gap: 10,
+                        paddingVertical: 10,
+                        paddingHorizontal: 3,
+                    }}
                     renderItem={({ item, index }) => {
                         return (
                             <DraggableListItem
@@ -329,7 +339,7 @@ export default function AlarmOptions() {
                     ListFooterComponent={() => {
                         return (
                             <>
-                                <View style={{ height: 10 }} />
+                                {/* <View style={{ height: 10 }} /> */}
                                 {alarm.puzzles.length < 5 && (
                                     <ListItem
                                         disabled={true}
@@ -354,56 +364,15 @@ export default function AlarmOptions() {
             <View
                 style={{
                     flex: 1,
-                    gap: 5,
                     paddingHorizontal: 10,
+                    // gap: 10,
                 }}
             >
                 <Text variant="titleMedium">{"Boosters"}</Text>
-                <FlatList
-                    showsVerticalScrollIndicator={false}
-                    fadingEdgeLength={{ start: 0, end: 5 }}
-                    ItemSeparatorComponent={() => (
-                        <View style={{ height: 10 }} />
-                    )}
-                    data={[]}
-                    // keyExtractor={(item) => item.id}
-                    renderItem={({ item, index }) => {
-                        return (
-                            // <ListItem
-                            //     title={item.title??""}
-                            //     icon={item.icon}
-                            //     buttons
-                            //     buttonOneAction={() => {
-                            //         editPuzzleAtIndex.current = index;
-                            //         setPuzzlesModalVisible(true);
-                            //     }}
-                            //     buttonTwoAction={() => {
-                            //         setAlarm((prevAlarm) => ({
-                            //             ...prevAlarm,
-                            //             puzzles: prevAlarm.puzzles.filter(
-                            //                 (puzzle) => puzzle.id !== item.id
-                            //             ),
-                            //         }));
-                            //     }}
-                            // />
-                            <></>
-                        );
-                    }}
-                    ListFooterComponent={() => {
-                        return (
-                            <>
-                                <View style={{ height: 10 }} />
-                                <ListItem
-                                    icon={"plus"}
-                                    style={{ height: 60 }}
-                                    title={"New Booster"}
-                                    onPress={() => {
-                                        editPuzzleAtIndex.current = undefined;
-                                        setPuzzlesModalVisible(true);
-                                    }}
-                                />
-                            </>
-                        );
+                <BoosterConfigCards
+                    boosters={alarm.boosterSet}
+                    setBoosters={(newSet: BoosterSet) => {
+                        setAlarm({ ...alarm, boosterSet: newSet });
                     }}
                 />
             </View>

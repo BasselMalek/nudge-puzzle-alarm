@@ -46,7 +46,13 @@ export default function AlarmScreen() {
         await saveAlarmDirect(newAlarm.id, db, newAlarm);
         await alarmAud?.stop();
         // await alarmAud?.release();
-        router.navigate("/?dismiss=true");
+        if (alarm?.boosterSet.postDismissLaunch.enabled) {
+            router.navigate(
+                `/?dismiss=true&launch_package=${alarm?.boosterSet.postDismissLaunch.config.packageName}`
+            );
+        } else {
+            router.navigate("/?dismiss=true");
+        }
     };
 
     const snoozeAlarm = async () => {

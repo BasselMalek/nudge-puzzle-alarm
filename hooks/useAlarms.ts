@@ -150,6 +150,7 @@ export const createAlarm = (p: {
             enabled: false,
             config: {
                 packageName: "",
+                label: "",
             },
         },
         postDismissCheck: {
@@ -162,9 +163,9 @@ export const createAlarm = (p: {
         snoozeMods: {
             enabled: false,
             config: {
-                snoozeStartingTime: undefined,
-                snoozeUses: undefined,
-                snoozeDimishing: undefined,
+                snoozeStartingTime: 5,
+                snoozeUses: 5,
+                snoozeDimishing: 0,
             },
         },
     },

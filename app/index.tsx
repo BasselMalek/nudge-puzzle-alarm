@@ -12,7 +12,7 @@ import { preventAutoHideAsync, hide } from "expo-splash-screen";
 import AlarmCard from "@/components/AlarmCard";
 import Storage from "expo-sqlite/kv-store";
 import { scheduleAlarm } from "@/modules/expo-alarm-manager";
-
+import { openApplication } from "expo-intent-launcher";
 void preventAutoHideAsync();
 
 export default function Alarms() {
@@ -23,9 +23,11 @@ export default function Alarms() {
     const [soonestRingTime, setSoonestRingTime] = useState("");
     const { alarms, deleteAlarm, loadAlarms, saveAlarms, toggleAlarm } =
         useAlarms(db, "nudge://alarms");
-    const { update, dismiss } = useLocalSearchParams();
+    const { update, dismiss, snooze, launch_package } = useLocalSearchParams();
+    const [launchPackage, setLaunchPackage] = useState<string | null>(null);
     const [loadStale, setLoadStale] = useState(true);
     const [shouldDismiss, setShouldDismiss] = useState(false);
+    const [shouldSnooze, setShouldSnooze] = useState(false);
     const first = Storage.getItemSync("isFirstBoot");
 
     useEffect(() => {
@@ -36,16 +38,32 @@ export default function Alarms() {
 
     useEffect(() => {
         if (shouldDismiss) {
+            router.setParams({
+                dismiss: undefined,
+                launch_package: undefined,
+            });
             setShouldDismiss(false);
+            if (launchPackage) {
+                setLaunchPackage(null);
+                openApplication(launchPackage as string);
+            } else {
+                BackHandler.exitApp();
+            }
+            //* for post-dismiss boosters
+        } else if (shouldSnooze) {
+            setShouldSnooze(false);
             BackHandler.exitApp();
+            //* for snooze modifying
         }
-    }, [shouldDismiss]);
+    }, [launchPackage, shouldDismiss, shouldSnooze]);
 
     useFocusEffect(
         useCallback(() => {
             setLoadStale(first !== null && update === "true");
             setShouldDismiss(dismiss === "true");
-        }, [first, update, dismiss])
+            setShouldSnooze(snooze === "true");
+            setLaunchPackage(launch_package as string);
+        }, [first, update, dismiss, snooze, launch_package])
     );
 
     useEffect(() => {
@@ -204,9 +222,7 @@ export default function Alarms() {
                     right: safeInsets.right + 20,
                 }}
                 onPress={handleFABPress}
-                onLongPress={() => {
-                    console.log(alarms);
-                }}
+                onLongPress={() => console.log(alarms)}
             />
             <FAB
                 icon={"alarm"}
