@@ -3,7 +3,13 @@ import {
     SafeAreaProvider,
     useSafeAreaInsets,
 } from "react-native-safe-area-context";
-import { MD3DarkTheme, MD3LightTheme, PaperProvider } from "react-native-paper";
+import {
+    Button,
+    MD3DarkTheme,
+    MD3LightTheme,
+    PaperProvider,
+    Text,
+} from "react-native-paper";
 import { useColorScheme } from "react-native";
 import { useMaterial3Theme } from "@pchmn/expo-material3-theme";
 import { lightPalette, darkPalette } from "@/constants/customTheme";
@@ -117,6 +123,11 @@ export default function RootLayout() {
                             name="alarmOptions"
                             options={{
                                 headerTitle: "",
+                                headerRight: () => (
+                                    <Button>
+                                        <Text>{"Save"}</Text>
+                                    </Button>
+                                ),
                                 headerStyle: {
                                     backgroundColor:
                                         paperTheme.colors.background,

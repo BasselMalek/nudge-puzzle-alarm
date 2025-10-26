@@ -4,15 +4,18 @@ import {
     Card,
     Icon,
     TextInput,
-    FAB,
     TouchableRipple,
     Button,
 } from "react-native-paper";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import WeekdayRepeat from "@/components/WeekdayRepeat";
 import { useCallback, useRef, useState } from "react";
-import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
+import {
+    useRouter,
+    useFocusEffect,
+    useLocalSearchParams,
+    useNavigation,
+} from "expo-router";
 import { TimePickerModal } from "react-native-paper-dates";
 import { Alarm, AlarmDto } from "@/types/Alarm";
 import { createAlarm, parseAlarm, saveAlarmDirect } from "@/hooks/useAlarms";
@@ -73,7 +76,6 @@ const blankRepeat: DaySet = {
 };
 
 export default function AlarmOptions() {
-    const insets = useSafeAreaInsets();
     const { colors, roundness } = useTheme();
     const { id } = useLocalSearchParams();
     const db = useSQLiteContext();
@@ -82,22 +84,8 @@ export default function AlarmOptions() {
     const [puzzlesModalVisible, setPuzzlesModalVisible] = useState(false);
     const editPuzzleAtIndex = useRef<number | undefined>(undefined);
     const [alarm, setAlarm] = useState<Alarm>(createAlarm({ name: "" }));
-
-    useFocusEffect(
-        useCallback(() => {
-            if (id !== "new") {
-                const initial = db.getFirstSync<AlarmDto>(
-                    "SELECT * FROM alarms WHERE id = ?",
-                    [id as string]
-                );
-                if (!initial) {
-                    router.back();
-                } else {
-                    setAlarm(parseAlarm(initial));
-                }
-            }
-        }, [db, id])
-    );
+    const nav = useNavigation();
+    const router = useRouter();
 
     const cleanUpAlarm = useCallback(() => {
         let cleanedUpAlarm = { ...alarm, isEnabled: true };
@@ -130,6 +118,51 @@ export default function AlarmOptions() {
         editPuzzleAtIndex.current = undefined;
         setPuzzlesModalVisible(vis);
     }, []);
+
+    useFocusEffect(
+        useCallback(() => {
+            nav.setOptions({
+                headerRight: () => (
+                    <Button
+                        onPress={() => {
+                            void (async () => {
+                                try {
+                                    const clean = cleanUpAlarm();
+                                    await saveAlarmDirect(
+                                        id as string,
+                                        db,
+                                        clean
+                                    );
+                                    await scheduleNextInstance(clean);
+                                    router.navigate("/?update=true");
+                                } catch (err) {
+                                    console.error("Failed to save alarm:", err);
+                                }
+                            })();
+                        }}
+                    >
+                        <Text>{"Save"}</Text>
+                    </Button>
+                ),
+            });
+        }, [cleanUpAlarm, db, id, nav, router])
+    );
+
+    useFocusEffect(
+        useCallback(() => {
+            if (id !== "new") {
+                const initial = db.getFirstSync<AlarmDto>(
+                    "SELECT * FROM alarms WHERE id = ?",
+                    [id as string]
+                );
+                if (!initial) {
+                    router.back();
+                } else {
+                    setAlarm(parseAlarm(initial));
+                }
+            }
+        }, [db, id, router])
+    );
 
     return (
         <GestureHandlerRootView
@@ -347,7 +380,7 @@ export default function AlarmOptions() {
                                         style={{ height: 60 }}
                                         title={"New Puzzle"}
                                         desc={
-                                            "Tip: drag your puzzles to change their order"
+                                            "Drag a puzzle to change its order"
                                         }
                                         onPress={() => {
                                             editPuzzleAtIndex.current =
@@ -376,27 +409,15 @@ export default function AlarmOptions() {
                     }}
                 />
             </View>
-            <FAB
+            {/* <FAB
                 icon="check"
                 style={{
                     position: "absolute",
                     bottom: insets.bottom + 10,
                     right: insets.right + 20,
                 }}
-                onPress={() => {
-                    void (async () => {
-                        try {
-                            const clean = cleanUpAlarm();
-                            await saveAlarmDirect(id as string, db, clean);
-                            await scheduleNextInstance(clean);
-                            router.navigate("/?update=true");
-                        } catch (err) {
-                            console.error("Failed to save alarm:", err);
-                        }
-                    })();
-                }}
                 onLongPress={() => console.log(alarm)}
-            />
+            /> */}
         </GestureHandlerRootView>
     );
 }
