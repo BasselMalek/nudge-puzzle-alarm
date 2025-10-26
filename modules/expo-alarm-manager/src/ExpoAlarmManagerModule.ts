@@ -15,33 +15,22 @@ declare class ExpoAlarmManagerModule extends NativeModule<ExpoAlarmManagerModule
      * Schedule a new alarm.
      * @param alarmId A stable string ID (converted to int internally).
      * @param timestamp Unix timestamp in ms.
-     * @param vibrate Whether the alarm notification should vibrate.
      */
-    scheduleAlarm(
-        alarmId: string,
-        timestamp: number,
-        vibrate: boolean
-    ): Promise<boolean>;
+    scheduleAlarm(alarmId: string, timestamp: number): Promise<boolean>;
 
     /**
      * Modify an existing alarm's time.
      * @param alarmId The alarm ID.
      * @param newTimestamp New Unix timestamp in ms.
-     * @param vibrate Whether the alarm notification should vibrate.
      *
      */
-    modifyAlarm(
-        alarmId: string,
-        newTimestamp: number,
-        vibrate: boolean
-    ): Promise<boolean>;
+    modifyAlarm(alarmId: string, newTimestamp: number): Promise<boolean>;
 
     /**
      * Delete a scheduled alarm.
      * @param alarmId The alarm ID.
-     * @param vibrate Whether the alarm notification should vibrate.
      */
-    deleteAlarm(alarmId: string, vibrate: boolean): Promise<boolean>;
+    deleteAlarm(alarmId: string): Promise<boolean>;
 
     /**
      * Open native alarm tone picker.

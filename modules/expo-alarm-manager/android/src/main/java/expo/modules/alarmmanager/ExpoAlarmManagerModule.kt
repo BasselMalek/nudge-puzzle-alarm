@@ -53,7 +53,7 @@ class ExpoAlarmManagerModule : Module() {
             LINKING_SCHEME = scheme
         }
 
-        AsyncFunction("scheduleAlarm") { alarmId: String, timestamp: Long, vibrate: Boolean, promise: Promise ->
+        AsyncFunction("scheduleAlarm") { alarmId: String, timestamp: Long, promise: Promise ->
             try {
                 if (timestamp <= System.currentTimeMillis()) {
                     return@AsyncFunction promise.reject("E_INVALID_TIMESTAMP", "Timestamp must be in the future", null)
@@ -74,7 +74,7 @@ class ExpoAlarmManagerModule : Module() {
                     )
                 }
                 mgr.setAlarmClock(
-                    AlarmManager.AlarmClockInfo(timestamp, createShowIntent()), createAlarmIntent(alarmId, vibrate)
+                    AlarmManager.AlarmClockInfo(timestamp, createShowIntent()), createAlarmIntent(alarmId)
                 )
                 promise.resolve(true)
             } catch (e: Exception) {
@@ -82,7 +82,7 @@ class ExpoAlarmManagerModule : Module() {
             }
         }
 
-        AsyncFunction("modifyAlarm") { alarmId: String, newTimestamp: Long, vibrate: Boolean, promise: Promise ->
+        AsyncFunction("modifyAlarm") { alarmId: String, newTimestamp: Long, promise: Promise ->
             try {
                 if (newTimestamp <= System.currentTimeMillis()) {
                     return@AsyncFunction promise.reject("E_INVALID_TIMESTAMP", "Timestamp must be in the future", null)
@@ -92,7 +92,7 @@ class ExpoAlarmManagerModule : Module() {
                 } catch (e: IllegalArgumentException) {
                     return@AsyncFunction promise.reject("E_INVALID_ALARM_ID", "Invalid alarm ID format", e)
                 }
-                deleteScheduledAlarmInternal(alarmId, vibrate)
+                deleteScheduledAlarmInternal(alarmId)
 
                 val mgr = getAlarmManager() ?: return@AsyncFunction promise.reject(
                     "E_NO_ALARM_MANAGER", "AlarmManager not available", null
@@ -104,7 +104,7 @@ class ExpoAlarmManagerModule : Module() {
                     )
                 }
                 mgr.setAlarmClock(
-                    AlarmManager.AlarmClockInfo(newTimestamp, createShowIntent()), createAlarmIntent(alarmId, vibrate)
+                    AlarmManager.AlarmClockInfo(newTimestamp, createShowIntent()), createAlarmIntent(alarmId)
                 )
                 promise.resolve(true)
             } catch (e: Exception) {
@@ -112,14 +112,14 @@ class ExpoAlarmManagerModule : Module() {
             }
         }
 
-        AsyncFunction("deleteAlarm") { alarmId: String, vibrate: Boolean, promise: Promise ->
+        AsyncFunction("deleteAlarm") { alarmId: String, promise: Promise ->
             try {
                 try {
                     UUID.fromString(alarmId)
                 } catch (e: IllegalArgumentException) {
                     return@AsyncFunction promise.reject("E_INVALID_ALARM_ID", "Invalid alarm ID format", e)
                 }
-                deleteScheduledAlarmInternal(alarmId, vibrate)
+                deleteScheduledAlarmInternal(alarmId)
                 promise.resolve(true)
             } catch (e: Exception) {
                 promise.reject("E_DELETE_ALARM", "Failed to delete alarm", e)
@@ -448,7 +448,7 @@ class ExpoAlarmManagerModule : Module() {
         }
     }
 
-    private fun createAlarmIntent(alarmId: String, vibrate: Boolean): PendingIntent {
+    private fun createAlarmIntent(alarmId: String): PendingIntent {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
             val context = appContext.reactContext ?: throw IllegalStateException("React context is null")
             val deepLinkIntent = Intent(Intent.ACTION_VIEW).apply {
@@ -471,7 +471,6 @@ class ExpoAlarmManagerModule : Module() {
                 data = null
                 putExtra("alarm_id", alarmId)
                 putExtra("linking_scheme", LINKING_SCHEME)
-                putExtra("vibrate", vibrate)
             }
             return PendingIntent.getBroadcast(
                 context.applicationContext,
@@ -496,7 +495,7 @@ class ExpoAlarmManagerModule : Module() {
     private fun getAlarmManager(): AlarmManager? =
         appContext.reactContext?.getSystemService(Context.ALARM_SERVICE) as? AlarmManager
 
-    private fun deleteScheduledAlarmInternal(alarmId: String, vibrate: Boolean) {
+    private fun deleteScheduledAlarmInternal(alarmId: String) {
         val ctx = appContext.reactContext ?: return
         val mgr = getAlarmManager() ?: return
 
@@ -504,7 +503,6 @@ class ExpoAlarmManagerModule : Module() {
             action = "expo.modules.alarmmanager.ACTION_ALARM"
             data = null
             putExtra("alarm_id", alarmId)
-            putExtra("vibrate", vibrate)
             putExtra("linking_scheme", LINKING_SCHEME)
         }
 

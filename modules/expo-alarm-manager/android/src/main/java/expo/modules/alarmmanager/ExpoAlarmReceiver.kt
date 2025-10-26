@@ -7,18 +7,16 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.os.Build
-import androidx.annotation.RequiresApi
 import androidx.annotation.RequiresPermission
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.net.toUri
-import com.facebook.react.HeadlessJsTaskService
 
-@Suppress("UsePropertyAccessSyntax")
+@Suppress("UsePropertyAccessSyntax", "DEPRECATION")
 class AlarmReceiver : BroadcastReceiver() {
 
     companion object {
-        private var channelsCreated = false
+        private var channelCreated = false
     }
 
     @RequiresPermission(Manifest.permission.POST_NOTIFICATIONS)
@@ -48,30 +46,17 @@ class AlarmReceiver : BroadcastReceiver() {
     private fun handleAlarmTrigger(context: Context, intent: Intent) {
         val alarmId = intent.getStringExtra("alarm_id") ?: return
         val linkingScheme = intent.getStringExtra("linking_scheme") ?: return
-        val shouldVibrate = intent.getBooleanExtra("vibrate", false)
 
-        ensureNotificationChannelsExist(context)
-        showFullScreenNotification(context, alarmId, linkingScheme, shouldVibrate)
+        ensureNotificationChannelExists(context)
+        showFullScreenNotification(context, alarmId, linkingScheme)
     }
 
-    private fun ensureNotificationChannelsExist(context: Context) {
-        if (!channelsCreated && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channelWithVibration = NotificationChannel(
-                "alarm_channel_vibrate", "Alarm Notifications", NotificationManager.IMPORTANCE_HIGH
+    private fun ensureNotificationChannelExists(context: Context) {
+        if (!channelCreated && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = NotificationChannel(
+                "alarm_channel", "Alarm Notifications", NotificationManager.IMPORTANCE_HIGH
             ).apply {
                 description = "Notifications for alarms"
-                setBypassDnd(true)
-                enableLights(true)
-                enableVibration(true)
-                lockscreenVisibility = NotificationCompat.VISIBILITY_PUBLIC
-                setShowBadge(true)
-                setSound(null, null)
-            }
-
-            val channelWithoutVibration = NotificationChannel(
-                "alarm_channel_no_vibrate", "Alarm Notifications (Silent)", NotificationManager.IMPORTANCE_HIGH
-            ).apply {
-                description = "Notifications for alarms without vibration"
                 setBypassDnd(true)
                 enableLights(true)
                 enableVibration(false)
@@ -81,8 +66,8 @@ class AlarmReceiver : BroadcastReceiver() {
             }
 
             val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-            notificationManager.createNotificationChannels(listOf(channelWithVibration, channelWithoutVibration))
-            channelsCreated = true
+            notificationManager.createNotificationChannel(channel)
+            channelCreated = true
         }
     }
 
@@ -91,7 +76,6 @@ class AlarmReceiver : BroadcastReceiver() {
         context: Context,
         alarmId: String,
         linkingScheme: String,
-        vibrate: Boolean,
     ) {
         val deepLinkIntent = Intent(Intent.ACTION_VIEW).apply {
             data = "${linkingScheme}/${alarmId}".toUri()
@@ -116,7 +100,7 @@ class AlarmReceiver : BroadcastReceiver() {
             options.toBundle()
         )
 
-        val channelId = if (vibrate) "alarm_channel_vibrate" else "alarm_channel_no_vibrate"
+        val channelId = "alarm_channel"
 
         val keyguardManager = context.getSystemService(Context.KEYGUARD_SERVICE) as KeyguardManager
         val isLocked = keyguardManager.isKeyguardLocked
