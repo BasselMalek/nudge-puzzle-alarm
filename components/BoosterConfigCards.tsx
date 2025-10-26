@@ -75,9 +75,9 @@ export default function BoosterConfiguration(props: {
             showsVerticalScrollIndicator={false}
         >
             <ListItem
-                style={{ height: 60 }}
+                style={{ height: 80 }}
                 title="Launch App After Dismiss"
-                desc="Opens an app after alarm is dismissed"
+                desc="Opens an app after dismissing alarm"
                 icon="launch"
                 rightContent={
                     <Switch
@@ -91,7 +91,7 @@ export default function BoosterConfiguration(props: {
             {boosters.postDismissLaunch.enabled && (
                 <View style={{ paddingHorizontal: 10 }}>
                     <ListItem
-                        style={{ height: 60 }}
+                        style={{ height: 80 }}
                         title="App"
                         desc={
                             boosters.postDismissLaunch.config.label ||
@@ -102,7 +102,7 @@ export default function BoosterConfiguration(props: {
                                 icon="package-variant"
                                 mode="contained"
                                 size={20}
-                                containerColor={colors.primaryContainer}
+                                containerColor={colors.surfaceVariant}
                                 iconColor={colors.onPrimaryContainer}
                                 onPress={() => {
                                     void (async () => {
@@ -121,24 +121,34 @@ export default function BoosterConfiguration(props: {
                 </View>
             )}
             <ListItem
-                style={{ height: 60 }}
+                style={{ height: 80, opacity: 0.5 }}
                 title="Post-Dismiss Check Up"
                 desc="Confirms you are awake with a notification"
                 icon="alarm-multiple"
+                disabled
                 rightContent={
-                    <Switch
-                        value={boosters.postDismissCheck.enabled}
-                        onValueChange={(enabled) =>
-                            updateBooster("postDismissCheck", { enabled })
-                        }
-                    />
+                    // <Switch
+                    //     value={boosters.postDismissCheck.enabled}
+                    //     onValueChange={(enabled) =>
+                    //         updateBooster("postDismissCheck", { enabled })
+                    //     }
+                    // />
+                    <Text
+                        style={{
+                            paddingHorizontal: 5,
+                            textAlignVertical: "center",
+                        }}
+                        variant="labelSmall"
+                    >
+                        {"Coming Soon"}
+                    </Text>
                 }
             />
 
             {boosters.postDismissCheck.enabled && (
                 <View style={{ paddingHorizontal: 10, gap: 8 }}>
                     <ListItem
-                        style={{ height: 60 }}
+                        style={{ height: 80 }}
                         title="Post Dismiss Delay"
                         desc="Seconds"
                         rightContent={
@@ -198,7 +208,7 @@ export default function BoosterConfiguration(props: {
                     />
 
                     <ListItem
-                        style={{ height: 60 }}
+                        style={{ height: 80 }}
                         title="Grace Time"
                         desc="Seconds"
                         rightContent={
@@ -261,24 +271,33 @@ export default function BoosterConfiguration(props: {
 
             {/* Snooze Mods */}
             <ListItem
-                style={{ height: 60 }}
+                style={{ height: 80, opacity: 0.5 }}
                 title="Snooze Limitations"
-                desc="Limits and modifies snooze behavior"
+                desc="Modifies snooze behavior"
                 icon="timer-sand"
                 rightContent={
-                    <Switch
-                        value={boosters.snoozeMods.enabled}
-                        onValueChange={(enabled) =>
-                            updateBooster("snoozeMods", { enabled })
-                        }
-                    />
+                    // <Switch
+                    //     value={boosters.snoozeMods.enabled}
+                    //     onValueChange={(enabled) =>
+                    //         updateBooster("snoozeMods", { enabled })
+                    //     }
+                    // />
+                    <Text
+                        style={{
+                            paddingHorizontal: 5,
+                            textAlignVertical: "center",
+                        }}
+                        variant="labelSmall"
+                    >
+                        {"Coming Soon"}
+                    </Text>
                 }
             />
 
             {boosters.snoozeMods.enabled && (
                 <View style={{ paddingHorizontal: 10, gap: 8 }}>
                     <ListItem
-                        style={{ height: 60 }}
+                        style={{ height: 80 }}
                         title="Starting Time"
                         desc="Minutes"
                         rightContent={
@@ -336,7 +355,7 @@ export default function BoosterConfiguration(props: {
                     />
 
                     <ListItem
-                        style={{ height: 60 }}
+                        style={{ height: 80 }}
                         title="Max Uses"
                         desc="Maximum snooze count"
                         rightContent={
@@ -393,7 +412,7 @@ export default function BoosterConfiguration(props: {
                     />
 
                     <ListItem
-                        style={{ height: 60 }}
+                        style={{ height: 80 }}
                         title="Diminishing Time"
                         desc="Minutes reduced per snooze"
                         rightContent={

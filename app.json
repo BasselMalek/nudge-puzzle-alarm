@@ -3,7 +3,7 @@
         "name": "Nudge",
         "slug": "nudge",
         "scheme": "nudge",
-        "version": "0.3.1",
+        "version": "0.3.2",
         "orientation": "portrait",
         "newArchEnabled": true,
         "icon": "./assets/images/icon.png",
@@ -30,7 +30,8 @@
                 "android.permission.NFC",
                 "android.permission.RECEIVE_BOOT_COMPLETED",
                 "android.permission.FOREGROUND_SERVICE",
-                "android.permission.FOREGROUND_SERVICE_SHORT_SERVICE"
+                "android.permission.FOREGROUND_SERVICE_SHORT_SERVICE",
+                "android.permission.VIBRATE"
             ],
             "adaptiveIcon": {
                 "foregroundImage": "./assets/images/adaptive-icon.png",

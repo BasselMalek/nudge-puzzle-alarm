@@ -1,7 +1,7 @@
 import { View } from "react-native";
 import { Button, IconButton, Text, useTheme } from "react-native-paper";
 import { StatusBar } from "expo-status-bar";
-import { router, useLocalSearchParams, useNavigation } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import { parseAlarm, saveAlarmDirect } from "@/hooks/useAlarms";
 import { Alarm, AlarmDto } from "@/types/Alarm";
@@ -13,20 +13,24 @@ import {
     handleDaisyChainAfterRing,
     scheduleSnoozedAlarm,
 } from "@/utils/alarmSchedulingHelpers";
+import { usePreventRemove } from "@react-navigation/native";
 
 export default function AlarmScreen() {
     const { id } = useLocalSearchParams();
     const { colors } = useTheme();
     const [alarm, setAlarm] = useState<Alarm>();
     const db = useSQLiteContext();
-    const alarmAud = AlarmManager.useAlarmPlayer();
+    const alarmPlayer = AlarmManager.useAlarmPlayer();
 
     const [isPuzzleVisible, setIsPuzzleVisible] = useState(false);
     const [puzzlesComplete, setPuzzlesComplete] = useState(false);
+    const [dismissable, setDismissable] = useState(false);
 
     useEffect(() => {
         AlarmManager.setShowWhenLocked(true);
     }, []);
+
+    usePreventRemove(dismissable, () => {});
 
     useEffect(() => {
         const initial = db.getFirstSync<AlarmDto>(
@@ -42,43 +46,42 @@ export default function AlarmScreen() {
 
     const dismissAlarm = async () => {
         AlarmManager.setShowWhenLocked(false, alarm?.id);
+        setDismissable(true);
         const newAlarm = await handleDaisyChainAfterRing(alarm!);
         await saveAlarmDirect(newAlarm.id, db, newAlarm);
-        await alarmAud?.stop();
-        // await alarmAud?.release();
+        await alarmPlayer?.stop();
+        await alarmPlayer?.release();
         if (alarm?.boosterSet.postDismissLaunch.enabled) {
             router.navigate(
-                `/?dismiss=true&launch_package=${alarm?.boosterSet.postDismissLaunch.config.packageName}`
+                `/boosterMiddleware?dismiss=true&launch_package=${alarm?.boosterSet.postDismissLaunch.config.packageName}`
             );
         } else {
-            router.navigate("/?dismiss=true");
+            router.navigate("/boosterMiddleware?dismiss=true");
         }
     };
 
     const snoozeAlarm = async () => {
         AlarmManager.setShowWhenLocked(false, alarm?.id);
+        setDismissable(true);
         await scheduleSnoozedAlarm(alarm!, 5);
-        await alarmAud?.stop();
-        await alarmAud?.release();
-        router.navigate("/?dismiss=true");
+        await alarmPlayer?.stop();
+        await alarmPlayer?.release();
+        router.navigate("/boosterMiddleware?snooze=true");
     };
-    const nav = useNavigation();
-
-    useEffect(() => {
-        const listener = nav.addListener("beforeRemove", (e) =>
-            e.preventDefault()
-        );
-        return () => listener();
-    }, [nav]);
 
     useEffect(() => {
         void (async () => {
-            if (alarmAud && alarm?.ringtone && alarm.ringtone.uri !== "none") {
-                await alarmAud.setSource(alarm.ringtone.uri);
-                await alarmAud.play();
+            if (
+                alarmPlayer &&
+                alarm?.ringtone &&
+                alarm.ringtone.uri !== "none"
+            ) {
+                await alarmPlayer.setSource(alarm.ringtone.uri);
+                await alarmPlayer.setVibration(alarm.vibrate);
+                await alarmPlayer.play();
             }
         })();
-    }, [alarmAud, alarm]);
+    }, [alarmPlayer, alarm]);
 
     return (
         <View

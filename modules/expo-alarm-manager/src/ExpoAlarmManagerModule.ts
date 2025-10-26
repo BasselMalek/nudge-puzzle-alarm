@@ -15,33 +15,22 @@ declare class ExpoAlarmManagerModule extends NativeModule<ExpoAlarmManagerModule
      * Schedule a new alarm.
      * @param alarmId A stable string ID (converted to int internally).
      * @param timestamp Unix timestamp in ms.
-     * @param vibrate Whether the alarm notification should vibrate.
      */
-    scheduleAlarm(
-        alarmId: string,
-        timestamp: number,
-        vibrate: boolean
-    ): Promise<boolean>;
+    scheduleAlarm(alarmId: string, timestamp: number): Promise<boolean>;
 
     /**
      * Modify an existing alarm's time.
      * @param alarmId The alarm ID.
      * @param newTimestamp New Unix timestamp in ms.
-     * @param vibrate Whether the alarm notification should vibrate.
      *
      */
-    modifyAlarm(
-        alarmId: string,
-        newTimestamp: number,
-        vibrate: boolean
-    ): Promise<boolean>;
+    modifyAlarm(alarmId: string, newTimestamp: number): Promise<boolean>;
 
     /**
      * Delete a scheduled alarm.
      * @param alarmId The alarm ID.
-     * @param vibrate Whether the alarm notification should vibrate.
      */
-    deleteAlarm(alarmId: string, vibrate: boolean): Promise<boolean>;
+    deleteAlarm(alarmId: string): Promise<boolean>;
 
     /**
      * Open native alarm tone picker.
@@ -64,6 +53,12 @@ declare class ExpoAlarmManagerModule extends NativeModule<ExpoAlarmManagerModule
     setPlayerSource(src: string): Promise<void>;
 
     /**
+     * Enable or disable vibration for a player.
+     * @param enabled Whether vibration should be enabled.
+     */
+    setPlayerVibration(enabled: boolean): Promise<void>;
+
+    /**
      * Start playback for a player.
      */
     playPlayer(): Promise<void>;
@@ -77,12 +72,6 @@ declare class ExpoAlarmManagerModule extends NativeModule<ExpoAlarmManagerModule
      * Release a player and free resources.
      */
     releasePlayer(): Promise<void>;
-
-    /**
-     * Set volume for a player.
-     * @param volume Volume level (0.0 to 1.0).
-     */
-    setPlayerVolume(volume: number): Promise<void>;
 
     /**
      * Check if player has finished playing.
@@ -165,26 +154,26 @@ export class AlarmPlayer implements IAlarmPlayer {
         this._isFinished = false;
     }
 
+    async setVibration(enabled: boolean): Promise<void> {
+        return ExpoAlarmManagerNative.setPlayerVibration(enabled);
+    }
+
     async play(): Promise<void> {
         this._isFinished = false;
         return ExpoAlarmManagerNative.playPlayer();
     }
 
-    stop(): Promise<void> {
+    async stop(): Promise<void> {
         this._isFinished = true;
         return ExpoAlarmManagerNative.stopPlayer();
     }
 
-    release(): Promise<void> {
+    async release(): Promise<void> {
         return ExpoAlarmManagerNative.releasePlayer();
     }
 
-    setVolume(vol: number): Promise<void> {
-        return ExpoAlarmManagerNative.setPlayerVolume(vol);
-    }
-
-    get isFinished(): boolean {
-        return this._isFinished;
+    async isFinished(): Promise<boolean> {
+        return ExpoAlarmManagerNative.isPlayerFinished();
     }
 }
 

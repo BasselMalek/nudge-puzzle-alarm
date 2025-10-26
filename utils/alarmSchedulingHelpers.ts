@@ -47,15 +47,11 @@ const getNextInstanceTimeStamp = (alarm: Alarm) => {
 };
 
 const disableNextInstance = async (alarm: Alarm) => {
-    return deleteAlarm(alarm.id, alarm.vibrate);
+    return deleteAlarm(alarm.id);
 };
 
 const modifyNextInstance = async (alarm: Alarm) => {
-    return modifyAlarm(
-        alarm.id,
-        getNextInstanceTimeStamp(alarm),
-        alarm.vibrate
-    );
+    return modifyAlarm(alarm.id, getNextInstanceTimeStamp(alarm));
 };
 
 const handleDaisyChainAfterRing = async (alarm: Alarm) => {
@@ -75,16 +71,12 @@ const rescheduleAllForOnBoot = async (alarms: Alarm[]): Promise<boolean> => {
 };
 
 const scheduleNextInstance = async (alarm: Alarm) => {
-    return scheduleAlarm(
-        alarm.id,
-        getNextInstanceTimeStamp(alarm),
-        alarm.vibrate
-    );
+    return scheduleAlarm(alarm.id, getNextInstanceTimeStamp(alarm));
 };
 
 const scheduleSnoozedAlarm = async (alarm: Alarm, snoozeDuration: number) => {
     const snoozedRing = add(new Date(), { minutes: snoozeDuration });
-    return scheduleAlarm(alarm.id, snoozedRing.getTime(), alarm.vibrate);
+    return scheduleAlarm(alarm.id, snoozedRing.getTime());
 };
 
 export {

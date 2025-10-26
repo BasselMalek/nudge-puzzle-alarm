@@ -3,10 +3,10 @@ export type ExpoAlarmManagerModuleEvents = {
     onPlaybackError: (event: { playerId: string; error: string }) => void;
 };
 export type IAlarmPlayer = {
-    setSource(src: string): void;
+    setSource(src: string): Promise<void>;
+    setVibration(enabled: boolean): Promise<void>;
     play(): Promise<void>;
-    stop(): void;
-    release(): void;
-    setVolume(vol: number): void;
-    isFinished: boolean;
+    stop(): Promise<void>;
+    release(): Promise<void>;
+    isFinished(): Promise<boolean>;
 };

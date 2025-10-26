@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useEffect } from "react";
 import ExpoAlarmManagerModule, {
     AlarmPlayer,
 } from "./src/ExpoAlarmManagerModule";
@@ -16,16 +16,14 @@ export const setLinkingScheme = (scheme: string) => {
  * Schedule a new alarm.
  * @param alarmId A stable string ID (converted to int internally)
  * @param timestamp Unix timestamp in milliseconds
- * @param vibrate Whether the alarm notification should vibrate
  * @param ringtone URI of audio file to play as a ringtone
  * @returns Promise<boolean> indicating success
  */
 export const scheduleAlarm = (
     alarmId: string,
-    timestamp: number,
-    vibrate: boolean
+    timestamp: number
 ): Promise<boolean> => {
-    return ExpoAlarmManagerModule.scheduleAlarm(alarmId, timestamp, vibrate);
+    return ExpoAlarmManagerModule.scheduleAlarm(alarmId, timestamp);
 };
 
 /**
@@ -36,23 +34,18 @@ export const scheduleAlarm = (
  */
 export const modifyAlarm = (
     alarmId: string,
-    newTimestamp: number,
-    vibrate: boolean
+    newTimestamp: number
 ): Promise<boolean> => {
-    return ExpoAlarmManagerModule.modifyAlarm(alarmId, newTimestamp, vibrate);
+    return ExpoAlarmManagerModule.modifyAlarm(alarmId, newTimestamp);
 };
 
 /**
  * Delete a scheduled alarm.
  * @param alarmId The alarm ID
- * @param vibrate Whether the alarm notification should vibrate.
  * @returns Promise<boolean> indicating success
  */
-export const deleteAlarm = (
-    alarmId: string,
-    vibrate: boolean
-): Promise<boolean> => {
-    return ExpoAlarmManagerModule.deleteAlarm(alarmId, vibrate);
+export const deleteAlarm = (alarmId: string): Promise<boolean> => {
+    return ExpoAlarmManagerModule.deleteAlarm(alarmId);
 };
 
 /**
@@ -125,12 +118,14 @@ export function useAlarmPlayer(): AlarmPlayer | null {
     const [player, setPlayer] = useState<AlarmPlayer | null>(null);
 
     useEffect(() => {
-        AlarmPlayer.create().then((p) => {
+        void AlarmPlayer.create().then((p) => {
             if (p) setPlayer(p);
         });
         return () => {
             setPlayer((prev) => {
-                prev?.release();
+                if (prev) {
+                    prev.release().catch(() => {});
+                }
                 return null;
             });
         };
