@@ -77,6 +77,10 @@ export default function BarcodeSettings() {
                         setRegisteredCodes(items);
                     });
             })();
+
+            return () => {
+                setIsScanning(false);
+            };
         }, [db])
     );
 
