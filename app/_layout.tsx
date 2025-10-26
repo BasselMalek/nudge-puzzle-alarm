@@ -15,24 +15,15 @@ import { useMaterial3Theme } from "@pchmn/expo-material3-theme";
 import { lightPalette, darkPalette } from "@/constants/customTheme";
 import { SQLiteProvider } from "expo-sqlite";
 import AsyncStorage from "expo-sqlite/kv-store";
+
+export const unstable_settings = {
+    initialRouteName: "index",
+};
+
 export default function RootLayout() {
     const colorScheme = useColorScheme();
     const safeInsets = useSafeAreaInsets();
     const { theme } = useMaterial3Theme();
-    // useEffect(() => {
-    //     if (!url || !router) {
-    //         return;
-    //     }
-    //     console.log("Linking.useURL() detected URL:", url);
-    //     const parsedUrl = parse(url);
-    //     if (parsedUrl.scheme === "nudge") {
-    //         const alarmId = parsedUrl.path;
-    //         if (alarmId) {
-    //             console.log(`URL path is '${alarmId}'. Pushing to router...`);
-    //             // router.push(`/alarms/${alarmId}`);
-    //         }
-    //     }
-    // }, [url, router]);
 
     let paperTheme;
     const colorSettings = AsyncStorage.getItemSync("systemColors");
