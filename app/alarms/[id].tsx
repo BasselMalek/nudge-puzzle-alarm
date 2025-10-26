@@ -19,7 +19,7 @@ export default function AlarmScreen() {
     const { colors } = useTheme();
     const [alarm, setAlarm] = useState<Alarm>();
     const db = useSQLiteContext();
-    const alarmAud = AlarmManager.useAlarmPlayer();
+    const alarmPlayer = AlarmManager.useAlarmPlayer();
 
     const [isPuzzleVisible, setIsPuzzleVisible] = useState(false);
     const [puzzlesComplete, setPuzzlesComplete] = useState(false);
@@ -44,7 +44,7 @@ export default function AlarmScreen() {
         AlarmManager.setShowWhenLocked(false, alarm?.id);
         const newAlarm = await handleDaisyChainAfterRing(alarm!);
         await saveAlarmDirect(newAlarm.id, db, newAlarm);
-        await alarmAud?.stop();
+        await alarmPlayer?.stop();
         // await alarmAud?.release();
         if (alarm?.boosterSet.postDismissLaunch.enabled) {
             router.navigate(
@@ -58,8 +58,8 @@ export default function AlarmScreen() {
     const snoozeAlarm = async () => {
         AlarmManager.setShowWhenLocked(false, alarm?.id);
         await scheduleSnoozedAlarm(alarm!, 5);
-        await alarmAud?.stop();
-        await alarmAud?.release();
+        await alarmPlayer?.stop();
+        await alarmPlayer?.release();
         router.navigate("/?dismiss=true");
     };
     const nav = useNavigation();
@@ -73,12 +73,17 @@ export default function AlarmScreen() {
 
     useEffect(() => {
         void (async () => {
-            if (alarmAud && alarm?.ringtone && alarm.ringtone.uri !== "none") {
-                await alarmAud.setSource(alarm.ringtone.uri);
-                await alarmAud.play();
+            if (
+                alarmPlayer &&
+                alarm?.ringtone &&
+                alarm.ringtone.uri !== "none"
+            ) {
+                await alarmPlayer.setSource(alarm.ringtone.uri);
+                await alarmPlayer.setVibration(alarm.vibrate);
+                await alarmPlayer.play();
             }
         })();
-    }, [alarmAud, alarm]);
+    }, [alarmPlayer, alarm]);
 
     return (
         <View

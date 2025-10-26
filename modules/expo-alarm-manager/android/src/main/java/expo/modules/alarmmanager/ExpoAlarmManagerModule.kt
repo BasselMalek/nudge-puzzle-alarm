@@ -1,5 +1,6 @@
 package expo.modules.alarmmanager
 
+import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.AlarmManager
@@ -8,26 +9,26 @@ import android.app.KeyguardManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.media.AudioAttributes
+import android.media.Ringtone
 import android.media.RingtoneManager
 import android.net.Uri
 import android.os.Build
+import android.os.VibrationEffect
+import android.os.Vibrator
+import android.os.VibratorManager
 import android.provider.Settings
 import android.util.Log
 import android.view.WindowManager
+import androidx.annotation.RequiresPermission
 import androidx.core.net.toUri
-import androidx.media3.common.AudioAttributes
-import androidx.media3.common.C
-import androidx.media3.common.MediaItem
-import androidx.media3.common.PlaybackException
-import androidx.media3.common.Player
-import androidx.media3.common.util.UnstableApi
-import androidx.media3.exoplayer.ExoPlayer
 import expo.modules.kotlin.Promise
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
 import java.util.*
 
-@UnstableApi
+
+@Suppress("DEPRECATION")
 class ExpoAlarmManagerModule : Module() {
 
     companion object {
@@ -44,13 +45,13 @@ class ExpoAlarmManagerModule : Module() {
         Name("ExpoAlarmManager")
         Events("onPlaybackFinished", "onPlaybackError")
 
-        //--------------------------------------------------------------------------------------------------------------
-        //Alarm Management
+        //==============================================================================================================
+        // ALARM MANAGEMENT
+        //==============================================================================================================
 
         Function("setLinkingScheme") { scheme: String ->
             LINKING_SCHEME = scheme
         }
-
 
         AsyncFunction("scheduleAlarm") { alarmId: String, timestamp: Long, vibrate: Boolean, promise: Promise ->
             try {
@@ -125,8 +126,9 @@ class ExpoAlarmManagerModule : Module() {
             }
         }
 
-        //--------------------------------------------------------------------------------------------------------------
-        //Alarm Audio Player
+        //==============================================================================================================
+        // BRIDGE HELPERS
+        //==============================================================================================================
 
         AsyncFunction("pickAlarmTone") { existingUri: String?, promise: Promise ->
             try {
@@ -197,7 +199,7 @@ class ExpoAlarmManagerModule : Module() {
                         if (uri?.toString() == "") {
                             currentPromise.resolve(arrayOf("", ""))
                         } else {
-                            val ring = RingtoneManager.getRingtone(appContext.reactContext, uri);
+                            val ring = RingtoneManager.getRingtone(appContext.reactContext, uri)
                             currentPromise.resolve(
                                 arrayOf(
                                     uri.toString(), ring.getTitle(appContext.reactContext)
@@ -228,9 +230,7 @@ class ExpoAlarmManagerModule : Module() {
                         }
                         currentPromise.resolve(
                             mapOf(
-                                "packageName" to packageName,
-                                "className" to className,
-                                "label" to appLabel
+                                "packageName" to packageName, "className" to className, "label" to appLabel
                             )
                         )
                     } else {
@@ -244,7 +244,95 @@ class ExpoAlarmManagerModule : Module() {
             }
         }
 
-        //TODO: this is working fine for now but i'm thinking of using Ringtone instead tbh.
+        Function("setShowWhenLocked") { show: Boolean, id: String? ->
+            val activity = appContext.currentActivity
+            activity?.runOnUiThread {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
+                    activity.setTurnScreenOn(show)
+                    activity.setShowWhenLocked(show)
+                } else {
+                    if (show) {
+                        activity.window.addFlags(
+                            WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED or WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON
+                        )
+                    } else {
+                        activity.window.clearFlags(
+                            WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED or WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON
+                        )
+                    }
+                }
+            }
+            if (!show && id != null) {
+                val notificationManager =
+                    appContext.reactContext?.let { it.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager }
+                notificationManager?.cancel(id.hashCode())
+            }
+        }
+
+        Function("requestKeyguardDismiss") {
+            val activity = appContext.currentActivity
+            activity?.runOnUiThread {
+                val keyguardManager = activity.getSystemService(Context.KEYGUARD_SERVICE) as? KeyguardManager
+                if (keyguardManager != null) {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                        keyguardManager.requestDismissKeyguard(activity, null)
+                    } else {
+                        activity.window.addFlags(WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD)
+                    }
+                }
+            }
+        }
+
+        Function("requestFullScreenAlertsPerm") {
+            try {
+                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                    return@Function null
+                }
+                val currentActivity = appContext.currentActivity
+                val notificationManager =
+                    appContext.reactContext?.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+                if (!notificationManager.canUseFullScreenIntent()) {
+                    val intent = Intent(Settings.ACTION_MANAGE_APP_USE_FULL_SCREEN_INTENT).apply {
+                        data = "package:${appContext.reactContext!!.packageName}".toUri()
+                    }
+                    currentActivity?.startActivity(intent)
+                }
+            } catch (e: Exception) {
+                e.message?.let { Log.e("NUDGE", it) }
+            }
+        }
+
+        Function("requestScheduleExactPerm") {
+            try {
+                val currentActivity = appContext.currentActivity
+                val permGranted = getAlarmManager()?.canScheduleExactAlarms()
+                if (!permGranted!!) {
+                    val intent = Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM).apply {
+                        data = "package:${appContext.reactContext!!.packageName}".toUri()
+                    }
+                    currentActivity?.startActivity(intent)
+                }
+            } catch (e: Exception) {
+                e.message?.let { Log.e("NUDGE", it) }
+            }
+        }
+
+        Function("requestOverlayPerm") {
+            try {
+                val currentActivity = appContext.currentActivity
+                if (!Settings.canDrawOverlays(currentActivity)) {
+                    val intent = Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION)
+                    currentActivity?.startActivity(intent)
+                }
+            } catch (e: Exception) {
+                e.message?.let { Log.e("NUDGE", it) }
+            }
+        }
+
+        //==============================================================================================================
+        // PLAYER FUNCTIONS
+        //==============================================================================================================
+
         AsyncFunction("createPlayer") { promise: Promise ->
             try {
                 val playerId = UUID.randomUUID().toString()
@@ -269,6 +357,18 @@ class ExpoAlarmManagerModule : Module() {
                 promise.resolve(null)
             } catch (e: Exception) {
                 promise.reject("E_SET_SOURCE", "Failed to set player source", e)
+            }
+        }
+
+        AsyncFunction("setPlayerVibration") { enabled: Boolean, promise: Promise ->
+            try {
+                val player = alarmPlayer ?: return@AsyncFunction promise.reject(
+                    "E_PLAYER_NOT_FOUND", "No active player", null
+                )
+                player.setVibrationEnabled(enabled)
+                promise.resolve(null)
+            } catch (e: Exception) {
+                promise.reject("E_SET_VIBRATION", "Failed to set vibration", e)
             }
         }
 
@@ -310,20 +410,6 @@ class ExpoAlarmManagerModule : Module() {
             }
         }
 
-        AsyncFunction("setPlayerVolume") { volume: Double, promise: Promise ->
-            try {
-                if (volume !in 0.0..1.0) {
-                    return@AsyncFunction promise.reject("E_INVALID_VOLUME", "Volume must be between 0.0 and 1.0", null)
-                }
-                val player =
-                    alarmPlayer ?: return@AsyncFunction promise.reject("E_PLAYER_NOT_FOUND", "No active player", null)
-                player.setVolume(volume.toFloat())
-                promise.resolve(null)
-            } catch (e: Exception) {
-                promise.reject("E_SET_VOLUME", "Failed to set volume", e)
-            }
-        }
-
         AsyncFunction("isPlayerFinished") { promise: Promise ->
             try {
                 val player =
@@ -342,118 +428,11 @@ class ExpoAlarmManagerModule : Module() {
                 uriSelectionPendingPromise = null
             }
         }
-
-        Function("setShowWhenLocked") { show: Boolean, id: String? ->
-            val activity = appContext.currentActivity;
-            activity?.runOnUiThread {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
-                    activity.setTurnScreenOn(show)
-                    activity.setShowWhenLocked(show)
-                } else {
-                    if (show) {
-                        activity.window.addFlags(
-                            WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED or WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON
-                        )
-                    } else {
-                        activity.window.clearFlags(
-                            WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED or WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON
-                        )
-                    }
-                }
-            }
-            if (!show && id != null) {
-                val notificationManager =
-                    appContext.reactContext?.let { it.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager }
-                notificationManager?.cancel(id.hashCode())
-            }
-        }
-
-//        AsyncFunction("getLaunchableApps") { promise: Promise ->
-//            try {
-//
-//            val intent = Intent(Intent.ACTION_MAIN).apply {
-//                addCategory(Intent.CATEGORY_LAUNCHER)
-//            }
-//            val apps = appContext.reactContext?.packageManager?.queryIntentActivities(intent, 0)
-//            if (apps?.isEmpty() ?: true){
-//                promise.resolve(intArrayOf())
-//            }else{
-//                promise.resolve(apps.map {resolveInfo ->
-//                    resolveInfo.activityInfo.packageName
-//                })
-//            }
-//            }catch (e: Exception){
-//                promise.reject(
-//                    "NO_APPS_FOUND", "No apps matching this filter found.", e
-//                )
-//            }
-//        }
-
-        Function("requestKeyguardDismiss") {
-            val activity = appContext.currentActivity;
-            activity?.runOnUiThread {
-                val keyguardManager = activity.getSystemService(Context.KEYGUARD_SERVICE) as? KeyguardManager
-                if (keyguardManager != null) {
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                        keyguardManager.requestDismissKeyguard(activity, null)
-                    } else {
-                        activity.window.addFlags(WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD)
-                    }
-                }
-            }
-        }
-
-        Function("requestFullScreenAlertsPerm") {
-            try {
-                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-                    return@Function null;
-                }
-                val currentActivity = appContext.currentActivity;
-                val notificationManager =
-                    appContext.reactContext?.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-                if (!notificationManager.canUseFullScreenIntent()) {
-                    val intent = Intent(Settings.ACTION_MANAGE_APP_USE_FULL_SCREEN_INTENT).apply {
-                        data = "package:${appContext.reactContext!!.packageName}".toUri()
-                    }
-                    currentActivity?.startActivity(intent)
-                }
-            } catch (e: Exception) {
-                e.message?.let { Log.e("NUDGE", it) }
-            }
-
-        }
-
-
-        Function("requestScheduleExactPerm") {
-            try {
-                val currentActivity = appContext.currentActivity;
-                val permGranted = getAlarmManager()?.canScheduleExactAlarms();
-                if (!permGranted!!) {
-                    val intent = Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM).apply {
-                        data = "package:${appContext.reactContext!!.packageName}".toUri()
-                    }
-                    currentActivity?.startActivity(intent)
-                }
-
-            } catch (e: Exception) {
-                e.message?.let { Log.e("NUDGE", it) }
-            }
-
-        }
-
-        Function("requestOverlayPerm") {
-            try {
-                val currentActivity = appContext.currentActivity;
-                if (!Settings.canDrawOverlays(currentActivity)) {
-                    val intent = Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION)
-                    currentActivity?.startActivity(intent)
-                }
-            } catch (e: Exception) {
-                e.message?.let { Log.e("NUDGE", it) }
-            }
-
-        }
     }
+
+    //==================================================================================================================
+    // INTERNAL HELPERS
+    //==================================================================================================================
 
     fun sendPlaybackFinished(playerId: String) {
         try {
@@ -468,10 +447,6 @@ class ExpoAlarmManagerModule : Module() {
         } catch (_: Exception) {
         }
     }
-
-
-    //--------------------------------------------------------------------------------------------------------------
-    //Helpers
 
     private fun createAlarmIntent(alarmId: String, vibrate: Boolean): PendingIntent {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
@@ -489,7 +464,6 @@ class ExpoAlarmManagerModule : Module() {
                 deepLinkIntent,
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
             )
-
         } else {
             val context = appContext.reactContext ?: throw IllegalStateException("React context is null")
             val intent = Intent(context, AlarmReceiver::class.java).apply {
@@ -522,7 +496,6 @@ class ExpoAlarmManagerModule : Module() {
     private fun getAlarmManager(): AlarmManager? =
         appContext.reactContext?.getSystemService(Context.ALARM_SERVICE) as? AlarmManager
 
-
     private fun deleteScheduledAlarmInternal(alarmId: String, vibrate: Boolean) {
         val ctx = appContext.reactContext ?: return
         val mgr = getAlarmManager() ?: return
@@ -541,9 +514,7 @@ class ExpoAlarmManagerModule : Module() {
         )
         mgr.cancel(existing)
         existing.cancel()
-
     }
-
 
     private fun uuidToInt(id: String): Int {
         val u = UUID.fromString(id)
@@ -551,77 +522,93 @@ class ExpoAlarmManagerModule : Module() {
     }
 }
 
-@UnstableApi
+//======================================================================================================================
+// PLAYER IMPLEMENTATION (Ringtone)
+//======================================================================================================================
+
 class AlarmPlayerInstance(
-    context: Context, private val playerId: String, private val module: ExpoAlarmManagerModule
+    private val context: Context, private val playerId: String, private val module: ExpoAlarmManagerModule
 ) {
-    private var exoPlayer: ExoPlayer? = null
-    private var finished = false
+    private var ringtone: Ringtone? = null
+    private var vibrator: Vibrator? = null
     private var isReleased = false
+    private var shouldVibrate = false
 
     init {
+        vibrator = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            val vibratorManager = context.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager
+            vibratorManager.defaultVibrator
+        } else {
+            @Suppress("DEPRECATION") context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+        }
+    }
+    fun setVibrationEnabled(enabled: Boolean) {
+        shouldVibrate = enabled
+    }
+    fun setSource(src: String) {
+        if (isReleased) throw IllegalStateException("Player has been released")
+
         try {
-            val attrs = AudioAttributes.Builder().setUsage(C.USAGE_ALARM)
-                .setContentType(C.AUDIO_CONTENT_TYPE_SONIFICATION).build()
-
-            exoPlayer = ExoPlayer.Builder(context).setAudioAttributes(attrs, false).build()
-            exoPlayer?.repeatMode = Player.REPEAT_MODE_ONE
-            exoPlayer?.addListener(object : Player.Listener {
-                override fun onPlaybackStateChanged(state: Int) {
-                    if (isReleased) return
-                    when (state) {
-                        Player.STATE_ENDED -> {
-                            finished = true
-                            module.sendPlaybackFinished(playerId)
-                        }
-
-                        Player.STATE_READY -> finished = false
-                    }
-                }
-
-                override fun onPlayerError(error: PlaybackException) {
-                    if (!isReleased) {
-                        module.sendPlaybackError(playerId, error.message ?: "Unknown playback error")
-                    }
-                }
-            })
+            ringtone?.stop()
+            ringtone = RingtoneManager.getRingtone(context, src.toUri())
+            ringtone?.audioAttributes = AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_ALARM)
+                .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION).build()
         } catch (e: Exception) {
-            isReleased = true
-            module.sendPlaybackError(playerId, "Failed to initialize player: ${e.message}")
+            module.sendPlaybackError(playerId, "Failed to set source: ${e.message}")
+            throw e
         }
     }
 
-    fun setSource(src: String) {
-        if (isReleased || exoPlayer == null) throw IllegalStateException("Player has been released")
-        val item = MediaItem.fromUri(src.toUri())
-        exoPlayer?.setMediaItem(item)
-        exoPlayer?.prepare()
-        finished = false
-    }
-
+    @RequiresPermission(Manifest.permission.VIBRATE)
     fun play() {
-        if (isReleased || exoPlayer == null) throw IllegalStateException("Player has been released")
-        exoPlayer?.play()
-        finished = false
+        if (isReleased) throw IllegalStateException("Player has been released")
+        if (ringtone == null) throw IllegalStateException("No source set")
+
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                ringtone?.isLooping = true
+            }
+            ringtone?.play()
+
+            if (shouldVibrate && vibrator?.hasVibrator() == true) {
+                startVibration()
+            }
+        } catch (e: Exception) {
+            module.sendPlaybackError(playerId, "Failed to play: ${e.message}")
+            throw e
+        }
     }
 
+    @RequiresPermission(Manifest.permission.VIBRATE)
     fun stop() {
         if (isReleased) return
-        exoPlayer?.stop()
-        finished = true
+        ringtone?.stop()
+        vibrator?.cancel()
     }
 
+    @RequiresPermission(Manifest.permission.VIBRATE)
     fun release() {
         if (isReleased) return
         isReleased = true
-        exoPlayer?.release()
-        exoPlayer = null
+        ringtone?.stop()
+        ringtone = null
+        vibrator?.cancel()
+        vibrator = null
     }
 
-    fun setVolume(v: Float) {
-        if (isReleased || exoPlayer == null) throw IllegalStateException("Player has been released")
-        exoPlayer?.volume = v.coerceIn(0f, 1f)
+    fun isFinished(): Boolean {
+        return isReleased || ringtone?.isPlaying == false
     }
 
-    fun isFinished(): Boolean = finished || isReleased
+    @RequiresPermission(Manifest.permission.VIBRATE)
+    private fun startVibration() {
+        val pattern = longArrayOf(0, 1000, 500)
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val effect = VibrationEffect.createWaveform(pattern, 0)
+            vibrator?.vibrate(effect)
+        } else {
+            @Suppress("DEPRECATION") vibrator?.vibrate(pattern, 0)
+        }
+    }
 }

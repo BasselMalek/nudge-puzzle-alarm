@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useEffect } from "react";
 import ExpoAlarmManagerModule, {
     AlarmPlayer,
 } from "./src/ExpoAlarmManagerModule";
@@ -125,12 +125,14 @@ export function useAlarmPlayer(): AlarmPlayer | null {
     const [player, setPlayer] = useState<AlarmPlayer | null>(null);
 
     useEffect(() => {
-        AlarmPlayer.create().then((p) => {
+        void AlarmPlayer.create().then((p) => {
             if (p) setPlayer(p);
         });
         return () => {
             setPlayer((prev) => {
-                prev?.release();
+                if (prev) {
+                    prev.release().catch(() => {});
+                }
                 return null;
             });
         };
