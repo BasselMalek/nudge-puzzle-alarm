@@ -167,7 +167,13 @@ export default function NFCSettings() {
                             title={item.name!}
                             style={{ height: 70 }}
                             rightContent={
-                                <>
+                                <View
+                                    style={{
+                                        flexDirection: "row",
+                                        alignItems: "center",
+                                        gap: 8,
+                                    }}
+                                >
                                     <IconButton
                                         icon={"pencil"}
                                         mode="contained"
@@ -199,7 +205,7 @@ export default function NFCSettings() {
                                             handleDelete(item.id);
                                         }}
                                     />
-                                </>
+                                </View>
                             }
                         />
                     )}

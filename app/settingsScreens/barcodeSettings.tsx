@@ -209,7 +209,13 @@ export default function BarcodeSettings() {
                             title={item.name!}
                             style={{ height: 70 }}
                             rightContent={
-                                <>
+                                <View
+                                    style={{
+                                        flexDirection: "row",
+                                        alignItems: "center",
+                                        gap: 8,
+                                    }}
+                                >
                                     <IconButton
                                         icon={"pencil"}
                                         mode="contained"
@@ -241,7 +247,7 @@ export default function BarcodeSettings() {
                                             handleDelete(item.id);
                                         }}
                                     />
-                                </>
+                                </View>
                             }
                         />
                     )}
