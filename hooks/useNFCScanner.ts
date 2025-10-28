@@ -30,5 +30,8 @@ export const useNFCScanner = (onValidScan: (tagData: NFCTag) => void) => {
         }
     };
 
-    return { startNFCScanning, stopNFCScanning };
+    const getUsable = async () => {
+        return NfcManager.isSupported();
+    };
+    return { startNFCScanning, stopNFCScanning, getUsable };
 };

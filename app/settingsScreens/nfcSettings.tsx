@@ -22,6 +22,7 @@ export default function NFCSettings() {
     const [error, setError] = useState(false);
     const [customName, setCustomName] = useState("");
     const [isScanning, setIsScanning] = useState(false);
+    const [isSupported, setIsSupported] = useState(false);
     const db = useSQLiteContext();
 
     const checkifRegistered = useCallback(
@@ -29,14 +30,16 @@ export default function NFCSettings() {
         [registeredTags]
     );
 
-    const { startNFCScanning, stopNFCScanning } = useNFCScanner((tagData) => {
-        if (checkifRegistered(tagData.id)) {
-            setError(true);
-        } else {
-            setScannedTag(tagData);
+    const { startNFCScanning, stopNFCScanning, getUsable } = useNFCScanner(
+        (tagData) => {
+            if (checkifRegistered(tagData.id)) {
+                setError(true);
+            } else {
+                setScannedTag(tagData);
+            }
+            setIsScanning(false);
         }
-        setIsScanning(false);
-    });
+    );
 
     const handleStartScan = () => {
         setError(false);
@@ -83,8 +86,10 @@ export default function NFCSettings() {
                     ["NFC"]
                 );
                 setRegisteredTags(items);
+                const canUseNfc = await getUsable();
+                setIsSupported(canUseNfc);
             })();
-        }, [db])
+        }, [db, getUsable])
     );
 
     return (
@@ -105,6 +110,7 @@ export default function NFCSettings() {
                     </Text>
                     <Button
                         mode="contained"
+                        disabled={!isSupported}
                         onPress={isScanning ? handleStopScan : handleStartScan}
                         icon="nfc-tap"
                     >
@@ -128,7 +134,7 @@ export default function NFCSettings() {
                             placeholder="Enter a custom name"
                         />
                         <Button
-                            mode="elevated"
+                            mode="contained"
                             onPress={() => {
                                 void saveTag();
                             }}
@@ -139,7 +145,9 @@ export default function NFCSettings() {
                 </Card>
             )}
             <View style={{ flex: 1 }}>
-                <Text variant="titleMedium">{"Registered Tags"}</Text>
+                {isSupported && (
+                    <Text variant="titleMedium">{"Registered Tags"}</Text>
+                )}
                 <FlatList
                     fadingEdgeLength={{ start: 10, end: 10 }}
                     data={registeredTags}
@@ -156,9 +164,9 @@ export default function NFCSettings() {
                         >
                             <Icon source={"information"} size={28} />
                             <Text style={{ flex: 1, flexWrap: "wrap" }}>
-                                {
-                                    "Tag deletion here does not reflect on existing puzzles. Unselect from inside a puzzle's config to fully delete."
-                                }
+                                {isSupported
+                                    ? "Tag deletion here does not reflect on existing puzzles. Unselect from inside a puzzle's config to fully delete."
+                                    : "Device does not support NFC."}
                             </Text>
                         </View>
                     )}
