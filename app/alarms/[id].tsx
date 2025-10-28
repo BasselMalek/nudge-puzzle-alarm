@@ -2,7 +2,7 @@ import { View } from "react-native";
 import { Button, IconButton, Text, useTheme } from "react-native-paper";
 import { StatusBar } from "expo-status-bar";
 import { router, useLocalSearchParams } from "expo-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { parseAlarm, saveAlarmDirect } from "@/hooks/useAlarms";
 import { Alarm, AlarmDto } from "@/types/Alarm";
 import { useSQLiteContext } from "expo-sqlite";
@@ -24,13 +24,15 @@ export default function AlarmScreen() {
 
     const [isPuzzleVisible, setIsPuzzleVisible] = useState(false);
     const [puzzlesComplete, setPuzzlesComplete] = useState(false);
-    const [dismissable, setDismissable] = useState(false);
+    const dismissable = useRef(true);
 
     useEffect(() => {
         AlarmManager.setShowWhenLocked(true);
     }, []);
 
-    usePreventRemove(dismissable, () => {});
+    usePreventRemove(dismissable.current, () => {
+        console.log("testing");
+    });
 
     useEffect(() => {
         const initial = db.getFirstSync<AlarmDto>(
@@ -46,7 +48,7 @@ export default function AlarmScreen() {
 
     const dismissAlarm = async () => {
         AlarmManager.setShowWhenLocked(false, alarm?.id);
-        setDismissable(true);
+        dismissable.current = false;
         const newAlarm = await handleDaisyChainAfterRing(alarm!);
         await saveAlarmDirect(newAlarm.id, db, newAlarm);
         await alarmPlayer?.stop();
@@ -62,7 +64,7 @@ export default function AlarmScreen() {
 
     const snoozeAlarm = async () => {
         AlarmManager.setShowWhenLocked(false, alarm?.id);
-        setDismissable(true);
+        dismissable.current = false;
         await scheduleSnoozedAlarm(alarm!, 5);
         await alarmPlayer?.stop();
         await alarmPlayer?.release();
