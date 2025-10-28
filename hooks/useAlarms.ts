@@ -250,7 +250,13 @@ export const useAlarms = (db: SQLiteDatabase, linkingScheme: string) => {
             void (async () => {
                 const alarm = alarms.find((v) => v.id === id);
                 if (!alarm) return;
-                await disableNextInstance(alarm);
+                if (alarm.isEnabled) {
+                    try {
+                        await disableNextInstance(alarm);
+                    } catch (error) {
+                        console.error(error);
+                    }
+                }
                 dispatch({ type: "DELETE_ALARM", payload: id });
                 await db.runAsync("DELETE FROM alarms WHERE id = ?", [id]);
             })();
