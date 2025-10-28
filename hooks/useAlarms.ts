@@ -18,18 +18,25 @@ type AlarmAction =
     | { type: "ADD_ALARM"; payload: Alarm }
     | { type: "SET_ALARMS"; payload: Alarm[] };
 
-export const formatDistanceStrictShortened = (
-    laterDate: Date,
-    earlierDate: Date
-) => {
-    const unixMs = laterDate.getTime() - earlierDate.getTime();
-    if (unixMs >= 86400000 || unixMs < 0) return "24h+";
+export const getNextRingTimeString = (laterDate: Date) => {
+    let unixMs = laterDate.getTime() - Date.now();
+    if (unixMs < 0) {
+        unixMs += 86400000;
+    }
+    if (unixMs >= 86400000) {
+        return "24h+";
+    }
+    if (unixMs < 60000) {
+        return "<1m";
+    }
     const totalMins = Math.floor(unixMs / 1000 / 60);
     const hrs = Math.floor(totalMins / 60);
     const mins = totalMins % 60;
-    return hrs !== 0 ? `${hrs}h ${mins}m` : `${mins}m`;
-};
 
+    if (hrs === 0) return `${mins}m`;
+    if (mins === 0) return `${hrs}h`;
+    return `${hrs}h ${mins}m`;
+};
 export const saveAlarmDirect = async (
     id: string,
     db: SQLiteDatabase,

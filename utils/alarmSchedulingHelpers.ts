@@ -18,7 +18,7 @@ const findNextDay = (startingDate: Date, repeatDays: DaySet) => {
     return startingDate;
 };
 
-const getNextInstanceTimeStamp = (alarm: Alarm) => {
+export const getNextInstanceTimeStamp = (alarm: Alarm) => {
     const now = new Date();
     let candidateDate = set(now, {
         hours: alarm.ringHours,

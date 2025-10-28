@@ -5,7 +5,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import { StatusBar } from "expo-status-bar";
 import { useRouter, useFocusEffect, useLocalSearchParams } from "expo-router";
-import { useAlarms, formatDistanceStrictShortened } from "@/hooks/useAlarms";
+import { useAlarms, getNextRingTimeString } from "@/hooks/useAlarms";
 import { useSQLiteContext } from "expo-sqlite";
 import { Alarm } from "@/types/Alarm";
 import { preventAutoHideAsync, hide } from "expo-splash-screen";
@@ -13,6 +13,8 @@ import AlarmCard from "@/components/AlarmCard";
 import Storage from "expo-sqlite/kv-store";
 import { scheduleAlarm } from "@/modules/expo-alarm-manager";
 import { usePreventRemove } from "@react-navigation/native";
+import { compareAsc } from "date-fns";
+import { getNextInstanceTimeStamp } from "@/utils/alarmSchedulingHelpers";
 void preventAutoHideAsync();
 
 export default function Alarms() {
@@ -61,33 +63,25 @@ export default function Alarms() {
         void saveAlarms();
     }, [alarms, saveAlarms]);
 
-    const soonestAlarm = useMemo(() => {
-        return alarms
-            .filter((v) => v.isEnabled === true)
-            .sort(
-                (a, b) =>
-                    new Date().setHours(a.ringHours, a.ringMins) -
-                    new Date().setHours(b.ringHours, b.ringMins)
-            )
-            .at(0);
-    }, [alarms]);
-
     useEffect(() => {
         let interval: NodeJS.Timeout;
 
         const updateSoonest = () => {
-            if (soonestAlarm !== undefined) {
+            const soonestAlarmData = alarms
+                .filter((alarm) => alarm.isEnabled)
+                .map((alarm) => ({
+                    alarm,
+                    nextRingTime: new Date(getNextInstanceTimeStamp(alarm)),
+                }))
+                .sort((a, b) => compareAsc(a.nextRingTime, b.nextRingTime))
+                .at(0);
+
+            if (soonestAlarmData !== undefined) {
                 setAlarmGradientDim(true);
                 setSoonestRingTime(
                     "Next alarm in " +
-                        formatDistanceStrictShortened(
-                            new Date(
-                                new Date().setHours(
-                                    soonestAlarm.ringHours,
-                                    soonestAlarm.ringMins
-                                )
-                            ),
-                            new Date()
+                        getNextRingTimeString(
+                            new Date(soonestAlarmData.nextRingTime)
                         )
                 );
             } else {
@@ -95,10 +89,13 @@ export default function Alarms() {
                 setSoonestRingTime("No alarms for now");
             }
         };
+
         updateSoonest();
+
         const now = new Date();
         const msToNextMinute =
             (60 - now.getSeconds()) * 1000 - now.getMilliseconds();
+
         const timeout = setTimeout(() => {
             updateSoonest();
             interval = setInterval(updateSoonest, 60 * 1000);
@@ -108,7 +105,7 @@ export default function Alarms() {
             clearTimeout(timeout);
             clearInterval(interval);
         };
-    }, [soonestAlarm]);
+    }, [alarms]);
 
     const gradientColors = useMemo(() => {
         return alarmGradientDim
