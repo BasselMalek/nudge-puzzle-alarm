@@ -11,7 +11,6 @@ import { Alarm } from "@/types/Alarm";
 import { preventAutoHideAsync, hide } from "expo-splash-screen";
 import AlarmCard from "@/components/AlarmCard";
 import Storage from "expo-sqlite/kv-store";
-import { scheduleAlarm } from "@/modules/expo-alarm-manager";
 import { usePreventRemove } from "@react-navigation/native";
 import { compareAsc } from "date-fns";
 import { getNextInstanceTimeStamp } from "@/utils/alarmSchedulingHelpers";
@@ -203,7 +202,7 @@ export default function Alarms() {
                 onPress={handleFABPress}
                 onLongPress={() => console.log(alarms)}
             />
-            <FAB
+            {/* <FAB
                 icon={"alarm"}
                 style={{
                     position: "absolute",
@@ -217,7 +216,7 @@ export default function Alarms() {
                 onLongPress={() => {
                     router.push("/onboardingScreens/welcome");
                 }}
-            />
+            /> */}
             <FlatList
                 style={{
                     display: "flex",
