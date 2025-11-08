@@ -144,7 +144,7 @@ const withQueryFilter = (config) => {
 
 const withAlarmReceiverAndScreenWake = (config) => {
     config = withAlarmReceiver(config);
-    config = withScreenWake(config);
+    // config = withScreenWake(config);
     config = withQueryFilter(config);
     return config;
 };

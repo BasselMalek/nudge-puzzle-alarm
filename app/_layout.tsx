@@ -20,6 +20,8 @@ export const unstable_settings = {
     initialRouteName: "index",
 };
 
+console.log("NUDGE_DEBUG: Main layout launching...");
+
 export default function RootLayout() {
     const colorScheme = useColorScheme();
     const safeInsets = useSafeAreaInsets();
@@ -39,6 +41,8 @@ export default function RootLayout() {
                 ? { ...MD3DarkTheme, colors: theme.dark }
                 : { ...MD3LightTheme, colors: theme.light };
     }
+
+    // useDeepLinking(); //! here to turn on if all else fails.
 
     return (
         <SafeAreaProvider>

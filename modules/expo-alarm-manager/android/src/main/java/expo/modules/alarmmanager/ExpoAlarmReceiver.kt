@@ -7,6 +7,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresPermission
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
@@ -22,6 +23,7 @@ class AlarmReceiver : BroadcastReceiver() {
     @RequiresPermission(Manifest.permission.POST_NOTIFICATIONS)
     @SuppressLint("NewApi")
     override fun onReceive(context: Context, intent: Intent) {
+        Log.d("NUDGE_DEBUG", "in onReceive")
         when (intent.action) {
             Intent.ACTION_BOOT_COMPLETED -> {
                 handleBootCompleted(context)
@@ -79,7 +81,7 @@ class AlarmReceiver : BroadcastReceiver() {
     ) {
         val deepLinkIntent = Intent(Intent.ACTION_VIEW).apply {
             data = "${linkingScheme}/${alarmId}".toUri()
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED
             putExtra("alarm_triggered", true)
             putExtra("alarm_id", alarmId)
             putExtra("alarm_timestamp", System.currentTimeMillis())
@@ -129,7 +131,6 @@ class AlarmReceiver : BroadcastReceiver() {
                         .setFullScreenIntent(fullScreenPendingIntent, true).setAutoCancel(true)
                         .setVisibility(NotificationCompat.VISIBILITY_PUBLIC).setOngoing(true).setSound(null).build()
 
-                notification.flags = notification.flags or Notification.FLAG_INSISTENT
 
                 NotificationManagerCompat.from(context).notify(alarmId.hashCode(), notification)
             }
