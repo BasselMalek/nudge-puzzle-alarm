@@ -53,41 +53,63 @@ const withAlarmReceiver = (config) => {
     });
 };
 
-const withScreenWake = (config) => {
+/**
+ * Injects onNewIntent override to MainActivity to cache the intent.
+ * This fixes a race condition with deep linking (e.g., with Expo Router)
+ * where the intent is received before the JS context is ready.
+ */
+const withDeepLinkPatch = (config) => {
     return withMainActivity(config, (config) => {
-        if (config.modResults.language === "kt") {
-            // Add imports at the top of the file
-            const imports = [
-                "import android.os.Build",
-                "import android.view.WindowManager",
-            ];
-            imports.forEach((importStatement) => {
-                if (!config.modResults.contents.includes(importStatement)) {
-                    const lastImportMatch = config.modResults.contents.match(
-                        /import\s+.*\n(?=\s*\n|\s*class)/
-                    );
-                    if (lastImportMatch) {
-                        const insertIndex =
-                            lastImportMatch.index + lastImportMatch[0].length;
-                        config.modResults.contents =
-                            config.modResults.contents.slice(0, insertIndex) +
-                            importStatement +
-                            "\n" +
-                            config.modResults.contents.slice(insertIndex);
-                    }
-                }
-            });
-            const screenWakeCode = `
-        val reactNativeHost = getReactNativeHost();
-        val reactInstanceManager = reactNativeHost.reactInstanceManager;`;
-            const superOnCreateRegex = /(super\.onCreate\(null\))/;
-            if (superOnCreateRegex.test(config.modResults.contents)) {
-                config.modResults.contents = config.modResults.contents.replace(
-                    superOnCreateRegex,
-                    `$1${screenWakeCode}`
-                );
-            }
+        let contents = config.modResults.contents;
+        const packageMatch = contents.match(/^package .*/m);
+        if (!packageMatch) {
+            console.warn(
+                "withDeepLinkPatch: Failed to find package declaration in MainActivity"
+            );
+            return config;
         }
+        const packageLine = packageMatch[0];
+        if (config.modResults.language === "kt") {
+            contents = contents.replace(
+                packageLine,
+                `${packageLine}\n\nimport android.content.Intent`
+            );
+        } else if (config.modResults.language === "java") {
+            contents = contents.replace(
+                packageLine,
+                `${packageLine}\n\nimport android.content.Intent;`
+            );
+        }
+        let onNewIntentOverrideCode;
+        if (config.modResults.language === "kt") {
+            onNewIntentOverrideCode = `
+    override fun onNewIntent(intent: Intent) {
+        setIntent(intent)
+        super.onNewIntent(intent)
+    }
+`;
+        } else if (config.modResults.language === "java") {
+            onNewIntentOverrideCode = `
+    @Override
+    public void onNewIntent(Intent intent) {
+        setIntent(intent);
+        super.onNewIntent(intent);
+    }
+`;
+        }
+        const lastBraceIndex = contents.lastIndexOf("}");
+        if (lastBraceIndex === -1) {
+            console.warn(
+                "withDeepLinkPatch: Failed to find closing brace in MainActivity"
+            );
+            return config;
+        }
+        contents =
+            contents.substring(0, lastBraceIndex) +
+            onNewIntentOverrideCode +
+            contents.substring(lastBraceIndex);
+
+        config.modResults.contents = contents;
         return config;
     });
 };
@@ -144,7 +166,7 @@ const withQueryFilter = (config) => {
 
 const withAlarmReceiverAndScreenWake = (config) => {
     config = withAlarmReceiver(config);
-    // config = withScreenWake(config);
+    config = withDeepLinkPatch(config);
     config = withQueryFilter(config);
     return config;
 };
