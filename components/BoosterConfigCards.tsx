@@ -121,27 +121,18 @@ export default function BoosterConfiguration(props: {
                 </View>
             )}
             <ListItem
-                style={{ height: 80, opacity: 0.5 }}
+                style={{ height: 80 }}
                 title="Post-Dismiss Check Up"
                 desc="Confirms you are awake with a notification"
                 icon="alarm-multiple"
                 disabled
                 rightContent={
-                    // <Switch
-                    //     value={boosters.postDismissCheck.enabled}
-                    //     onValueChange={(enabled) =>
-                    //         updateBooster("postDismissCheck", { enabled })
-                    //     }
-                    // />
-                    <Text
-                        style={{
-                            paddingHorizontal: 5,
-                            textAlignVertical: "center",
-                        }}
-                        variant="labelSmall"
-                    >
-                        {"Coming Soon"}
-                    </Text>
+                    <Switch
+                        value={boosters.postDismissCheck.enabled}
+                        onValueChange={(enabled) =>
+                            updateBooster("postDismissCheck", { enabled })
+                        }
+                    />
                 }
             />
 
@@ -271,26 +262,17 @@ export default function BoosterConfiguration(props: {
 
             {/* Snooze Mods */}
             <ListItem
-                style={{ height: 80, opacity: 0.5 }}
+                style={{ height: 80 }}
                 title="Snooze Limitations"
                 desc="Modifies snooze behavior"
                 icon="timer-sand"
                 rightContent={
-                    // <Switch
-                    //     value={boosters.snoozeMods.enabled}
-                    //     onValueChange={(enabled) =>
-                    //         updateBooster("snoozeMods", { enabled })
-                    //     }
-                    // />
-                    <Text
-                        style={{
-                            paddingHorizontal: 5,
-                            textAlignVertical: "center",
-                        }}
-                        variant="labelSmall"
-                    >
-                        {"Coming Soon"}
-                    </Text>
+                    <Switch
+                        value={boosters.snoozeMods.enabled}
+                        onValueChange={(enabled) =>
+                            updateBooster("snoozeMods", { enabled })
+                        }
+                    />
                 }
             />
 

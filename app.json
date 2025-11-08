@@ -3,7 +3,7 @@
         "name": "Nudge",
         "slug": "nudge",
         "scheme": "nudge",
-        "version": "0.3.4",
+        "version": "0.4.0-alpha",
         "orientation": "portrait",
         "newArchEnabled": true,
         "icon": "./assets/images/icon.png",
