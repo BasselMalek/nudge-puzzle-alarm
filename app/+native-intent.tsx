@@ -15,7 +15,10 @@ export function redirectSystemPath({
         if (url.hostname === "alarms") {
             console.log(`NUDGE_DEBUG: Received alarm with id: ${url.pathname}`);
             return `/alarms${url.pathname}`;
+        } else if (url.hostname === "dismissDouble") {
+            return `/boosterMiddleware?dismissDouble=true&id=${url.pathname}`;
         }
+
         console.log("NUDGE_DEBUG: Didn't get alarm.");
         return path;
     } catch (e) {

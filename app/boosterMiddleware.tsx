@@ -4,6 +4,7 @@ import { useCallback, useState } from "react";
 import { BackHandler } from "react-native";
 import { AsyncStorage } from "expo-sqlite/kv-store";
 import { BoosterSet } from "@/types/Boosters";
+import { deleteAlarm, scheduleDoubleCheck } from "@/modules/expo-alarm-manager";
 
 type SnoozeState = {
     uses: number;
@@ -12,8 +13,17 @@ type SnoozeState = {
 };
 
 export default function BoosterMiddleware() {
-    const { boosterInfo, id, dismiss, snooze, launch_package } =
-        useLocalSearchParams();
+    const {
+        boosterInfo,
+        id,
+        dismiss,
+        snooze,
+        launch_package,
+        doubleChecked,
+        dismissDouble,
+        gracePeriod,
+        delayPeriod,
+    } = useLocalSearchParams();
     const [processed, setProcessed] = useState(false);
     useFocusEffect(
         useCallback(() => {
@@ -21,15 +31,30 @@ export default function BoosterMiddleware() {
                 router.replace("/");
                 return;
             }
-            const handleDismiss = () => {
+            const handleDismiss = async () => {
                 console.log("dismissing");
                 setProcessed(true);
                 void AsyncStorage.removeItemAsync(id as string);
+
+                if (doubleChecked === "true") {
+                    console.log("d");
+                    void (async () =>
+                        await scheduleDoubleCheck(
+                            id as string,
+                            `nudge://dismissDouble/${id}?doubleChecked=true`,
+                            parseInt(delayPeriod as string) * 1000,
+                            parseInt(gracePeriod as string) * 1000
+                        ))();
+                }
                 if (launch_package && typeof launch_package === "string") {
                     openApplication(launch_package);
                 } else {
                     BackHandler.exitApp();
                 }
+            };
+            const handleDismissDouble = () => {
+                void deleteAlarm((id as string).slice(1));
+                BackHandler.exitApp();
             };
             const handleSnooze = () => {
                 console.log("snoozing");
@@ -79,13 +104,26 @@ export default function BoosterMiddleware() {
                 BackHandler.exitApp();
             };
             if (dismiss === "true") {
-                handleDismiss();
+                void handleDismiss();
             } else if (snooze === "true") {
                 handleSnooze();
+            } else if (dismissDouble) {
+                handleDismissDouble();
             } else {
                 router.replace("/");
             }
-        }, [processed, dismiss, snooze, id, launch_package, boosterInfo])
+        }, [
+            processed,
+            dismiss,
+            snooze,
+            dismissDouble,
+            id,
+            doubleChecked,
+            launch_package,
+            delayPeriod,
+            gracePeriod,
+            boosterInfo,
+        ])
     );
     return null;
 }

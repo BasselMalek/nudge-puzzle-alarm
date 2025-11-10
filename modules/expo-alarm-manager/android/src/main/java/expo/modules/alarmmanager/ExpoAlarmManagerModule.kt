@@ -21,6 +21,8 @@ import android.provider.Settings
 import android.util.Log
 import android.view.WindowManager
 import androidx.annotation.RequiresPermission
+import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
 import androidx.core.net.toUri
 import expo.modules.kotlin.Promise
 import expo.modules.kotlin.modules.Module
@@ -82,6 +84,51 @@ class ExpoAlarmManagerModule : Module() {
             }
         }
 
+        AsyncFunction("scheduleDoubleCheck") { alarmId: String, dismissHandler: String, delayPeriod: Long, gracePeriod: Long, promise: Promise ->
+            try {
+                try {
+                    UUID.fromString(alarmId)
+                } catch (e: IllegalArgumentException) {
+                    return@AsyncFunction promise.reject("E_INVALID_ALARM_ID", "Invalid alarm ID format", e)
+                }
+
+                val mgr = getAlarmManager() ?: return@AsyncFunction promise.reject(
+                    "E_NO_ALARM_MANAGER", "AlarmManager not available", null
+                )
+
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && !mgr.canScheduleExactAlarms()) {
+                    return@AsyncFunction promise.reject(
+                        "E_NO_EXACT_ALARM_PERMISSION", "SCHEDULE_EXACT_ALARM permission required", null
+                    )
+                }
+
+                val context = appContext.reactContext ?: return@AsyncFunction promise.reject(
+                    "E_NO_CONTEXT", "React context is null", null
+                )
+
+                val intent = Intent(context, AlarmReceiver::class.java).apply {
+                    action = "expo.modules.alarmmanager.ACTION_DOUBLE_CHECK"
+                    putExtra("alarm_id", alarmId)
+                    putExtra("dismiss_handler", dismissHandler)
+                    putExtra("linking_scheme", LINKING_SCHEME)
+                }
+
+                val pendingIntent = PendingIntent.getBroadcast(
+                    context.applicationContext,
+                    uuidToInt(alarmId),
+                    intent,
+                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+                )
+
+                mgr.setExactAndAllowWhileIdle(
+                    AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + delayPeriod, pendingIntent
+                )
+
+                promise.resolve(true)
+            } catch (e: Exception) {
+                promise.reject("E_SCHEDULE_ALARM", "Failed to schedule alarm", e)
+            }
+        }
         AsyncFunction("modifyAlarm") { alarmId: String, newTimestamp: Long, promise: Promise ->
             try {
                 if (newTimestamp <= System.currentTimeMillis()) {
@@ -449,36 +496,20 @@ class ExpoAlarmManagerModule : Module() {
     }
 
     private fun createAlarmIntent(alarmId: String): PendingIntent {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-            val context = appContext.reactContext ?: throw IllegalStateException("React context is null")
-            val deepLinkIntent = Intent(Intent.ACTION_VIEW).apply {
-                data = "${LINKING_SCHEME}/${alarmId}".toUri()
-                flags =
-                    Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
-                putExtra("alarm_triggered", true)
-                putExtra("alarm_id", alarmId)
-            }
-            return PendingIntent.getActivity(
-                context.applicationContext,
-                uuidToInt(alarmId),
-                deepLinkIntent,
-                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-            )
-        } else {
-            val context = appContext.reactContext ?: throw IllegalStateException("React context is null")
-            val intent = Intent(context, AlarmReceiver::class.java).apply {
-                action = "expo.modules.alarmmanager.ACTION_ALARM"
-                data = null
-                putExtra("alarm_id", alarmId)
-                putExtra("linking_scheme", LINKING_SCHEME)
-            }
-            return PendingIntent.getBroadcast(
-                context.applicationContext,
-                uuidToInt(alarmId),
-                intent,
-                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-            )
+        val context = appContext.reactContext ?: throw IllegalStateException("React context is null")
+
+        val intent = Intent(context, AlarmReceiver::class.java).apply {
+            action = "expo.modules.alarmmanager.ACTION_ALARM"
+            putExtra("alarm_id", alarmId)
+            putExtra("linking_scheme", LINKING_SCHEME)
         }
+
+        return PendingIntent.getBroadcast(
+            context.applicationContext,
+            uuidToInt(alarmId),
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
     }
 
     private fun createShowIntent(): PendingIntent? {
@@ -540,9 +571,11 @@ class AlarmPlayerInstance(
             @Suppress("DEPRECATION") context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
         }
     }
+
     fun setVibrationEnabled(enabled: Boolean) {
         shouldVibrate = enabled
     }
+
     fun setSource(src: String) {
         if (isReleased) throw IllegalStateException("Player has been released")
 

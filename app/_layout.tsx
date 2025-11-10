@@ -143,6 +143,23 @@ export default function RootLayout() {
                             }}
                         />
                         <Stack.Screen
+                            name="boosterMiddleware"
+                            options={{
+                                headerShown: false,
+                                contentStyle: {
+                                    display: "flex",
+                                    flex: 1,
+                                    backgroundColor:
+                                        paperTheme.colors.background,
+                                    paddingTop: 10,
+                                    paddingLeft: safeInsets.left + 10,
+                                    paddingRight: safeInsets.right + 10,
+                                    paddingBottom: safeInsets.bottom + 10,
+                                    gap: 10,
+                                },
+                            }}
+                        />
+                        <Stack.Screen
                             name="onboardingScreens"
                             options={{
                                 headerShown: false,

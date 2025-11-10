@@ -88,18 +88,35 @@ export default function AlarmScreen() {
     }, [alarm]);
 
     const dismissAlarm = async () => {
-        AlarmManager.setShowWhenLocked(false, alarm?.id);
+        if (!alarm || !dismissable.current) return;
         dismissable.current = false;
-        const newAlarm = await handleDaisyChainAfterRing(alarm!);
-        await saveAlarmDirect(newAlarm.id, db, newAlarm);
-        await alarmPlayer?.stop();
-        await alarmPlayer?.release();
-        if (alarm?.boosterSet.postDismissLaunch.enabled) {
-            router.navigate(
-                `/boosterMiddleware?id=${alarm.id}&dismiss=true&launch_package=${alarm?.boosterSet.postDismissLaunch.config.packageName}`
-            );
-        } else {
-            router.navigate(`/boosterMiddleware?id=${alarm?.id}&dismiss=true`);
+        try {
+            AlarmManager.setShowWhenLocked(false, alarm.id);
+            const newAlarm = await handleDaisyChainAfterRing(alarm);
+            await saveAlarmDirect(newAlarm.id, db, newAlarm);
+            await alarmPlayer?.stop();
+            await alarmPlayer?.release();
+            const params = new URLSearchParams({
+                id: alarm.id,
+                dismiss: "true",
+            });
+            if (alarm.boosterSet.postDismissLaunch.enabled) {
+                params.set(
+                    "launch_package",
+                    alarm.boosterSet.postDismissLaunch.config.packageName
+                );
+            }
+            if (alarm.boosterSet.postDismissCheck.enabled) {
+                const { checkerGraceTime, postDismissDelay } =
+                    alarm.boosterSet.postDismissCheck.config;
+                params.set("doubleChecked", "true");
+                params.set("gracePeriod", checkerGraceTime.toString());
+                params.set("delayPeriod", postDismissDelay.toString());
+            }
+            router.navigate(`/boosterMiddleware?${params.toString()}`);
+        } catch (error) {
+            console.error("Failed to dismiss alarm:", error);
+            dismissable.current = true;
         }
     };
 

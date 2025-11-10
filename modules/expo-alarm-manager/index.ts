@@ -16,7 +16,6 @@ export const setLinkingScheme = (scheme: string) => {
  * Schedule a new alarm.
  * @param alarmId A stable string ID (converted to int internally)
  * @param timestamp Unix timestamp in milliseconds
- * @param ringtone URI of audio file to play as a ringtone
  * @returns Promise<boolean> indicating success
  */
 export const scheduleAlarm = (
@@ -24,6 +23,32 @@ export const scheduleAlarm = (
     timestamp: number
 ): Promise<boolean> => {
     return ExpoAlarmManagerModule.scheduleAlarm(alarmId, timestamp);
+};
+
+/**
+ * Schedule a post-wake double check notification & alarm.
+ * @param alarmId A stable string ID (converted to int internally)
+ * @param dismissHandler A URL to an activity that will handle dismissing the check
+ * @param delayPeriod Delay between main alarm dismissal and notification post
+ * @param graacePeriod Grace timing after notification is posted and before alarm triggers
+ * @returns Promise<boolean> indicating success
+ */
+export const scheduleDoubleCheck = async (
+    alarmId: string,
+    dismissHandler: string,
+    delayPeriod: number,
+    gracePeriod: number
+) => {
+    await ExpoAlarmManagerModule.scheduleAlarm(
+        alarmId,
+        Date.now() + gracePeriod + delayPeriod
+    );
+    return ExpoAlarmManagerModule.scheduleDoubleCheck(
+        alarmId,
+        dismissHandler,
+        delayPeriod,
+        gracePeriod
+    );
 };
 
 /**
