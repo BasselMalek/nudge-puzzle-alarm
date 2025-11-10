@@ -14,6 +14,13 @@ import {
     scheduleSnoozedAlarm,
 } from "@/utils/alarmSchedulingHelpers";
 import { usePreventRemove } from "@react-navigation/native";
+import * as AsyncStorage from "expo-sqlite/kv-store";
+
+type SnoozeState = {
+    uses: number;
+    decay: number;
+    duration: number;
+};
 
 export default function AlarmScreen() {
     const { id } = useLocalSearchParams();
@@ -24,6 +31,8 @@ export default function AlarmScreen() {
 
     const [isPuzzleVisible, setIsPuzzleVisible] = useState(false);
     const [puzzlesComplete, setPuzzlesComplete] = useState(false);
+    const [snoozeDuration, setSnoozeDuration] = useState(5);
+    const [snoozeAvailable, setSnoozeAvailable] = useState(true);
     const dismissable = useRef(true);
 
     useEffect(() => {
@@ -46,29 +55,83 @@ export default function AlarmScreen() {
         }
     }, [db, id]);
 
-    const dismissAlarm = async () => {
-        AlarmManager.setShowWhenLocked(false, alarm?.id);
-        dismissable.current = false;
-        const newAlarm = await handleDaisyChainAfterRing(alarm!);
-        await saveAlarmDirect(newAlarm.id, db, newAlarm);
-        await alarmPlayer?.stop();
-        await alarmPlayer?.release();
-        if (alarm?.boosterSet.postDismissLaunch.enabled) {
-            router.navigate(
-                `/boosterMiddleware?dismiss=true&launch_package=${alarm?.boosterSet.postDismissLaunch.config.packageName}`
+    useEffect(() => {
+        if (!alarm?.id) return;
+        const checkSnoozeState = () => {
+            const unparsedSnoozeState = AsyncStorage.Storage.getItemSync(
+                alarm.id
             );
-        } else {
-            router.navigate("/boosterMiddleware?dismiss=true");
+            if (!unparsedSnoozeState || unparsedSnoozeState === "disabled") {
+                if (alarm.boosterSet.snoozeMods.enabled) {
+                    const config = alarm.boosterSet.snoozeMods.config;
+                    setSnoozeAvailable(
+                        config.snoozeUses > 0 && config.snoozeStartingTime > 0
+                    );
+                    setSnoozeDuration(config.snoozeStartingTime);
+                    console.log(config.snoozeStartingTime);
+                } else {
+                    setSnoozeAvailable(false);
+                }
+            } else {
+                const snoozeState = JSON.parse(
+                    unparsedSnoozeState
+                ) as SnoozeState;
+                setSnoozeAvailable(
+                    snoozeState.uses > 0 && snoozeState.duration > 0
+                );
+                setSnoozeDuration(snoozeState.duration);
+                console.log(snoozeState.duration);
+            }
+        };
+
+        checkSnoozeState();
+    }, [alarm]);
+
+    const dismissAlarm = async () => {
+        if (!alarm || !dismissable.current) return;
+        dismissable.current = false;
+        try {
+            AlarmManager.setShowWhenLocked(false, alarm.id);
+            const newAlarm = await handleDaisyChainAfterRing(alarm);
+            await saveAlarmDirect(newAlarm.id, db, newAlarm);
+            await alarmPlayer?.stop();
+            await alarmPlayer?.release();
+            const params = new URLSearchParams({
+                id: alarm.id,
+                dismiss: "true",
+            });
+            if (alarm.boosterSet.postDismissLaunch.enabled) {
+                params.set(
+                    "launch_package",
+                    alarm.boosterSet.postDismissLaunch.config.packageName
+                );
+            }
+            if (alarm.boosterSet.postDismissCheck.enabled) {
+                const { checkerGraceTime, postDismissDelay } =
+                    alarm.boosterSet.postDismissCheck.config;
+                params.set("doubleChecked", "true");
+                params.set("gracePeriod", checkerGraceTime.toString());
+                params.set("delayPeriod", postDismissDelay.toString());
+            }
+            router.navigate(`/boosterMiddleware?${params.toString()}`);
+        } catch (error) {
+            console.error("Failed to dismiss alarm:", error);
+            dismissable.current = true;
         }
     };
 
     const snoozeAlarm = async () => {
         AlarmManager.setShowWhenLocked(false, alarm?.id);
         dismissable.current = false;
-        await scheduleSnoozedAlarm(alarm!, 5);
+        console.log(`snoozed at ${new Date().toISOString()}`);
+
+        await scheduleSnoozedAlarm(alarm!, snoozeDuration);
         await alarmPlayer?.stop();
         await alarmPlayer?.release();
-        router.navigate("/boosterMiddleware?snooze=true");
+        const boostersWithId = JSON.stringify(alarm?.boosterSet);
+        router.navigate(
+            `/boosterMiddleware?id=${alarm?.id}&boosterInfo=${boostersWithId}&snooze=true`
+        );
     };
 
     useEffect(() => {
@@ -190,7 +253,7 @@ export default function AlarmScreen() {
                         justifyContent: "center",
                     }}
                 >
-                    {!puzzlesComplete && (
+                    {snoozeAvailable && (
                         <Button
                             mode="outlined"
                             icon="sleep"

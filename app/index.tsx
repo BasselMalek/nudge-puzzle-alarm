@@ -14,6 +14,8 @@ import Storage from "expo-sqlite/kv-store";
 import { usePreventRemove } from "@react-navigation/native";
 import { compareAsc } from "date-fns";
 import { getNextInstanceTimeStamp } from "@/utils/alarmSchedulingHelpers";
+import { useLinkingURL } from "expo-linking";
+import { useAlarmRouteMonitor } from "@/hooks/useAlarmRouteMonitor";
 void preventAutoHideAsync();
 
 export default function Alarms() {
@@ -28,13 +30,16 @@ export default function Alarms() {
     const [loadStale, setLoadStale] = useState(true);
     const router = useRouter();
     const first = Storage.getItemSync("isFirstBoot");
+    const url = useLinkingURL();
 
+    useAlarmRouteMonitor(url);
     useFocusEffect(
         useCallback(() => {
+            console.log(`NUDGE_DEBUG: At layout/index with url: ${url}.`);
             if (first === null) {
                 router.replace("/onboardingScreens/welcome");
             }
-        }, [first, router])
+        }, [first, router, url])
     );
 
     usePreventRemove(router.canGoBack(), () => {

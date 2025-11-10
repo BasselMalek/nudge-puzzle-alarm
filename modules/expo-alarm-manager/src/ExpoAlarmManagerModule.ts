@@ -74,6 +74,21 @@ declare class ExpoAlarmManagerModule extends NativeModule<ExpoAlarmManagerModule
     releasePlayer(): Promise<void>;
 
     /**
+     * Schedule a post-wake double check notification & alarm.
+     * @param alarmId A stable string ID (converted to int internally)
+     * @param dismissHandler A URL to an activity that will handle dismissing the check
+     * @param delayPeriod Delay between main alarm dismissal and notification post
+     * @param graacePeriod Grace timing after notification is posted and before alarm triggers
+     * @returns Promise<void>
+     */
+    scheduleDoubleCheck(
+        alarmId: string,
+        dismissHandler: string,
+        delayPeriod: number,
+        gracePeriod: number
+    ): Promise<void>;
+
+    /**
      * Check if player has finished playing.
      */
     isPlayerFinished(): Promise<boolean>;

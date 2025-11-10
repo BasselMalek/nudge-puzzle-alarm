@@ -3,7 +3,7 @@
         "name": "Nudge",
         "slug": "nudge",
         "scheme": "nudge",
-        "version": "0.3.3",
+        "version": "0.5.1-alpha",
         "orientation": "portrait",
         "newArchEnabled": true,
         "icon": "./assets/images/icon.png",
@@ -18,6 +18,8 @@
             "bundleIdentifier": "com.benjipine.nudge"
         },
         "android": {
+            "allowBackup": false, //TODO: ENABLE ON V1.0.0
+            "predictiveBackGestureEnabled": false,
             "icon": "./assets/images/icon.png",
             "permissions": [
                 "android.permission.SCHEDULE_EXACT_ALARM",
@@ -61,11 +63,10 @@
                     "imageWidth": 200
                 }
             ],
-            "./modules/expo-alarm-manager/plugin/index",
-            "expo-audio"
+            "./modules/expo-alarm-manager/plugin/index"
         ],
         "experiments": {
-            "typedRoutes": true
+            // "typedRoutes": true
             // "reactCompiler": true //! not even sure if it's my code that's so bad the compiler breaks half of it or the compiler is strict asl.
         },
         "extra": {

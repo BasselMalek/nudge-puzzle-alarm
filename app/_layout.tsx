@@ -20,6 +20,8 @@ export const unstable_settings = {
     initialRouteName: "index",
 };
 
+console.log("NUDGE_DEBUG: Main layout launching...");
+
 export default function RootLayout() {
     const colorScheme = useColorScheme();
     const safeInsets = useSafeAreaInsets();
@@ -39,6 +41,8 @@ export default function RootLayout() {
                 ? { ...MD3DarkTheme, colors: theme.dark }
                 : { ...MD3LightTheme, colors: theme.light };
     }
+
+    // useDeepLinking(); //! here to turn on if all else fails.
 
     return (
         <SafeAreaProvider>
@@ -125,6 +129,23 @@ export default function RootLayout() {
                                 },
                                 presentation: "modal",
                                 headerTintColor: paperTheme.colors.onBackground,
+                                contentStyle: {
+                                    display: "flex",
+                                    flex: 1,
+                                    backgroundColor:
+                                        paperTheme.colors.background,
+                                    paddingTop: 10,
+                                    paddingLeft: safeInsets.left + 10,
+                                    paddingRight: safeInsets.right + 10,
+                                    paddingBottom: safeInsets.bottom + 10,
+                                    gap: 10,
+                                },
+                            }}
+                        />
+                        <Stack.Screen
+                            name="boosterMiddleware"
+                            options={{
+                                headerShown: false,
                                 contentStyle: {
                                     display: "flex",
                                     flex: 1,

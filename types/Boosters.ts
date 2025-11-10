@@ -4,18 +4,18 @@ type PostDismissLauncherConfig = {
 };
 
 type SnoozeLimiterConfig = {
-    snoozeStartingTime?: number;
-    snoozeUses?: number;
-    snoozeDimishing?: number;
+    snoozeStartingTime: number;
+    snoozeUses: number;
+    snoozeDimishing: number;
 };
 
-type PostDimissCheckerConfig = {
+type PostdismissCheckerConfig = {
     postDismissDelay: number;
     checkerGraceTime: number;
 };
 
 export type BoosterSet = {
     postDismissLaunch: { enabled: boolean; config: PostDismissLauncherConfig };
-    postDismissCheck: { enabled: boolean; config: PostDimissCheckerConfig };
+    postDismissCheck: { enabled: boolean; config: PostdismissCheckerConfig };
     snoozeMods: { enabled: boolean; config: SnoozeLimiterConfig };
 };
