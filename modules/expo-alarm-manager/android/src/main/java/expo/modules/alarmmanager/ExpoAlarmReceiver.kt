@@ -29,8 +29,13 @@ class AlarmReceiver : BroadcastReceiver() {
                 handleBootCompleted(context)
             }
 
-            "expo.modules.alarmmanager.ACTION_DOUBLE_CHECK" -> {
+            "expo.modules.alarmmanager.ACTION_SHOW_DOUBLE_CHECK" -> {
                 handleDoubleCheckTrigger(context, intent)
+            }
+
+            "expo.modules.alarmmanager.ACTION_DISMISS_DOUBLE_CHECK"->{
+                val id = intent.getStringExtra("alarm_id") ?: return
+                ExpoAlarmManagerModule.handleDismissDoubleDeepLink(id)
             }
 
             else -> {
@@ -105,12 +110,13 @@ class AlarmReceiver : BroadcastReceiver() {
         linkingScheme: String,
     ) {
         val deepLinkIntent = Intent(Intent.ACTION_VIEW).apply {
-            data = "${linkingScheme}/${alarmId}".toUri()
+            data = linkingScheme.toUri()
             flags =
                 // I will probably switch to CLEAR_TASK if all else fails. I'd rather it be reliable with subpar UX over good UX but missing an alarm.
-                Intent.FLAG_ACTIVITY_NEW_TASK  or Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TASK
-            putExtra("alarm_triggered", true)
+                Intent.FLAG_ACTIVITY_NEW_TASK  or Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP
+            putExtra("signal", "ALARM")
             putExtra("alarm_id", alarmId)
+            putExtra("alarm_triggered", true)
             putExtra("alarm_timestamp", System.currentTimeMillis())
         }
 
@@ -182,10 +188,9 @@ class AlarmReceiver : BroadcastReceiver() {
     private fun showDoubleCheckNotification(
         context: Context, alarmId: String, dismissHandler: String, linkingScheme: String
     ) {
-        val dismissIntent = Intent(Intent.ACTION_VIEW).apply {
-            data = dismissHandler.toUri()
-            flags =
-                Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED
+        val dismissIntent = Intent(context, AlarmReceiver::class.java).apply {
+            action = "expo.modules.alarmmanager.ACTION_DISMISS_DOUBLE_CHECK"
+            putExtra("alarm_id", alarmId)
         }
 
         val dismissPendingIntent = PendingIntent.getActivity(

@@ -14,8 +14,7 @@ import Storage from "expo-sqlite/kv-store";
 import { usePreventRemove } from "@react-navigation/native";
 import { compareAsc } from "date-fns";
 import { getNextInstanceTimeStamp } from "@/utils/alarmSchedulingHelpers";
-import { useLinkingURL } from "expo-linking";
-import { useAlarmRouteMonitor } from "@/hooks/useAlarmRouteMonitor";
+import { scheduleAlarm } from "@/modules/expo-alarm-manager";
 void preventAutoHideAsync();
 
 export default function Alarms() {
@@ -30,16 +29,14 @@ export default function Alarms() {
     const [loadStale, setLoadStale] = useState(true);
     const router = useRouter();
     const first = Storage.getItemSync("isFirstBoot");
-    const url = useLinkingURL();
 
-    useAlarmRouteMonitor(url);
     useFocusEffect(
         useCallback(() => {
-            console.log(`NUDGE_DEBUG: At layout/index with url: ${url}.`);
+            console.log(`NUDGE_DEBUG: At layout/index`);
             if (first === null) {
                 router.replace("/onboardingScreens/welcome");
             }
-        }, [first, router, url])
+        }, [first, router])
     );
 
     usePreventRemove(router.canGoBack(), () => {
@@ -207,7 +204,7 @@ export default function Alarms() {
                 onPress={handleFABPress}
                 onLongPress={() => console.log(alarms)}
             />
-            {/* <FAB
+            <FAB
                 icon={"alarm"}
                 style={{
                     position: "absolute",
@@ -221,7 +218,7 @@ export default function Alarms() {
                 onLongPress={() => {
                     router.push("/onboardingScreens/welcome");
                 }}
-            /> */}
+            />
             <FlatList
                 style={{
                     display: "flex",

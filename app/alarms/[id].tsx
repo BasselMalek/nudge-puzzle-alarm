@@ -1,7 +1,7 @@
 import { View } from "react-native";
 import { Button, IconButton, Text, useTheme } from "react-native-paper";
 import { StatusBar } from "expo-status-bar";
-import { router, useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import { parseAlarm, saveAlarmDirect } from "@/hooks/useAlarms";
 import { Alarm, AlarmDto } from "@/types/Alarm";
@@ -15,6 +15,7 @@ import {
 } from "@/utils/alarmSchedulingHelpers";
 import { usePreventRemove } from "@react-navigation/native";
 import * as AsyncStorage from "expo-sqlite/kv-store";
+import { handleDismiss, handleSnooze } from "@/utils/boosterHelpers";
 
 type SnoozeState = {
     uses: number;
@@ -35,9 +36,9 @@ export default function AlarmScreen() {
     const [snoozeAvailable, setSnoozeAvailable] = useState(true);
     const dismissable = useRef(true);
 
-    useEffect(() => {
-        AlarmManager.setShowWhenLocked(true);
-    }, []);
+    // useEffect(() => {
+    //     AlarmManager.setShowWhenLocked(true);
+    // }, []);
 
     usePreventRemove(dismissable.current, () => {
         console.log("testing");
@@ -91,29 +92,21 @@ export default function AlarmScreen() {
         if (!alarm || !dismissable.current) return;
         dismissable.current = false;
         try {
-            AlarmManager.setShowWhenLocked(false, alarm.id);
             const newAlarm = await handleDaisyChainAfterRing(alarm);
             await saveAlarmDirect(newAlarm.id, db, newAlarm);
             await alarmPlayer?.stop();
             await alarmPlayer?.release();
-            const params = new URLSearchParams({
+            await handleDismiss({
                 id: alarm.id,
-                dismiss: "true",
+                doubleChecked: alarm.boosterSet.postDismissCheck.enabled,
+                delayPeriod:
+                    alarm.boosterSet.postDismissCheck.config.postDismissDelay,
+                gracePeriod:
+                    alarm.boosterSet.postDismissCheck.config.checkerGraceTime,
+                launch_package: alarm.boosterSet.postDismissLaunch.enabled
+                    ? alarm.boosterSet.postDismissLaunch.config.packageName
+                    : undefined,
             });
-            if (alarm.boosterSet.postDismissLaunch.enabled) {
-                params.set(
-                    "launch_package",
-                    alarm.boosterSet.postDismissLaunch.config.packageName
-                );
-            }
-            if (alarm.boosterSet.postDismissCheck.enabled) {
-                const { checkerGraceTime, postDismissDelay } =
-                    alarm.boosterSet.postDismissCheck.config;
-                params.set("doubleChecked", "true");
-                params.set("gracePeriod", checkerGraceTime.toString());
-                params.set("delayPeriod", postDismissDelay.toString());
-            }
-            router.navigate(`/boosterMiddleware?${params.toString()}`);
         } catch (error) {
             console.error("Failed to dismiss alarm:", error);
             dismissable.current = true;
@@ -121,17 +114,15 @@ export default function AlarmScreen() {
     };
 
     const snoozeAlarm = async () => {
-        AlarmManager.setShowWhenLocked(false, alarm?.id);
         dismissable.current = false;
         console.log(`snoozed at ${new Date().toISOString()}`);
-
         await scheduleSnoozedAlarm(alarm!, snoozeDuration);
         await alarmPlayer?.stop();
         await alarmPlayer?.release();
-        const boostersWithId = JSON.stringify(alarm?.boosterSet);
-        router.navigate(
-            `/boosterMiddleware?id=${alarm?.id}&boosterInfo=${boostersWithId}&snooze=true`
-        );
+        handleSnooze({
+            id: alarm!.id,
+            boosterInfo: JSON.stringify(alarm!.boosterSet),
+        });
     };
 
     useEffect(() => {
@@ -141,6 +132,7 @@ export default function AlarmScreen() {
                 alarm?.ringtone &&
                 alarm.ringtone.uri !== "none"
             ) {
+                //TODO: Decouple vibration from sound to enable silent vibrating alarms.
                 await alarmPlayer.setSource(alarm.ringtone.uri);
                 await alarmPlayer.setVibration(alarm.vibrate);
                 await alarmPlayer.play();
