@@ -10,12 +10,10 @@ export function useAlarmManagerEvents() {
     const [event, setEvent] = useState<AlarmEvent | null>(null);
     useEffect(() => {
         console.log("test");
-
         const alarmSub = ExpoAlarmManagerNative.addListener(
             "onAlarmDeepLink",
             ({ alarmId }: { alarmId: string }) => {
                 console.log("got event");
-
                 setEvent({ type: "onAlarmDeepLink", alarmId });
             }
         );
@@ -23,7 +21,6 @@ export function useAlarmManagerEvents() {
             "onDismissDoubleDeepLink",
             ({ alarmId }: { alarmId: string }) => {
                 console.log("got event");
-
                 setEvent({ type: "onDismissDoubleDeepLink", alarmId });
             }
         );

@@ -18,32 +18,10 @@ class ExpoAlarmManagerReactActivityLifecycleListener : ReactActivityLifecycleLis
     }
 
     override fun onCreate(activity: Activity, savedInstanceState: Bundle?) {
-        val isFromAlarm = activity.intent.getBooleanExtra("alarm_triggered", false)
-        if (isFromAlarm) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
-                activity.setShowWhenLocked(true)
-                activity.setTurnScreenOn(true)
-            } else {
-                @Suppress("DEPRECATION") activity.window.addFlags(
-                    WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED or WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON
-                )
-            }
-        }
         Log.d(TAG, "onCreate called, waiting for onResume")
     }
 
     override fun onResume(activity: Activity) {
-        val isFromAlarm = activity.intent.getBooleanExtra("alarm_triggered", false)
-        if (isFromAlarm) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
-                activity.setShowWhenLocked(true)
-                activity.setTurnScreenOn(true)
-            } else {
-                @Suppress("DEPRECATION") activity.window.addFlags(
-                    WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED or WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON
-                )
-            }
-        }
         Log.d(TAG, "onResume called, module should be ready")
         if (!isReady) {
             isReady = true
@@ -86,7 +64,6 @@ class ExpoAlarmManagerReactActivityLifecycleListener : ReactActivityLifecycleLis
     }
 
     private fun handleAlarmIntent(alarmId: String) {
-        ExpoAlarmManagerModule.showWhenLockedAndTurnOn(true)
         ExpoAlarmManagerModule.handleAlarmDeepLink(alarmId)
         Log.d(TAG, "Handling alarm intent with id: $alarmId")
     }

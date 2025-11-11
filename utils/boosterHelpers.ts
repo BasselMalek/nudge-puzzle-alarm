@@ -3,6 +3,7 @@ import { BackHandler } from "react-native";
 import { AsyncStorage } from "expo-sqlite/kv-store";
 import { BoosterSet } from "@/types/Boosters";
 import { scheduleDoubleCheck } from "@/modules/expo-alarm-manager";
+import { router } from "expo-router";
 
 type SnoozeState = {
     uses: number;
@@ -33,7 +34,8 @@ export async function handleDismiss(params: {
     if (launch_package) {
         openApplication(launch_package);
     } else {
-        BackHandler.exitApp();
+        // BackHandler.exitApp();
+        router.replace("/");
     }
 }
 

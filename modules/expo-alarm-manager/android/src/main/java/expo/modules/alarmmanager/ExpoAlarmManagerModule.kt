@@ -39,7 +39,14 @@ class ExpoAlarmManagerModule : Module() {
         const val REQUEST_CODE_APP_PICKER = 69
         private const val TAG = "NUDGE_DEBUG"
         private var instance: ExpoAlarmManagerModule? = null
+        private var activeAlarm: Map<String, Any>? = null
+
         fun handleAlarmDeepLink(alarmId: String) {
+            try {
+                instance?.showWhenLockedAndTurnOn(true)
+            } catch (e: Exception) {
+                Log.e(TAG, "error", e)
+            }
             Log.d(TAG, "Deep link handler: alarm with id $alarmId")
             instance?.sendAlarmDeepLinkEvent(alarmId)
         }
@@ -47,26 +54,6 @@ class ExpoAlarmManagerModule : Module() {
         fun handleDismissDoubleDeepLink(id: String) {
             Log.d(TAG, "Deep link handler: dismissDouble with id $id")
             instance?.sendDismissDoubleDeepLinkEvent(id)
-        }
-
-        fun showWhenLockedAndTurnOn(show: Boolean) {
-            val activity = instance?.appContext?.currentActivity
-            activity?.runOnUiThread {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
-                    activity.setTurnScreenOn(show)
-                    activity.setShowWhenLocked(show)
-                } else {
-                    if (show) {
-                        activity.window.addFlags(
-                            WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED or WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON
-                        )
-                    } else {
-                        activity.window.clearFlags(
-                            WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED or WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON
-                        )
-                    }
-                }
-            }
         }
     }
 
@@ -81,6 +68,16 @@ class ExpoAlarmManagerModule : Module() {
 
         OnCreate {
             instance = this@ExpoAlarmManagerModule
+        }
+
+        //==============================================================================================================
+        // DEEP LINK HANDLERS
+        //==============================================================================================================
+
+        AsyncFunction("checkAndNullifyActiveAlarm") { promise: Promise ->
+            val alarm = activeAlarm
+            activeAlarm = null
+            promise.resolve(alarm)
         }
 
         //==============================================================================================================
@@ -328,12 +325,17 @@ class ExpoAlarmManagerModule : Module() {
             }
         }
 
-        Function("setShowWhenLocked") { show: Boolean, id: String? ->
-            showWhenLockedAndTurnOn(show)
-            if (!show && id != null) {
-                val notificationManager =
-                    appContext.reactContext?.let { it.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager }
-                notificationManager?.cancel(id.hashCode())
+        AsyncFunction("setShowWhenLocked") { show: Boolean, id: String?, promise: Promise ->
+            try {
+                showWhenLockedAndTurnOn(show)
+                if (!show && id != null) {
+                    val notificationManager =
+                        appContext.reactContext?.let { it.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager }
+                    notificationManager?.cancel(id.hashCode())
+                }
+                promise.resolve()
+            } catch (e: Exception) {
+                promise.reject(TAG, "Error", e)
             }
         }
 
@@ -520,6 +522,9 @@ class ExpoAlarmManagerModule : Module() {
     private fun sendAlarmDeepLinkEvent(alarmId: String) {
         try {
             Log.d(TAG, "Sending onAlarmDeepLink event with id: $alarmId")
+            activeAlarm = mapOf(
+                "type" to "alarm", "alarmId" to alarmId
+            )
             sendEvent(
                 "onAlarmDeepLink", mapOf(
                     "alarmId" to alarmId,
@@ -558,6 +563,26 @@ class ExpoAlarmManagerModule : Module() {
             intent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
+    }
+
+    private fun showWhenLockedAndTurnOn(show: Boolean) {
+        val activity = appContext.currentActivity
+        activity?.runOnUiThread {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
+                activity.setTurnScreenOn(show)
+                activity.setShowWhenLocked(show)
+            } else {
+                if (show) {
+                    activity.window.addFlags(
+                        WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED or WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON
+                    )
+                } else {
+                    activity.window.clearFlags(
+                        WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED or WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON
+                    )
+                }
+            }
+        }
     }
 
     private fun createShowIntent(): PendingIntent? {

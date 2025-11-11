@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState, useMemo } from "react";
-import { BackHandler, FlatList, View } from "react-native";
+import { FlatList, View } from "react-native";
 import { Text, Card, useTheme, FAB, IconButton } from "react-native-paper";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
@@ -11,10 +11,14 @@ import { Alarm } from "@/types/Alarm";
 import { preventAutoHideAsync, hide } from "expo-splash-screen";
 import AlarmCard from "@/components/AlarmCard";
 import Storage from "expo-sqlite/kv-store";
-import { usePreventRemove } from "@react-navigation/native";
 import { compareAsc } from "date-fns";
 import { getNextInstanceTimeStamp } from "@/utils/alarmSchedulingHelpers";
-import { scheduleAlarm } from "@/modules/expo-alarm-manager";
+import {
+    scheduleAlarm,
+    checkAndNullifyActiveAlarm,
+    deleteAlarm as deschedule,
+} from "@/modules/expo-alarm-manager";
+import { useAlarmManagerEvents } from "@/hooks/useAlarmManagerEvents";
 void preventAutoHideAsync();
 
 export default function Alarms() {
@@ -30,6 +34,35 @@ export default function Alarms() {
     const router = useRouter();
     const first = Storage.getItemSync("isFirstBoot");
 
+    const { event } = useAlarmManagerEvents();
+
+    useEffect(() => {
+        void (async () => {
+            try {
+                if (event) {
+                    console.log(event);
+                    const { type, alarmId } = event;
+                    if (type === "onAlarmDeepLink") {
+                        console.log(type);
+                        void checkAndNullifyActiveAlarm();
+                        router.replace("/alarms/" + alarmId);
+                    } else {
+                        console.log(type);
+                        void deschedule(alarmId);
+                    }
+                } else {
+                    const active = await checkAndNullifyActiveAlarm();
+                    console.log(active);
+                    if (active && active.type === "alarm") {
+                        router.replace("/alarms/" + active.alarmId);
+                    }
+                }
+            } catch (error) {
+                console.log(error);
+            }
+        })();
+    }, [event, router]);
+
     useFocusEffect(
         useCallback(() => {
             console.log(`NUDGE_DEBUG: At layout/index`);
@@ -39,9 +72,9 @@ export default function Alarms() {
         }, [first, router])
     );
 
-    usePreventRemove(router.canGoBack(), () => {
-        BackHandler.exitApp();
-    });
+    // usePreventRemove(router.canGoBack(), () => {
+    //     BackHandler.exitApp();
+    // });
 
     useFocusEffect(
         useCallback(() => {
@@ -213,6 +246,8 @@ export default function Alarms() {
                     right: safeInsets.right + 20,
                 }}
                 onPress={() => {
+                    console.log("clicked");
+
                     void scheduleAlarm(alarms.at(0)!.id, Date.now() + 5000);
                 }}
                 onLongPress={() => {

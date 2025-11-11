@@ -1,4 +1,4 @@
-import { View } from "react-native";
+import { BackHandler, View } from "react-native";
 import { Button, IconButton, Text, useTheme } from "react-native-paper";
 import { StatusBar } from "expo-status-bar";
 import { useLocalSearchParams } from "expo-router";
@@ -13,7 +13,6 @@ import {
     handleDaisyChainAfterRing,
     scheduleSnoozedAlarm,
 } from "@/utils/alarmSchedulingHelpers";
-import { usePreventRemove } from "@react-navigation/native";
 import * as AsyncStorage from "expo-sqlite/kv-store";
 import { handleDismiss, handleSnooze } from "@/utils/boosterHelpers";
 
@@ -36,13 +35,16 @@ export default function AlarmScreen() {
     const [snoozeAvailable, setSnoozeAvailable] = useState(true);
     const dismissable = useRef(true);
 
-    // useEffect(() => {
-    //     AlarmManager.setShowWhenLocked(true);
-    // }, []);
-
-    usePreventRemove(dismissable.current, () => {
-        console.log("testing");
-    });
+    useEffect(() => {
+        const backHandler = BackHandler.addEventListener(
+            "hardwareBackPress",
+            () => {
+                console.log("prev");
+                return null;
+            }
+        );
+        return () => backHandler.remove();
+    }, []);
 
     useEffect(() => {
         const initial = db.getFirstSync<AlarmDto>(
@@ -89,13 +91,13 @@ export default function AlarmScreen() {
     }, [alarm]);
 
     const dismissAlarm = async () => {
-        if (!alarm || !dismissable.current) return;
-        dismissable.current = false;
+        if (!alarm) return;
         try {
             const newAlarm = await handleDaisyChainAfterRing(alarm);
             await saveAlarmDirect(newAlarm.id, db, newAlarm);
             await alarmPlayer?.stop();
             await alarmPlayer?.release();
+            AlarmManager.setShowWhenLocked(false, alarm.id);
             await handleDismiss({
                 id: alarm.id,
                 doubleChecked: alarm.boosterSet.postDismissCheck.enabled,
@@ -212,7 +214,12 @@ export default function AlarmScreen() {
                         }}
                         onPress={() => {
                             if (puzzlesComplete) {
-                                void dismissAlarm();
+                                try {
+                                    dismissable.current = false;
+                                    void dismissAlarm();
+                                } catch (error) {
+                                    console.log(error);
+                                }
                             } else {
                                 if (
                                     alarm?.puzzles.some(

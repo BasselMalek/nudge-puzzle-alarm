@@ -1,4 +1,4 @@
-import { router, Stack, useFocusEffect } from "expo-router";
+import { Stack } from "expo-router";
 import {
     SafeAreaProvider,
     useSafeAreaInsets,
@@ -15,9 +15,6 @@ import { useMaterial3Theme } from "@pchmn/expo-material3-theme";
 import { lightPalette, darkPalette } from "@/constants/customTheme";
 import { SQLiteProvider } from "expo-sqlite";
 import AsyncStorage from "expo-sqlite/kv-store";
-import { useAlarmManagerEvents } from "@/hooks/useAlarmManagerEvents";
-import { useCallback } from "react";
-import { deleteAlarm } from "@/modules/expo-alarm-manager";
 
 export const unstable_settings = {
     initialRouteName: "index",
@@ -29,22 +26,6 @@ export default function RootLayout() {
     const colorScheme = useColorScheme();
     const safeInsets = useSafeAreaInsets();
     const { theme } = useMaterial3Theme();
-    const { event } = useAlarmManagerEvents();
-
-    useFocusEffect(
-        useCallback(() => {
-            if (event) {
-                console.log(event);
-
-                const { type, alarmId } = event;
-                if (type === "onAlarmDeepLink") {
-                    router.replace("/alarms/" + alarmId);
-                } else {
-                    void deleteAlarm(alarmId);
-                }
-            }
-        }, [event])
-    );
 
     let paperTheme;
     const colorSettings = AsyncStorage.getItemSync("systemColors");

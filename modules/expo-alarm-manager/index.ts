@@ -135,6 +135,10 @@ export const getLaunchableApps = () => {
     return ExpoAlarmManagerModule.getLaunchableApps();
 };
 
+export const checkAndNullifyActiveAlarm = () => {
+    return ExpoAlarmManagerModule.checkAndNullifyActiveAlarm();
+};
+
 /**
  * Hook that creates and returns an AlarmPlayer instance once mounted.
  * The returned object exposes all of AlarmPlayer's own methods.
