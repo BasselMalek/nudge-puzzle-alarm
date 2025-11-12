@@ -1,33 +1,32 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import ExpoAlarmManagerNative from "@/modules/expo-alarm-manager/src/ExpoAlarmManagerModule";
 
 type AlarmEvent = {
     type: "onAlarmDeepLink" | "onDismissDoubleDeepLink";
     alarmId: string;
 };
-
-export function useAlarmManagerEvents() {
-    const [event, setEvent] = useState<AlarmEvent | null>(null);
+type AlarmEventListener = (event: AlarmEvent) => void;
+export function useAlarmManagerListener(listener: AlarmEventListener) {
     useEffect(() => {
-        console.log("test");
         const alarmSub = ExpoAlarmManagerNative.addListener(
             "onAlarmDeepLink",
             ({ alarmId }: { alarmId: string }) => {
-                console.log("got event");
-                setEvent({ type: "onAlarmDeepLink", alarmId });
+                console.log("got event: onAlarmDeepLink");
+                listener({ type: "onAlarmDeepLink", alarmId });
             }
         );
+
         const dismissSub = ExpoAlarmManagerNative.addListener(
             "onDismissDoubleDeepLink",
             ({ alarmId }: { alarmId: string }) => {
-                console.log("got event");
-                setEvent({ type: "onDismissDoubleDeepLink", alarmId });
+                console.log("got event: onDismissDoubleDeepLink");
+                listener({ type: "onDismissDoubleDeepLink", alarmId });
             }
         );
+
         return () => {
             alarmSub.remove();
             dismissSub.remove();
         };
-    }, []);
-    return { event };
+    }, [listener]);
 }

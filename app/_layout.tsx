@@ -65,7 +65,7 @@ export default function RootLayout() {
                             }}
                         />
                         <Stack.Screen
-                            name="alarms/[id]"
+                            name="alarmScreen"
                             options={{ headerShown: false }}
                         />
                         <Stack.Screen

@@ -21,8 +21,6 @@ import android.provider.Settings
 import android.util.Log
 import android.view.WindowManager
 import androidx.annotation.RequiresPermission
-import androidx.core.app.NotificationCompat
-import androidx.core.app.NotificationManagerCompat
 import androidx.core.net.toUri
 import expo.modules.kotlin.Promise
 import expo.modules.kotlin.modules.Module
@@ -42,11 +40,6 @@ class ExpoAlarmManagerModule : Module() {
         private var activeAlarm: Map<String, Any>? = null
 
         fun handleAlarmDeepLink(alarmId: String) {
-            try {
-                instance?.showWhenLockedAndTurnOn(true)
-            } catch (e: Exception) {
-                Log.e(TAG, "error", e)
-            }
             Log.d(TAG, "Deep link handler: alarm with id $alarmId")
             instance?.sendAlarmDeepLinkEvent(alarmId)
         }
@@ -68,6 +61,11 @@ class ExpoAlarmManagerModule : Module() {
 
         OnCreate {
             instance = this@ExpoAlarmManagerModule
+            val initAlarm = ExpoAlarmManagerReactActivityLifecycleListener.initialAlarm;
+            initAlarm?.let {
+                handleAlarmDeepLink(it)
+                ExpoAlarmManagerReactActivityLifecycleListener.initialAlarm = null
+            }
         }
 
         //==============================================================================================================

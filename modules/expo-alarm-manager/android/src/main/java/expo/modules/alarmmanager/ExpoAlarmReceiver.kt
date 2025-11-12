@@ -164,7 +164,6 @@ class AlarmReceiver : BroadcastReceiver() {
                         .setFullScreenIntent(fullScreenPendingIntent, true).setAutoCancel(true)
                         .setVisibility(NotificationCompat.VISIBILITY_PUBLIC).setOngoing(true).setSound(null).build()
 
-
                 NotificationManagerCompat.from(context).notify(alarmId.hashCode(), notification)
             }
         } else {

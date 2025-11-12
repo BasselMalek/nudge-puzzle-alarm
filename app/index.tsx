@@ -18,7 +18,7 @@ import {
     checkAndNullifyActiveAlarm,
     deleteAlarm as deschedule,
 } from "@/modules/expo-alarm-manager";
-import { useAlarmManagerEvents } from "@/hooks/useAlarmManagerEvents";
+import { useAlarmManagerListener } from "@/hooks/useAlarmManagerEvents";
 void preventAutoHideAsync();
 
 export default function Alarms() {
@@ -26,42 +26,54 @@ export default function Alarms() {
     const safeInsets = useSafeAreaInsets();
     const { colors } = useTheme();
     const [alarmGradientDim, setAlarmGradientDim] = useState(false);
+    const [initAlarm, setInitAlarm] = useState<string | null>(null);
     const [soonestRingTime, setSoonestRingTime] = useState("");
     const { alarms, deleteAlarm, loadAlarms, saveAlarms, toggleAlarm } =
-        useAlarms(db, "nudge://alarms");
+        useAlarms(db, "nudge://alarmScreen");
     const { update } = useLocalSearchParams();
     const [loadStale, setLoadStale] = useState(true);
     const router = useRouter();
     const first = Storage.getItemSync("isFirstBoot");
 
-    const { event } = useAlarmManagerEvents();
-
     useEffect(() => {
-        void (async () => {
+        const checkInitialAlarm = async () => {
             try {
-                if (event) {
-                    console.log(event);
-                    const { type, alarmId } = event;
-                    if (type === "onAlarmDeepLink") {
-                        console.log(type);
-                        void checkAndNullifyActiveAlarm();
-                        router.replace("/alarms/" + alarmId);
-                    } else {
-                        console.log(type);
-                        void deschedule(alarmId);
-                    }
-                } else {
-                    const active = await checkAndNullifyActiveAlarm();
-                    console.log(active);
-                    if (active && active.type === "alarm") {
-                        router.replace("/alarms/" + active.alarmId);
-                    }
+                const active = await checkAndNullifyActiveAlarm();
+                console.log("Initial check:", active);
+                if (active && active.type === "alarm") {
+                    setInitAlarm(active.alarmId);
                 }
             } catch (error) {
                 console.log(error);
             }
-        })();
-    }, [event, router]);
+        };
+        void checkInitialAlarm();
+    }, []);
+
+    useEffect(() => {
+        if (initAlarm) {
+            router.replace(`/alarmScreen?id=${initAlarm}`);
+        }
+        return () => setInitAlarm(null);
+    }, [initAlarm, router]);
+
+    const handleAlarmEvent = useCallback(
+        (event: { type: string; alarmId: string }) => {
+            console.log("New event received:", event);
+            const { type, alarmId } = event;
+            if (type === "onAlarmDeepLink") {
+                console.log(type);
+                void checkAndNullifyActiveAlarm();
+                router.replace(`/alarmScreen?id=${alarmId}`);
+            } else {
+                console.log(type);
+                void deschedule(alarmId);
+            }
+        },
+        [router]
+    );
+
+    useAlarmManagerListener(handleAlarmEvent);
 
     useFocusEffect(
         useCallback(() => {
