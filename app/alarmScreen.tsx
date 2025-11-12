@@ -39,7 +39,6 @@ export default function AlarmScreen() {
         const backHandler = BackHandler.addEventListener(
             "hardwareBackPress",
             () => {
-                console.log("prev");
                 return null;
             }
         );
@@ -71,7 +70,6 @@ export default function AlarmScreen() {
                         config.snoozeUses > 0 && config.snoozeStartingTime > 0
                     );
                     setSnoozeDuration(config.snoozeStartingTime);
-                    console.log(config.snoozeStartingTime);
                 } else {
                     setSnoozeAvailable(false);
                 }
@@ -83,7 +81,6 @@ export default function AlarmScreen() {
                     snoozeState.uses > 0 && snoozeState.duration > 0
                 );
                 setSnoozeDuration(snoozeState.duration);
-                console.log(snoozeState.duration);
             }
         };
 
@@ -117,7 +114,6 @@ export default function AlarmScreen() {
 
     const snoozeAlarm = async () => {
         dismissable.current = false;
-        console.log(`snoozed at ${new Date().toISOString()}`);
         await scheduleSnoozedAlarm(alarm!, snoozeDuration);
         await alarmPlayer?.stop();
         await alarmPlayer?.release();
@@ -218,7 +214,7 @@ export default function AlarmScreen() {
                                     dismissable.current = false;
                                     void dismissAlarm();
                                 } catch (error) {
-                                    console.log(error);
+                                    console.error(error);
                                 }
                             } else {
                                 if (

@@ -39,12 +39,12 @@ export default function Alarms() {
         const checkInitialAlarm = async () => {
             try {
                 const active = await checkAndNullifyActiveAlarm();
-                console.log("Initial check:", active);
+                console.log("NUDGE_DEBUG: Initial check:", active);
                 if (active && active.type === "alarm") {
                     setInitAlarm(active.alarmId);
                 }
             } catch (error) {
-                console.log(error);
+                console.error(error);
             }
         };
         void checkInitialAlarm();
@@ -59,14 +59,12 @@ export default function Alarms() {
 
     const handleAlarmEvent = useCallback(
         (event: { type: string; alarmId: string }) => {
-            console.log("New event received:", event);
+            console.log("NUDGE_DEBUG: New event received:", event);
             const { type, alarmId } = event;
             if (type === "onAlarmDeepLink") {
-                console.log(type);
                 void checkAndNullifyActiveAlarm();
                 router.replace(`/alarmScreen?id=${alarmId}`);
             } else {
-                console.log(type);
                 void deschedule(alarmId);
             }
         },
@@ -249,7 +247,7 @@ export default function Alarms() {
                 onPress={handleFABPress}
                 onLongPress={() => console.log(alarms)}
             />
-            <FAB
+            {/* <FAB
                 icon={"alarm"}
                 style={{
                     position: "absolute",
@@ -265,7 +263,7 @@ export default function Alarms() {
                 onLongPress={() => {
                     router.push("/onboardingScreens/welcome");
                 }}
-            />
+            /> */}
             <FlatList
                 style={{
                     display: "flex",

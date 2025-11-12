@@ -11,7 +11,7 @@ export function useAlarmManagerListener(listener: AlarmEventListener) {
         const alarmSub = ExpoAlarmManagerNative.addListener(
             "onAlarmDeepLink",
             ({ alarmId }: { alarmId: string }) => {
-                console.log("got event: onAlarmDeepLink");
+                console.log("NUDGE_DEBUG: got event: onAlarmDeepLink");
                 listener({ type: "onAlarmDeepLink", alarmId });
             }
         );
@@ -19,7 +19,7 @@ export function useAlarmManagerListener(listener: AlarmEventListener) {
         const dismissSub = ExpoAlarmManagerNative.addListener(
             "onDismissDoubleDeepLink",
             ({ alarmId }: { alarmId: string }) => {
-                console.log("got event: onDismissDoubleDeepLink");
+                console.log("NUDGE_DEBUG: got event: onDismissDoubleDeepLink");
                 listener({ type: "onDismissDoubleDeepLink", alarmId });
             }
         );

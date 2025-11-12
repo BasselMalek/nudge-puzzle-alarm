@@ -21,7 +21,7 @@ export function redirectSystemPath({
         console.log("NUDGE_DEBUG: Didn't get alarm.");
         return path;
     } catch (e) {
-        console.log("NUDGE_DEBUG: Crashed here because " + e);
+        console.error("NUDGE_DEBUG: Crashed here because " + e);
         return "/";
     }
 }

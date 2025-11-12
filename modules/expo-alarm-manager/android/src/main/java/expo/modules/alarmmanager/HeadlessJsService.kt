@@ -8,7 +8,7 @@ import com.facebook.react.jstasks.HeadlessJsTaskConfig
 
 class BootHeadlessTaskService : HeadlessJsTaskService() {
     override fun getTaskConfig(intent: Intent?): HeadlessJsTaskConfig? {
-        Log.d("NUDGE_DEBUG","Ran the native service")
+        Log.d("NUDGE_DEBUG","Running BOOT_COMPLETED handler")
         return intent?.extras?.let {
             HeadlessJsTaskConfig(
                 "BootTask",
