@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState, useMemo } from "react";
-import { BackHandler, FlatList, View } from "react-native";
+import { FlatList, View } from "react-native";
 import { Text, Card, useTheme, FAB, IconButton } from "react-native-paper";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
@@ -11,11 +11,14 @@ import { Alarm } from "@/types/Alarm";
 import { preventAutoHideAsync, hide } from "expo-splash-screen";
 import AlarmCard from "@/components/AlarmCard";
 import Storage from "expo-sqlite/kv-store";
-import { usePreventRemove } from "@react-navigation/native";
 import { compareAsc } from "date-fns";
 import { getNextInstanceTimeStamp } from "@/utils/alarmSchedulingHelpers";
-import { useLinkingURL } from "expo-linking";
-import { useAlarmRouteMonitor } from "@/hooks/useAlarmRouteMonitor";
+import {
+    scheduleAlarm,
+    checkAndNullifyActiveAlarm,
+    deleteAlarm as deschedule,
+} from "@/modules/expo-alarm-manager";
+import { useAlarmManagerListener } from "@/hooks/useAlarmManagerEvents";
 void preventAutoHideAsync();
 
 export default function Alarms() {
@@ -23,28 +26,65 @@ export default function Alarms() {
     const safeInsets = useSafeAreaInsets();
     const { colors } = useTheme();
     const [alarmGradientDim, setAlarmGradientDim] = useState(false);
+    const [initAlarm, setInitAlarm] = useState<string | null>(null);
     const [soonestRingTime, setSoonestRingTime] = useState("");
     const { alarms, deleteAlarm, loadAlarms, saveAlarms, toggleAlarm } =
-        useAlarms(db, "nudge://alarms");
+        useAlarms(db, "nudge://alarmScreen");
     const { update } = useLocalSearchParams();
     const [loadStale, setLoadStale] = useState(true);
     const router = useRouter();
     const first = Storage.getItemSync("isFirstBoot");
-    const url = useLinkingURL();
 
-    useAlarmRouteMonitor(url);
+    useEffect(() => {
+        const checkInitialAlarm = async () => {
+            try {
+                const active = await checkAndNullifyActiveAlarm();
+                console.log("NUDGE_DEBUG: Initial check:", active);
+                if (active && active.type === "alarm") {
+                    setInitAlarm(active.alarmId);
+                }
+            } catch (error) {
+                console.error(error);
+            }
+        };
+        void checkInitialAlarm();
+    }, []);
+
+    useEffect(() => {
+        if (initAlarm) {
+            router.replace(`/alarmScreen?id=${initAlarm}`);
+        }
+        return () => setInitAlarm(null);
+    }, [initAlarm, router]);
+
+    const handleAlarmEvent = useCallback(
+        (event: { type: string; alarmId: string }) => {
+            console.log("NUDGE_DEBUG: New event received:", event);
+            const { type, alarmId } = event;
+            if (type === "onAlarmDeepLink") {
+                void checkAndNullifyActiveAlarm();
+                router.replace(`/alarmScreen?id=${alarmId}`);
+            } else {
+                void deschedule(alarmId);
+            }
+        },
+        [router]
+    );
+
+    useAlarmManagerListener(handleAlarmEvent);
+
     useFocusEffect(
         useCallback(() => {
-            console.log(`NUDGE_DEBUG: At layout/index with url: ${url}.`);
+            console.log(`NUDGE_DEBUG: At layout/index`);
             if (first === null) {
                 router.replace("/onboardingScreens/welcome");
             }
-        }, [first, router, url])
+        }, [first, router])
     );
 
-    usePreventRemove(router.canGoBack(), () => {
-        BackHandler.exitApp();
-    });
+    // usePreventRemove(router.canGoBack(), () => {
+    //     BackHandler.exitApp();
+    // });
 
     useFocusEffect(
         useCallback(() => {
@@ -216,6 +256,8 @@ export default function Alarms() {
                     right: safeInsets.right + 20,
                 }}
                 onPress={() => {
+                    console.log("clicked");
+
                     void scheduleAlarm(alarms.at(0)!.id, Date.now() + 5000);
                 }}
                 onLongPress={() => {

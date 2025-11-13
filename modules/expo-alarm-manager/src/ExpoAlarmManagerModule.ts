@@ -132,6 +132,8 @@ declare class ExpoAlarmManagerModule extends NativeModule<ExpoAlarmManagerModule
         className: string;
         label: string;
     }>;
+
+    checkAndNullifyActiveAlarm(): Promise<{ type: string; alarmId: string }>;
 }
 
 // This call loads the native module object from the JSI.

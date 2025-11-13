@@ -42,8 +42,6 @@ export default function RootLayout() {
                 : { ...MD3LightTheme, colors: theme.light };
     }
 
-    // useDeepLinking(); //! here to turn on if all else fails.
-
     return (
         <SafeAreaProvider>
             <PaperProvider theme={paperTheme}>
@@ -67,7 +65,7 @@ export default function RootLayout() {
                             }}
                         />
                         <Stack.Screen
-                            name="alarms/[id]"
+                            name="alarmScreen"
                             options={{ headerShown: false }}
                         />
                         <Stack.Screen

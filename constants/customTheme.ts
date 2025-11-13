@@ -1,6 +1,5 @@
 const lightPalette = {
-    //TODO: 1. Fix the color of NFC save button.
-    //TODO: 2. Adjust the contrast in tags/buttons.
+    //TODO: 1. Adjust the contrast in tags/buttons.
     //TODO: 2. Integrate the tertiary color into the gradient more.
 
     colors: {

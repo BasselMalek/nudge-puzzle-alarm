@@ -12,17 +12,16 @@ export function redirectSystemPath({
             }.`
         );
         const url = new URL(path, "nudge://");
-        if (url.hostname === "alarms") {
-            console.log(`NUDGE_DEBUG: Received alarm with id: ${url.pathname}`);
-            return `/alarms${url.pathname}`;
+        if (url.hostname === "alarmScreen") {
+            console.log(`NUDGE_DEBUG: Received alarm`);
+            return null;
         } else if (url.hostname === "dismissDouble") {
-            return `/boosterMiddleware?dismissDouble=true&id=${url.pathname}`;
+            return "/";
         }
-
         console.log("NUDGE_DEBUG: Didn't get alarm.");
         return path;
     } catch (e) {
-        console.log("NUDGE_DEBUG: Crashed here because " + e);
+        console.error("NUDGE_DEBUG: Crashed here because " + e);
         return "/";
     }
 }

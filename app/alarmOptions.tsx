@@ -409,15 +409,6 @@ export default function AlarmOptions() {
                     }}
                 />
             </View>
-            {/* <FAB
-                icon="check"
-                style={{
-                    position: "absolute",
-                    bottom: insets.bottom + 10,
-                    right: insets.right + 20,
-                }}
-                onLongPress={() => console.log(alarm)}
-            /> */}
         </GestureHandlerRootView>
     );
 }
