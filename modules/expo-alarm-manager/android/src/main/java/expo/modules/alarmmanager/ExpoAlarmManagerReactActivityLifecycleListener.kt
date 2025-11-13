@@ -73,7 +73,10 @@ class ExpoAlarmManagerReactActivityLifecycleListener : ReactActivityLifecycleLis
                 Log.d(TAG, "Received alarm with id: $alarmId")
                 handleAlarmIntent(alarmId)
             }
-
+            "DISMISS" ->{
+                Log.d(TAG, "Dismissing alarm double-check with id: $alarmId")
+                handleAlarmDoubleDismiss(alarmId)
+            }
             else -> {
                 Log.d(TAG, "Unknown action received")
             }
@@ -84,5 +87,8 @@ class ExpoAlarmManagerReactActivityLifecycleListener : ReactActivityLifecycleLis
         initialAlarm = alarmId;
         ExpoAlarmManagerModule.handleAlarmDeepLink(alarmId)
         Log.d(TAG, "Handling alarm intent with id: $alarmId")
+    }
+    private fun handleAlarmDoubleDismiss(alarmId: String) {
+        ExpoAlarmManagerModule.handleDismissDoubleDeepLink(alarmId)
     }
 }

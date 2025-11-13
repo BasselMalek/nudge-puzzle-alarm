@@ -33,9 +33,21 @@ class AlarmReceiver : BroadcastReceiver() {
                 handleDoubleCheckTrigger(context, intent)
             }
 
-            "expo.modules.alarmmanager.ACTION_DISMISS_DOUBLE_CHECK"->{
-                val id = intent.getStringExtra("alarm_id") ?: return
-                ExpoAlarmManagerModule.handleDismissDoubleDeepLink(id)
+            "expo.modules.alarmmanager.ACTION_DISMISS_DOUBLE_CHECK" -> {
+                val alarmId = intent.getStringExtra("alarm_id")
+                val dismissHandler = intent.getStringExtra("dismissHandler")
+
+                val deepLinkIntent = Intent(Intent.ACTION_VIEW).apply {
+                    data = dismissHandler?.toUri()
+                    putExtra("signal", "DISMISS")
+                    putExtra("alarm_id", alarmId)
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                }
+
+                context.startActivity(deepLinkIntent)
+                alarmId?.let {
+                    NotificationManagerCompat.from(context).cancel(it.hashCode())
+                }
             }
 
             else -> {
@@ -65,10 +77,9 @@ class AlarmReceiver : BroadcastReceiver() {
     private fun handleDoubleCheckTrigger(context: Context, intent: Intent) {
         val alarmId = intent.getStringExtra("alarm_id") ?: return
         val dismissHandler = intent.getStringExtra("dismiss_handler") ?: return
-        val linkingScheme = intent.getStringExtra("linking_scheme") ?: return
 
         ensureNotificationChannelExists(context)
-        showDoubleCheckNotification(context, alarmId, dismissHandler, linkingScheme)
+        showDoubleCheckNotification(context, alarmId, dismissHandler)
     }
 
     private fun ensureNotificationChannelExists(context: Context) {
@@ -185,14 +196,15 @@ class AlarmReceiver : BroadcastReceiver() {
 
     @RequiresPermission(Manifest.permission.POST_NOTIFICATIONS)
     private fun showDoubleCheckNotification(
-        context: Context, alarmId: String, dismissHandler: String, linkingScheme: String
+        context: Context, alarmId: String, dismissHandler: String
     ) {
         val dismissIntent = Intent(context, AlarmReceiver::class.java).apply {
             action = "expo.modules.alarmmanager.ACTION_DISMISS_DOUBLE_CHECK"
             putExtra("alarm_id", alarmId)
+            putExtra("dismissHandler", dismissHandler)
         }
 
-        val dismissPendingIntent = PendingIntent.getActivity(
+        val dismissPendingIntent = PendingIntent.getBroadcast(
             context,
             alarmId.hashCode(),
             dismissIntent,
@@ -200,12 +212,23 @@ class AlarmReceiver : BroadcastReceiver() {
         )
 
         val notification = NotificationCompat.Builder(context, "double_check_channel")
-            .setSmallIcon(android.R.drawable.ic_lock_idle_alarm).setContentTitle("Nudge")
-            .setContentText("Tap to dismiss before alarm rings again!").setPriority(NotificationCompat.PRIORITY_MAX)
-            .setCategory(NotificationCompat.CATEGORY_ALARM).setFullScreenIntent(dismissPendingIntent, true)
-            .setAutoCancel(true).setVisibility(NotificationCompat.VISIBILITY_PUBLIC).setOngoing(true).setSound(null)
+            .setSmallIcon(android.R.drawable.ic_lock_idle_alarm)
+            .setContentTitle("Nudge")
+            .setContentText("Alarm will ring again soon.")
+            .setPriority(NotificationCompat.PRIORITY_MAX)
+            .setCategory(NotificationCompat.CATEGORY_ALARM)
+            .addAction(
+                0,
+                "Dismiss",
+                dismissPendingIntent
+            )
+            .setAutoCancel(true)
+            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+            .setOngoing(true)
+            .setSound(null)
             .build()
 
         NotificationManagerCompat.from(context).notify(alarmId.hashCode(), notification)
+
     }
 }

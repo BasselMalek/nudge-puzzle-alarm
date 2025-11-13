@@ -15,12 +15,15 @@ import {
 } from "@/utils/alarmSchedulingHelpers";
 import * as AsyncStorage from "expo-sqlite/kv-store";
 import { handleDismiss, handleSnooze } from "@/utils/boosterHelpers";
+import { usePreventRemove } from "@react-navigation/native";
 
 type SnoozeState = {
     uses: number;
     decay: number;
     duration: number;
 };
+
+AlarmManager.setShowWhenLocked(true);
 
 export default function AlarmScreen() {
     const { id } = useLocalSearchParams();
@@ -44,6 +47,11 @@ export default function AlarmScreen() {
         );
         return () => backHandler.remove();
     }, []);
+
+    usePreventRemove(false, () => {
+        // BackHandler.exitApp();
+        console.log("f");
+    });
 
     useEffect(() => {
         const initial = db.getFirstSync<AlarmDto>(

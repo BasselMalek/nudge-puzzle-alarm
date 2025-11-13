@@ -14,9 +14,9 @@ export function redirectSystemPath({
         const url = new URL(path, "nudge://");
         if (url.hostname === "alarmScreen") {
             console.log(`NUDGE_DEBUG: Received alarm`);
-            return "/";
+            return null;
         } else if (url.hostname === "dismissDouble") {
-            return `/boosterMiddleware?dismissDouble=true&id=${url.pathname}`;
+            return "/";
         }
         console.log("NUDGE_DEBUG: Didn't get alarm.");
         return path;
