@@ -647,14 +647,18 @@ class AlarmPlayerInstance(
         shouldVibrate = enabled
     }
 
-    fun setSource(src: String) {
+    fun setSource(src: String?) {
         if (isReleased) throw IllegalStateException("Player has been released")
 
         try {
             ringtone?.stop()
-            ringtone = RingtoneManager.getRingtone(context, src.toUri())
-            ringtone?.audioAttributes = AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_ALARM)
-                .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION).build()
+            ringtone = null
+
+            if (src != null) {
+                ringtone = RingtoneManager.getRingtone(context, src.toUri())
+                ringtone?.audioAttributes = AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_ALARM)
+                    .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION).build()
+            }
         } catch (e: Exception) {
             module.sendPlaybackError(playerId, "Failed to set source: ${e.message}")
             throw e
@@ -664,14 +668,14 @@ class AlarmPlayerInstance(
     @RequiresPermission(Manifest.permission.VIBRATE)
     fun play() {
         if (isReleased) throw IllegalStateException("Player has been released")
-        if (ringtone == null) throw IllegalStateException("No source set")
 
         try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                ringtone?.isLooping = true
+            if (ringtone != null) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                    ringtone?.isLooping = true
+                }
+                ringtone?.play()
             }
-            ringtone?.play()
-
             if (shouldVibrate && vibrator?.hasVibrator() == true) {
                 startVibration()
             }
@@ -699,7 +703,7 @@ class AlarmPlayerInstance(
     }
 
     fun isFinished(): Boolean {
-        return isReleased || ringtone?.isPlaying == false
+        return isReleased || (ringtone == null || ringtone?.isPlaying == false)
     }
 
     @RequiresPermission(Manifest.permission.VIBRATE)

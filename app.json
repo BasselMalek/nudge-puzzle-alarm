@@ -3,7 +3,7 @@
         "name": "Nudge",
         "slug": "nudge",
         "scheme": "nudge",
-        "version": "0.5.2-alpha",
+        "version": "0.5.2",
         "orientation": "portrait",
         "newArchEnabled": true,
         "icon": "./assets/images/icon.png",
@@ -18,7 +18,7 @@
             "bundleIdentifier": "com.benjipine.nudge"
         },
         "android": {
-            "allowBackup": false, //TODO: ENABLE ON V1.0.0
+            "allowBackup": true,
             "predictiveBackGestureEnabled": false,
             "icon": "./assets/images/icon.png",
             "permissions": [
