@@ -50,7 +50,7 @@ declare class ExpoAlarmManagerModule extends NativeModule<ExpoAlarmManagerModule
      * Set audio source for a player.
      * @param src Audio source URI.
      */
-    setPlayerSource(src: string): Promise<void>;
+    setPlayerSource(src: string | null): Promise<void>;
 
     /**
      * Enable or disable vibration for a player.
@@ -166,7 +166,7 @@ export class AlarmPlayer implements IAlarmPlayer {
         }
     }
 
-    async setSource(src: string): Promise<void> {
+    async setSource(src: string | null): Promise<void> {
         await ExpoAlarmManagerNative.setPlayerSource(src);
         this._isFinished = false;
     }
@@ -175,7 +175,7 @@ export class AlarmPlayer implements IAlarmPlayer {
         return ExpoAlarmManagerNative.setPlayerVibration(enabled);
     }
 
-    async play(): Promise<void> {
+    async play(fade?: boolean): Promise<void> {
         this._isFinished = false;
         return ExpoAlarmManagerNative.playPlayer();
     }

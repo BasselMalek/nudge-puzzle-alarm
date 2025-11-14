@@ -10,7 +10,6 @@ export default function MiscSettings() {
     const [colorsM3, setColorsM3] = useState(false);
     const [weekStartDay, setWeekStartDay] = useState("Sunday");
     const [dayMenuVisible, setDayMenuVisible] = useState(false);
-    const [volumeFadeIn, setVolumeFadeIn] = useState(false);
     const [upcomingAlarmNotif, setUpcomingAlarmNotif] = useState(false);
     const [themeMode, setThemeMode] = useState("system");
     const [themeMenuVisible, setThemeMenuVisible] = useState(false);
@@ -24,8 +23,6 @@ export default function MiscSettings() {
                     "weekStartDay"
                 );
                 if (weekStart) setWeekStartDay(weekStart);
-                const fadeIn = await AsyncStorage.getItemAsync("volumeFadeIn");
-                setVolumeFadeIn(fadeIn === "true" ? true : false);
                 const upcomingNotif = await AsyncStorage.getItemAsync(
                     "upcomingAlarmNotif"
                 );
@@ -109,24 +106,6 @@ export default function MiscSettings() {
                     </Menu>
                 }
                 style={styles.listItem}
-            />
-            <ListItem
-                title={"Volume Fade In"}
-                desc={"Gradually increase alarm volume"}
-                icon="volume-high"
-                style={styles.listItem}
-                rightContent={
-                    <Switch
-                        value={volumeFadeIn}
-                        onValueChange={(newVal) => {
-                            setVolumeFadeIn(newVal);
-                            void AsyncStorage.setItemAsync(
-                                "volumeFadeIn",
-                                newVal ? "true" : "false"
-                            );
-                        }}
-                    />
-                }
             />
             <ListItem
                 title={"Upcoming Alarm Notification"}
@@ -233,10 +212,18 @@ export default function MiscSettings() {
                 title={"Background Image"}
                 desc={"Set a custom background"}
                 icon="image"
-                onPress={() => {
-                    // TODO: Open image picker
-                }}
-                style={styles.listItem}
+                style={[styles.listItem, { opacity: 0.6 }]}
+                rightContent={
+                    <Text
+                        variant="bodySmall"
+                        style={{
+                            color: colors.onSurface,
+                            opacity: 0.6,
+                        }}
+                    >
+                        {"Coming Soon"}
+                    </Text>
+                }
             />
         </ScrollView>
     );

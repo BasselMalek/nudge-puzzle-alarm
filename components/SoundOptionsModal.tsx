@@ -120,7 +120,7 @@ export default function SoundOptionsModal(props: {
                             const uri = await pickAlarmTone(
                                 alarm.ringtone.uri === "none"
                                     ? undefined
-                                    : alarm.ringtone.uri
+                                    : alarm.ringtone.uri!
                             );
                             if (uri !== null) {
                                 if (uri.name === "") {
@@ -288,7 +288,7 @@ export default function SoundOptionsModal(props: {
                                         opacity: 0.2,
                                     }}
                                 />
-                                <Text variant="labelLarge">Spotify Song</Text>
+                                <Text variant="labelLarge">{"Spotify"}</Text>
                             </View>
                             <Text
                                 variant="bodySmall"
@@ -297,7 +297,7 @@ export default function SoundOptionsModal(props: {
                                     opacity: 0.6,
                                 }}
                             >
-                                Coming Soon
+                                {"Coming Soon"}
                             </Text>
                         </View>
                     </Card.Content>

@@ -5,7 +5,7 @@ export type ExpoAlarmManagerModuleEvents = {
     onAlarmDeepLink: (event: { alarmId: string }) => void;
 };
 export type IAlarmPlayer = {
-    setSource(src: string): Promise<void>;
+    setSource(src: string | null): Promise<void>;
     setVibration(enabled: boolean): Promise<void>;
     play(): Promise<void>;
     stop(): Promise<void>;
