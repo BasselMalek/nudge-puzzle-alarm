@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useEffect } from "react";
 import ExpoAlarmManagerModule, {
     AlarmPlayer,
 } from "./src/ExpoAlarmManagerModule";
@@ -16,16 +16,39 @@ export const setLinkingScheme = (scheme: string) => {
  * Schedule a new alarm.
  * @param alarmId A stable string ID (converted to int internally)
  * @param timestamp Unix timestamp in milliseconds
- * @param vibrate Whether the alarm notification should vibrate
- * @param ringtone URI of audio file to play as a ringtone
  * @returns Promise<boolean> indicating success
  */
 export const scheduleAlarm = (
     alarmId: string,
-    timestamp: number,
-    vibrate: boolean
+    timestamp: number
 ): Promise<boolean> => {
-    return ExpoAlarmManagerModule.scheduleAlarm(alarmId, timestamp, vibrate);
+    return ExpoAlarmManagerModule.scheduleAlarm(alarmId, timestamp);
+};
+
+/**
+ * Schedule a post-wake double check notification & alarm.
+ * @param alarmId A stable string ID (converted to int internally)
+ * @param dismissHandler A URL to an activity that will handle dismissing the check
+ * @param delayPeriod Delay between main alarm dismissal and notification post
+ * @param graacePeriod Grace timing after notification is posted and before alarm triggers
+ * @returns Promise<boolean> indicating success
+ */
+export const scheduleDoubleCheck = async (
+    alarmId: string,
+    dismissHandler: string,
+    delayPeriod: number,
+    gracePeriod: number
+) => {
+    await ExpoAlarmManagerModule.scheduleAlarm(
+        alarmId,
+        Date.now() + gracePeriod + delayPeriod
+    );
+    return ExpoAlarmManagerModule.scheduleDoubleCheck(
+        alarmId,
+        dismissHandler,
+        delayPeriod,
+        gracePeriod
+    );
 };
 
 /**
@@ -36,23 +59,18 @@ export const scheduleAlarm = (
  */
 export const modifyAlarm = (
     alarmId: string,
-    newTimestamp: number,
-    vibrate: boolean
+    newTimestamp: number
 ): Promise<boolean> => {
-    return ExpoAlarmManagerModule.modifyAlarm(alarmId, newTimestamp, vibrate);
+    return ExpoAlarmManagerModule.modifyAlarm(alarmId, newTimestamp);
 };
 
 /**
  * Delete a scheduled alarm.
  * @param alarmId The alarm ID
- * @param vibrate Whether the alarm notification should vibrate.
  * @returns Promise<boolean> indicating success
  */
-export const deleteAlarm = (
-    alarmId: string,
-    vibrate: boolean
-): Promise<boolean> => {
-    return ExpoAlarmManagerModule.deleteAlarm(alarmId, vibrate);
+export const deleteAlarm = (alarmId: string): Promise<boolean> => {
+    return ExpoAlarmManagerModule.deleteAlarm(alarmId);
 };
 
 /**
@@ -62,7 +80,7 @@ export const deleteAlarm = (
  */
 export const pickAlarmTone = async (
     existingUri?: string
-): Promise<{ name: string; uri: string } | null> => {
+): Promise<{ name: string; uri: string | null } | null> => {
     const a = await ExpoAlarmManagerModule.pickAlarmTone(existingUri);
     return a !== null ? { name: a.at(1)!, uri: a.at(0)! } : null;
 };
@@ -110,11 +128,15 @@ export const requestScheduleExactPerm = () => {
 };
 
 /**
- * Returns intent extras if exist and valid.
+ * Returns launchable installed packages with a android.intent.category.LAUNCHER filter
  * @Platform android
  */
-export const checkExtras = () => {
-    return ExpoAlarmManagerModule.checkExtras();
+export const getLaunchableApps = () => {
+    return ExpoAlarmManagerModule.getLaunchableApps();
+};
+
+export const checkAndNullifyActiveAlarm = () => {
+    return ExpoAlarmManagerModule.checkAndNullifyActiveAlarm();
 };
 
 /**
@@ -125,12 +147,14 @@ export function useAlarmPlayer(): AlarmPlayer | null {
     const [player, setPlayer] = useState<AlarmPlayer | null>(null);
 
     useEffect(() => {
-        AlarmPlayer.create().then((p) => {
+        void AlarmPlayer.create().then((p) => {
             if (p) setPlayer(p);
         });
         return () => {
             setPlayer((prev) => {
-                prev?.release();
+                if (prev) {
+                    prev.release().catch(() => {});
+                }
                 return null;
             });
         };

@@ -14,7 +14,6 @@ export default function RootLayout() {
                     name="barcodeSettings"
                     options={{
                         headerTitle: "Barcode Settings",
-                        presentation: "modal",
                         headerStyle: {
                             backgroundColor: colors.background,
                         },
@@ -35,7 +34,6 @@ export default function RootLayout() {
                     name="nfcSettings"
                     options={{
                         headerTitle: "NFC Settings",
-                        presentation: "modal",
                         headerStyle: {
                             backgroundColor: colors.background,
                         },
@@ -56,7 +54,26 @@ export default function RootLayout() {
                     name="miscSettings"
                     options={{
                         headerTitle: "App Settings",
-                        presentation: "modal",
+                        headerStyle: {
+                            backgroundColor: colors.background,
+                        },
+                        headerTintColor: colors.onBackground,
+                        contentStyle: {
+                            display: "flex",
+                            flex: 1,
+                            backgroundColor: colors.background,
+                            paddingTop: 10,
+                            paddingLeft: safeInsets.left + 10,
+                            paddingRight: safeInsets.right + 10,
+                            paddingBottom: safeInsets.bottom + 10,
+                            gap: 10,
+                        },
+                    }}
+                />
+                <Stack.Screen
+                    name="about"
+                    options={{
+                        headerTitle: "About",
                         headerStyle: {
                             backgroundColor: colors.background,
                         },

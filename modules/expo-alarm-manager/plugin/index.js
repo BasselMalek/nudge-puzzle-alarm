@@ -1,7 +1,4 @@
-const {
-    withAndroidManifest,
-    withMainActivity,
-} = require("@expo/config-plugins");
+const { withAndroidManifest } = require("@expo/config-plugins");
 
 const withAlarmReceiver = (config) => {
     return withAndroidManifest(config, (config) => {
@@ -53,40 +50,77 @@ const withAlarmReceiver = (config) => {
     });
 };
 
-const withScreenWake = (config) => {
-    return withMainActivity(config, (config) => {
-        if (config.modResults.language === "kt") {
-            // Add imports at the top of the file
-            const imports = [
-                "import android.os.Build",
-                "import android.view.WindowManager",
-            ];
-            imports.forEach((importStatement) => {
-                if (!config.modResults.contents.includes(importStatement)) {
-                    const lastImportMatch = config.modResults.contents.match(
-                        /import\s+.*\n(?=\s*\n|\s*class)/
-                    );
-                    if (lastImportMatch) {
-                        const insertIndex =
-                            lastImportMatch.index + lastImportMatch[0].length;
-                        config.modResults.contents =
-                            config.modResults.contents.slice(0, insertIndex) +
-                            importStatement +
-                            "\n" +
-                            config.modResults.contents.slice(insertIndex);
-                    }
-                }
-            });
-            const screenWakeCode = `
-        val reactNativeHost = getReactNativeHost();
-        val reactInstanceManager = reactNativeHost.reactInstanceManager;`;
-            const superOnCreateRegex = /(super\.onCreate\(null\))/;
-            if (superOnCreateRegex.test(config.modResults.contents)) {
-                config.modResults.contents = config.modResults.contents.replace(
-                    superOnCreateRegex,
-                    `$1${screenWakeCode}`
+// const withDeepLinkPatch = (config) => {
+//     return withMainActivity(config, (config) => {
+//         let contents = config.modResults.contents;
+//         contents = contents.replace(
+//             /^package .*/m,
+//             `$&\n\nimport android.content.Intent\nimport com.facebook.react.bridge.ReactContext\nimport com.facebook.react.runtime.ReactHostImpl`
+//         );
+//         contents = contents.replace(
+//             /}$/,
+//             `    override fun onNewIntent(intent: Intent) {
+//         val reactHost = reactHost as? ReactHostImpl ?: return
+//         val reactContext = reactHost.currentReactContext
+
+//         if (reactContext?.hasActiveReactInstance() == true) {
+//             super.onNewIntent(intent)
+//         } else {
+//             reactHost.addReactInstanceEventListener { super.onNewIntent(intent) }
+//         }
+//     }
+// }`
+//         );
+//         config.modResults.contents = contents;
+//         return config;
+//     });
+// };
+
+const withQueryFilter = (config) => {
+    return withAndroidManifest(config, async (config) => {
+        const androidManifest = config.modResults;
+        const mainApplication = androidManifest.manifest;
+        if (!mainApplication.queries) {
+            mainApplication.queries = [];
+        }
+        const hasLauncherQuery = mainApplication.queries.some((query) => {
+            return query.intent?.some((intent) => {
+                const hasMainAction = intent.action?.some(
+                    (action) =>
+                        action.$["android:name"] ===
+                        "android.intent.action.MAIN"
                 );
-            }
+                const hasLauncherCategory = intent.category?.some(
+                    (category) =>
+                        category.$["android:name"] ===
+                        "android.intent.category.LAUNCHER"
+                );
+                return hasMainAction && hasLauncherCategory;
+            });
+        });
+        if (!hasLauncherQuery) {
+            mainApplication.queries.push({
+                intent: [
+                    {
+                        action: [
+                            {
+                                $: {
+                                    "android:name":
+                                        "android.intent.action.MAIN",
+                                },
+                            },
+                        ],
+                        category: [
+                            {
+                                $: {
+                                    "android:name":
+                                        "android.intent.category.LAUNCHER",
+                                },
+                            },
+                        ],
+                    },
+                ],
+            });
         }
         return config;
     });
@@ -94,7 +128,8 @@ const withScreenWake = (config) => {
 
 const withAlarmReceiverAndScreenWake = (config) => {
     config = withAlarmReceiver(config);
-    config = withScreenWake(config);
+    // config = withDeepLinkPatch(config);
+    config = withQueryFilter(config);
     return config;
 };
 

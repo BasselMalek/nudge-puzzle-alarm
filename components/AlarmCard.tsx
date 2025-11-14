@@ -28,6 +28,7 @@ export default function AlarmCard(props: {
     onPress: () => void;
     onToggle: (enabled: boolean) => void;
     onDelete?: () => void;
+    startDay?: number;
 }) {
     const [isAlarmEnabled, setIsAlarmEnabled] = useState(props.alarm.isEnabled);
     const { colors, roundness } = useTheme();
@@ -178,7 +179,9 @@ export default function AlarmCard(props: {
                                 <WeekdayRepeat
                                     changeable={false}
                                     repeatEnabled={props.alarm.repeat}
-                                    startDay={0}
+                                    startDay={
+                                        (props.startDay as 0 | 1 | 6) ?? 0
+                                    }
                                     dayMap={props.alarm.repeatDays}
                                 />
                                 <View

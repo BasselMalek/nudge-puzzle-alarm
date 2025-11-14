@@ -1,51 +1,24 @@
-import { View, FlatList, Image } from "react-native";
-import { useTheme, Text } from "react-native-paper";
+import { View, FlatList } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import ListItem from "@/components/ListItem";
 import { router } from "expo-router";
-const imgSrc = require("@/assets/images/hourglass.png");
 
 export default function Settings() {
-    const { colors } = useTheme();
     return (
         <>
             <StatusBar translucent />
-            <View
-                style={{
-                    alignItems: "center",
-                    justifyContent: "center",
-                    flex: 1,
-                    gap: 5,
-                    marginTop: 50,
-                    marginBottom: 30,
-                }}
-            >
-                <Image
-                    source={imgSrc}
-                    style={{
-                        height: 100,
-                        width: 100,
-                    }}
-                    tintColor={colors.primary}
-                />
-                <Text variant="displaySmall" style={{ textAlign: "center" }}>
-                    {"Nudge"}
-                </Text>
-                <Text variant="labelSmall" style={{ textAlign: "center" }}>
-                    {"Made with ❤"}
-                </Text>
-            </View>
             <View style={{ flex: 2 }}>
                 <FlatList
                     scrollEnabled
                     contentContainerStyle={{
                         height: "100%",
                         gap: 10,
+                        paddingVertical: 10,
                     }}
                     data={[
                         {
                             title: "App settings",
-                            desc: "Modify misc settings",
+                            desc: "Modify general settings",
                             icon: "timer-cog-outline",
                             onPress: () => {
                                 router.push("/settingsScreens/miscSettings");
@@ -75,7 +48,9 @@ export default function Settings() {
                         {
                             title: "About",
                             icon: "information",
-                            onPress: () => {},
+                            onPress: () => {
+                                router.push("/settingsScreens/about");
+                            },
                         },
                     ]}
                     renderItem={({ item }) => {

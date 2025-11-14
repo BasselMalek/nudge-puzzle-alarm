@@ -1,7 +1,6 @@
 import { DaySet } from "@/types/DaySet";
 import { Puzzle } from "@/types/Puzzles";
-import { PowerUp } from "@/types/PowerUp";
-import { randomUUID } from "expo-crypto";
+import { BoosterSet } from "@/types//Boosters";
 
 export interface Alarm {
     id: string;
@@ -11,9 +10,9 @@ export interface Alarm {
     repeat: boolean;
     repeatDays: DaySet;
     vibrate: boolean;
-    ringtone: { name: string; uri: string };
+    ringtone: { name: string; uri: string | null };
     puzzles: Puzzle[];
-    powerUps: PowerUp[];
+    boosterSet: BoosterSet;
     isEnabled: boolean;
     lastModified: Date;
 }
@@ -26,7 +25,7 @@ export interface AlarmDto {
     repeat: number;
     vibrate: number;
     ringtone: string;
-    power_ups: string | null; // * These are JSON strings
+    booster_set: string | null; // * These are JSON strings
     repeat_days: string | null;
     puzzles: string | null;
     is_enabled: number;

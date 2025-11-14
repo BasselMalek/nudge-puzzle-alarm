@@ -5,14 +5,24 @@ import { useFocusEffect } from "expo-router";
 import { useSQLiteContext } from "expo-sqlite";
 import { useCallback, useState } from "react";
 import { View, FlatList } from "react-native";
-import { Text, TextInput, Button, Card, Icon } from "react-native-paper";
+import {
+    Text,
+    TextInput,
+    Button,
+    Card,
+    Icon,
+    IconButton,
+    useTheme,
+} from "react-native-paper";
 
 export default function NFCSettings() {
+    const { colors, roundness } = useTheme();
     const [scannedTag, setScannedTag] = useState<NFCTag | null>(null);
     const [registeredTags, setRegisteredTags] = useState<NFCTag[]>([]);
     const [error, setError] = useState(false);
     const [customName, setCustomName] = useState("");
     const [isScanning, setIsScanning] = useState(false);
+    const [isSupported, setIsSupported] = useState(false);
     const db = useSQLiteContext();
 
     const checkifRegistered = useCallback(
@@ -20,14 +30,16 @@ export default function NFCSettings() {
         [registeredTags]
     );
 
-    const { startNFCScanning, stopNFCScanning } = useNFCScanner((tagData) => {
-        if (checkifRegistered(tagData.id)) {
-            setError(true);
-        } else {
-            setScannedTag(tagData);
+    const { startNFCScanning, stopNFCScanning, getUsable } = useNFCScanner(
+        (tagData) => {
+            if (checkifRegistered(tagData.id)) {
+                setError(true);
+            } else {
+                setScannedTag(tagData);
+            }
+            setIsScanning(false);
         }
-        setIsScanning(false);
-    });
+    );
 
     const handleStartScan = () => {
         setError(false);
@@ -74,8 +86,10 @@ export default function NFCSettings() {
                     ["NFC"]
                 );
                 setRegisteredTags(items);
+                const canUseNfc = await getUsable();
+                setIsSupported(canUseNfc);
             })();
-        }, [db])
+        }, [db, getUsable])
     );
 
     return (
@@ -96,6 +110,7 @@ export default function NFCSettings() {
                     </Text>
                     <Button
                         mode="contained"
+                        disabled={!isSupported}
                         onPress={isScanning ? handleStopScan : handleStartScan}
                         icon="nfc-tap"
                     >
@@ -119,7 +134,7 @@ export default function NFCSettings() {
                             placeholder="Enter a custom name"
                         />
                         <Button
-                            mode="elevated"
+                            mode="contained"
                             onPress={() => {
                                 void saveTag();
                             }}
@@ -129,12 +144,14 @@ export default function NFCSettings() {
                     </Card.Content>
                 </Card>
             )}
-            <View style={{ flex: 1, gap: 15 }}>
-                <Text variant="titleMedium">{"Registered Tags"}</Text>
+            <View style={{ flex: 1 }}>
+                {isSupported && (
+                    <Text variant="titleMedium">{"Registered Tags"}</Text>
+                )}
                 <FlatList
-                    fadingEdgeLength={{ start: 0, end: 5 }}
+                    fadingEdgeLength={{ start: 10, end: 10 }}
                     data={registeredTags}
-                    contentContainerStyle={{ gap: 10 }}
+                    contentContainerStyle={{ gap: 10, paddingVertical: 10 }}
                     ListFooterComponent={() => (
                         <View
                             style={{
@@ -147,9 +164,9 @@ export default function NFCSettings() {
                         >
                             <Icon source={"information"} size={28} />
                             <Text style={{ flex: 1, flexWrap: "wrap" }}>
-                                {
-                                    "Tag deletion here does not reflect on existing puzzles. Unselect from inside a puzzle's config to fully delete."
-                                }
+                                {isSupported
+                                    ? "Tag deletion here does not reflect on existing puzzles. Unselect from inside a puzzle's config to fully delete."
+                                    : "Device does not support NFC."}
                             </Text>
                         </View>
                     )}
@@ -157,14 +174,47 @@ export default function NFCSettings() {
                         <ListItem
                             title={item.name!}
                             style={{ height: 70 }}
-                            buttons
-                            buttonOneAction={() => {
-                                setCustomName(item.name!);
-                                setScannedTag(item);
-                            }}
-                            buttonTwoAction={() => {
-                                handleDelete(item.id);
-                            }}
+                            rightContent={
+                                <View
+                                    style={{
+                                        flexDirection: "row",
+                                        alignItems: "center",
+                                        gap: 8,
+                                    }}
+                                >
+                                    <IconButton
+                                        icon={"pencil"}
+                                        mode="contained"
+                                        style={{
+                                            borderRadius: roundness,
+                                        }}
+                                        size={14}
+                                        contentStyle={{
+                                            padding: 0,
+                                        }}
+                                        containerColor={colors.elevation.level5}
+                                        onPress={() => {
+                                            setCustomName(item.name!);
+                                            setScannedTag(item);
+                                        }}
+                                    />
+                                    <IconButton
+                                        icon={"delete"}
+                                        mode="contained"
+                                        style={{
+                                            borderRadius: roundness,
+                                        }}
+                                        size={14}
+                                        contentStyle={{
+                                            padding: 0,
+                                        }}
+                                        containerColor={colors.elevation.level5}
+                                        onPress={() => {
+                                            handleDelete(item.id);
+                                        }}
+                                    />
+                                </View>
+                            }
                         />
                     )}
                 />

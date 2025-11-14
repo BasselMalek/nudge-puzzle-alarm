@@ -7,17 +7,21 @@ import { setLinkingScheme } from "@/modules/expo-alarm-manager";
 const BootTask = async () => {
     let db;
     try {
-        //TODO: should i move the linking scheme to some sort of storage?
-        setLinkingScheme("nudge://alarms");
+        setLinkingScheme("nudge://alarmScreen");
         db = await s.openDatabaseAsync("nudge_alarms.db");
         const rows = await db.getAllAsync<AlarmDto>(
             "SELECT * FROM alarms WHERE is_enabled = 1"
         );
         const result = await rescheduleAllForOnBoot(rows.map(parseAlarm));
+        console.log(
+            `NUDGE_DEBUG: HeadlessJS scheduling done ${
+                result ? "successfully" : "unsuccessfully"
+            }`
+        );
     } catch (e) {
         console.log(e);
     } finally {
-        db?.closeAsync();
+        await db?.closeAsync();
     }
     return;
 };

@@ -1,53 +1,47 @@
-import { Stack, useRouter } from "expo-router";
+import { Stack } from "expo-router";
 import {
     SafeAreaProvider,
     useSafeAreaInsets,
 } from "react-native-safe-area-context";
-import { MD3DarkTheme, MD3LightTheme, PaperProvider } from "react-native-paper";
-import { Linking, useColorScheme } from "react-native";
+import {
+    Button,
+    MD3DarkTheme,
+    MD3LightTheme,
+    PaperProvider,
+    Text,
+} from "react-native-paper";
+import { useColorScheme } from "react-native";
 import { useMaterial3Theme } from "@pchmn/expo-material3-theme";
 import { lightPalette, darkPalette } from "@/constants/customTheme";
 import { SQLiteProvider } from "expo-sqlite";
 import AsyncStorage from "expo-sqlite/kv-store";
-import { useEffect } from "react";
-import { checkExtras } from "@/modules/expo-alarm-manager";
+
+export const unstable_settings = {
+    initialRouteName: "index",
+};
+
+console.log("NUDGE_DEBUG: Main layout launching...");
 
 export default function RootLayout() {
     const colorScheme = useColorScheme();
     const safeInsets = useSafeAreaInsets();
     const { theme } = useMaterial3Theme();
-    const router = useRouter();
-
-    useEffect(() => {
-        void (async () => {
-            try {
-                const url = await Linking.getInitialURL();
-                if (url?.match("nudge://alarms/*")) {
-                    const path = url.replace(/^nudge:\/\//, "/");
-                    router.push(path as any);
-                } else {
-                    const extras = checkExtras();
-                    if (extras) {
-                        router.push(`/alarms/${extras.alarmId}`);
-                    }
-                }
-            } catch (err) {
-                console.error("Failed to handle initial URL:", err);
-            }
-        })();
-    }, [router]);
 
     let paperTheme;
     const colorSettings = AsyncStorage.getItemSync("systemColors");
+    let mode = AsyncStorage.getItemSync("themeMode");
+    mode = mode === "system" ? null : mode;
+    console.log(mode);
+
     if (colorSettings === null || colorSettings === "false") {
         void AsyncStorage.setItemAsync("systemColors", "false");
         paperTheme =
-            colorScheme === "dark"
+            (mode ?? colorScheme) === "dark"
                 ? { ...MD3DarkTheme, colors: darkPalette.colors }
                 : { ...MD3LightTheme, colors: lightPalette.colors };
     } else {
         paperTheme =
-            colorScheme === "dark"
+            (mode ?? colorScheme) === "dark"
                 ? { ...MD3DarkTheme, colors: theme.dark }
                 : { ...MD3LightTheme, colors: theme.light };
     }
@@ -75,14 +69,13 @@ export default function RootLayout() {
                             }}
                         />
                         <Stack.Screen
-                            name="alarms/[id]"
+                            name="alarmScreen"
                             options={{ headerShown: false }}
                         />
                         <Stack.Screen
                             name="settings"
                             options={{
                                 headerTitle: "Settings",
-                                presentation: "modal",
                                 headerStyle: {
                                     backgroundColor:
                                         paperTheme.colors.background,
@@ -104,7 +97,6 @@ export default function RootLayout() {
                             name="settingsScreens"
                             options={{
                                 headerShown: false,
-                                presentation: "modal",
                                 headerStyle: {
                                     backgroundColor:
                                         paperTheme.colors.background,
@@ -126,11 +118,15 @@ export default function RootLayout() {
                             name="alarmOptions"
                             options={{
                                 headerTitle: "",
+                                headerRight: () => (
+                                    <Button>
+                                        <Text>{"Save"}</Text>
+                                    </Button>
+                                ),
                                 headerStyle: {
                                     backgroundColor:
                                         paperTheme.colors.background,
                                 },
-                                presentation: "modal",
                                 headerTintColor: paperTheme.colors.onBackground,
                                 contentStyle: {
                                     display: "flex",

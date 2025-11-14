@@ -7,26 +7,47 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.os.Build
-import androidx.annotation.RequiresApi
+import android.util.Log
 import androidx.annotation.RequiresPermission
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.net.toUri
-import com.facebook.react.HeadlessJsTaskService
 
-@Suppress("UsePropertyAccessSyntax")
+@Suppress("UsePropertyAccessSyntax", "DEPRECATION")
 class AlarmReceiver : BroadcastReceiver() {
 
     companion object {
-        private var channelsCreated = false
+        private var channelCreated = false
     }
 
     @RequiresPermission(Manifest.permission.POST_NOTIFICATIONS)
     @SuppressLint("NewApi")
     override fun onReceive(context: Context, intent: Intent) {
+        Log.d("NUDGE_DEBUG", "in onReceive")
         when (intent.action) {
             Intent.ACTION_BOOT_COMPLETED -> {
                 handleBootCompleted(context)
+            }
+
+            "expo.modules.alarmmanager.ACTION_SHOW_DOUBLE_CHECK" -> {
+                handleDoubleCheckTrigger(context, intent)
+            }
+
+            "expo.modules.alarmmanager.ACTION_DISMISS_DOUBLE_CHECK" -> {
+                val alarmId = intent.getStringExtra("alarm_id")
+                val dismissHandler = intent.getStringExtra("dismissHandler")
+
+                val deepLinkIntent = Intent(Intent.ACTION_VIEW).apply {
+                    data = dismissHandler?.toUri()
+                    putExtra("signal", "DISMISS")
+                    putExtra("alarm_id", alarmId)
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                }
+
+                context.startActivity(deepLinkIntent)
+                alarmId?.let {
+                    NotificationManagerCompat.from(context).cancel(it.hashCode())
+                }
             }
 
             else -> {
@@ -36,7 +57,6 @@ class AlarmReceiver : BroadcastReceiver() {
     }
 
     private fun handleBootCompleted(context: Context) {
-
         val rescheduleRequest =
             androidx.work.OneTimeWorkRequest.Builder(WorkManagerHeadlessJSWorker::class.java).build()
         androidx.work.WorkManager.getInstance(context).enqueueUniqueWork(
@@ -48,18 +68,37 @@ class AlarmReceiver : BroadcastReceiver() {
     private fun handleAlarmTrigger(context: Context, intent: Intent) {
         val alarmId = intent.getStringExtra("alarm_id") ?: return
         val linkingScheme = intent.getStringExtra("linking_scheme") ?: return
-        val shouldVibrate = intent.getBooleanExtra("vibrate", false)
 
-        ensureNotificationChannelsExist(context)
-        showFullScreenNotification(context, alarmId, linkingScheme, shouldVibrate)
+        ensureNotificationChannelExists(context)
+        showFullScreenNotification(context, alarmId, linkingScheme)
     }
 
-    private fun ensureNotificationChannelsExist(context: Context) {
-        if (!channelsCreated && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channelWithVibration = NotificationChannel(
-                "alarm_channel_vibrate", "Alarm Notifications", NotificationManager.IMPORTANCE_HIGH
+    @RequiresPermission(Manifest.permission.POST_NOTIFICATIONS)
+    private fun handleDoubleCheckTrigger(context: Context, intent: Intent) {
+        val alarmId = intent.getStringExtra("alarm_id") ?: return
+        val dismissHandler = intent.getStringExtra("dismiss_handler") ?: return
+
+        ensureNotificationChannelExists(context)
+        showDoubleCheckNotification(context, alarmId, dismissHandler)
+    }
+
+    private fun ensureNotificationChannelExists(context: Context) {
+        if (!channelCreated && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = NotificationChannel(
+                "alarm_channel", "Alarm Notifications", NotificationManager.IMPORTANCE_HIGH
             ).apply {
                 description = "Notifications for alarms"
+                setBypassDnd(true)
+                enableLights(true)
+                enableVibration(false)
+                lockscreenVisibility = NotificationCompat.VISIBILITY_PUBLIC
+                setShowBadge(true)
+                setSound(null, null)
+            }
+            val doubleCheckChannel = NotificationChannel(
+                "double_check_channel", "Double Check Notifications", NotificationManager.IMPORTANCE_HIGH
+            ).apply {
+                description = "Notifications for double checks"
                 setBypassDnd(true)
                 enableLights(true)
                 enableVibration(true)
@@ -68,21 +107,10 @@ class AlarmReceiver : BroadcastReceiver() {
                 setSound(null, null)
             }
 
-            val channelWithoutVibration = NotificationChannel(
-                "alarm_channel_no_vibrate", "Alarm Notifications (Silent)", NotificationManager.IMPORTANCE_HIGH
-            ).apply {
-                description = "Notifications for alarms without vibration"
-                setBypassDnd(true)
-                enableLights(true)
-                enableVibration(false)
-                lockscreenVisibility = NotificationCompat.VISIBILITY_PUBLIC
-                setShowBadge(true)
-                setSound(null, null)
-            }
-
             val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-            notificationManager.createNotificationChannels(listOf(channelWithVibration, channelWithoutVibration))
-            channelsCreated = true
+            notificationManager.createNotificationChannel(channel)
+            notificationManager.createNotificationChannel(doubleCheckChannel)
+            channelCreated = true
         }
     }
 
@@ -91,13 +119,15 @@ class AlarmReceiver : BroadcastReceiver() {
         context: Context,
         alarmId: String,
         linkingScheme: String,
-        vibrate: Boolean,
     ) {
         val deepLinkIntent = Intent(Intent.ACTION_VIEW).apply {
-            data = "${linkingScheme}/${alarmId}".toUri()
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
-            putExtra("alarm_triggered", true)
+            data = linkingScheme.toUri()
+            flags =
+                // I will probably switch to CLEAR_TASK if all else fails. I'd rather it be reliable with subpar UX over good UX but missing an alarm.
+                Intent.FLAG_ACTIVITY_NEW_TASK  or Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP
+            putExtra("signal", "ALARM")
             putExtra("alarm_id", alarmId)
+            putExtra("alarm_triggered", true)
             putExtra("alarm_timestamp", System.currentTimeMillis())
         }
 
@@ -116,7 +146,7 @@ class AlarmReceiver : BroadcastReceiver() {
             options.toBundle()
         )
 
-        val channelId = if (vibrate) "alarm_channel_vibrate" else "alarm_channel_no_vibrate"
+        val channelId = "alarm_channel"
 
         val keyguardManager = context.getSystemService(Context.KEYGUARD_SERVICE) as KeyguardManager
         val isLocked = keyguardManager.isKeyguardLocked
@@ -145,8 +175,6 @@ class AlarmReceiver : BroadcastReceiver() {
                         .setFullScreenIntent(fullScreenPendingIntent, true).setAutoCancel(true)
                         .setVisibility(NotificationCompat.VISIBILITY_PUBLIC).setOngoing(true).setSound(null).build()
 
-                notification.flags = notification.flags or Notification.FLAG_INSISTENT
-
                 NotificationManagerCompat.from(context).notify(alarmId.hashCode(), notification)
             }
         } else {
@@ -164,5 +192,43 @@ class AlarmReceiver : BroadcastReceiver() {
                 e.printStackTrace()
             }
         }
+    }
+
+    @RequiresPermission(Manifest.permission.POST_NOTIFICATIONS)
+    private fun showDoubleCheckNotification(
+        context: Context, alarmId: String, dismissHandler: String
+    ) {
+        val dismissIntent = Intent(context, AlarmReceiver::class.java).apply {
+            action = "expo.modules.alarmmanager.ACTION_DISMISS_DOUBLE_CHECK"
+            putExtra("alarm_id", alarmId)
+            putExtra("dismissHandler", dismissHandler)
+        }
+
+        val dismissPendingIntent = PendingIntent.getBroadcast(
+            context,
+            alarmId.hashCode(),
+            dismissIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
+        val notification = NotificationCompat.Builder(context, "double_check_channel")
+            .setSmallIcon(android.R.drawable.ic_lock_idle_alarm)
+            .setContentTitle("Nudge")
+            .setContentText("Alarm will ring again soon.")
+            .setPriority(NotificationCompat.PRIORITY_MAX)
+            .setCategory(NotificationCompat.CATEGORY_ALARM)
+            .addAction(
+                0,
+                "Dismiss",
+                dismissPendingIntent
+            )
+            .setAutoCancel(true)
+            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+            .setOngoing(true)
+            .setSound(null)
+            .build()
+
+        NotificationManagerCompat.from(context).notify(alarmId.hashCode(), notification)
+
     }
 }

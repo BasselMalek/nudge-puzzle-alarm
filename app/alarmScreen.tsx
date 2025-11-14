@@ -1,8 +1,8 @@
-import { View } from "react-native";
+import { BackHandler, View } from "react-native";
 import { Button, IconButton, Text, useTheme } from "react-native-paper";
 import { StatusBar } from "expo-status-bar";
-import { router, useLocalSearchParams, useNavigation } from "expo-router";
-import { useEffect, useState } from "react";
+import { useLocalSearchParams } from "expo-router";
+import { useEffect, useRef, useState } from "react";
 import { parseAlarm, saveAlarmDirect } from "@/hooks/useAlarms";
 import { Alarm, AlarmDto } from "@/types/Alarm";
 import { useSQLiteContext } from "expo-sqlite";
@@ -13,20 +13,45 @@ import {
     handleDaisyChainAfterRing,
     scheduleSnoozedAlarm,
 } from "@/utils/alarmSchedulingHelpers";
+import * as AsyncStorage from "expo-sqlite/kv-store";
+import { handleDismiss, handleSnooze } from "@/utils/boosterHelpers";
+import { usePreventRemove } from "@react-navigation/native";
+
+type SnoozeState = {
+    uses: number;
+    decay: number;
+    duration: number;
+};
+
+AlarmManager.setShowWhenLocked(true);
 
 export default function AlarmScreen() {
     const { id } = useLocalSearchParams();
     const { colors } = useTheme();
     const [alarm, setAlarm] = useState<Alarm>();
     const db = useSQLiteContext();
-    const alarmAud = AlarmManager.useAlarmPlayer();
+    const alarmPlayer = AlarmManager.useAlarmPlayer();
 
     const [isPuzzleVisible, setIsPuzzleVisible] = useState(false);
     const [puzzlesComplete, setPuzzlesComplete] = useState(false);
+    const [snoozeDuration, setSnoozeDuration] = useState(5);
+    const [snoozeAvailable, setSnoozeAvailable] = useState(true);
+    const dismissable = useRef(true);
 
     useEffect(() => {
-        AlarmManager.setShowWhenLocked(true);
+        const backHandler = BackHandler.addEventListener(
+            "hardwareBackPress",
+            () => {
+                return null;
+            }
+        );
+        return () => backHandler.remove();
     }, []);
+
+    usePreventRemove(false, () => {
+        // BackHandler.exitApp();
+        console.log("f");
+    });
 
     useEffect(() => {
         const initial = db.getFirstSync<AlarmDto>(
@@ -40,39 +65,86 @@ export default function AlarmScreen() {
         }
     }, [db, id]);
 
+    useEffect(() => {
+        if (!alarm?.id) return;
+        const checkSnoozeState = () => {
+            const unparsedSnoozeState = AsyncStorage.Storage.getItemSync(
+                alarm.id
+            );
+            if (!unparsedSnoozeState || unparsedSnoozeState === "disabled") {
+                if (alarm.boosterSet.snoozeMods.enabled) {
+                    const config = alarm.boosterSet.snoozeMods.config;
+                    setSnoozeAvailable(
+                        config.snoozeUses > 0 && config.snoozeStartingTime > 0
+                    );
+                    setSnoozeDuration(config.snoozeStartingTime);
+                } else {
+                    setSnoozeAvailable(false);
+                }
+            } else {
+                const snoozeState = JSON.parse(
+                    unparsedSnoozeState
+                ) as SnoozeState;
+                setSnoozeAvailable(
+                    snoozeState.uses > 0 && snoozeState.duration > 0
+                );
+                setSnoozeDuration(snoozeState.duration);
+            }
+        };
+
+        checkSnoozeState();
+    }, [alarm]);
+
     const dismissAlarm = async () => {
-        AlarmManager.setShowWhenLocked(false, alarm?.id);
-        const newAlarm = await handleDaisyChainAfterRing(alarm!);
-        await saveAlarmDirect(newAlarm.id, db, newAlarm);
-        await alarmAud?.stop();
-        // await alarmAud?.release();
-        router.navigate("/?dismiss=true");
+        if (!alarm) return;
+        try {
+            const newAlarm = await handleDaisyChainAfterRing(alarm);
+            await saveAlarmDirect(newAlarm.id, db, newAlarm);
+            await alarmPlayer?.stop();
+            await alarmPlayer?.release();
+            AlarmManager.setShowWhenLocked(false, alarm.id);
+            await handleDismiss({
+                id: alarm.id,
+                doubleChecked: alarm.boosterSet.postDismissCheck.enabled,
+                delayPeriod:
+                    alarm.boosterSet.postDismissCheck.config.postDismissDelay,
+                gracePeriod:
+                    alarm.boosterSet.postDismissCheck.config.checkerGraceTime,
+                launch_package: alarm.boosterSet.postDismissLaunch.enabled
+                    ? alarm.boosterSet.postDismissLaunch.config.packageName
+                    : undefined,
+            });
+        } catch (error) {
+            console.error("Failed to dismiss alarm:", error);
+            dismissable.current = true;
+        }
     };
 
     const snoozeAlarm = async () => {
-        AlarmManager.setShowWhenLocked(false, alarm?.id);
-        await scheduleSnoozedAlarm(alarm!, 5);
-        await alarmAud?.stop();
-        await alarmAud?.release();
-        router.navigate("/?dismiss=true");
+        dismissable.current = false;
+        await scheduleSnoozedAlarm(alarm!, snoozeDuration);
+        await alarmPlayer?.stop();
+        await alarmPlayer?.release();
+        handleSnooze({
+            id: alarm!.id,
+            boosterInfo: JSON.stringify(alarm!.boosterSet),
+        });
     };
-    const nav = useNavigation();
-
-    useEffect(() => {
-        const listener = nav.addListener("beforeRemove", (e) =>
-            e.preventDefault()
-        );
-        return () => listener();
-    }, [nav]);
 
     useEffect(() => {
         void (async () => {
-            if (alarmAud && alarm?.ringtone && alarm.ringtone.uri !== "none") {
-                await alarmAud.setSource(alarm.ringtone.uri);
-                await alarmAud.play();
+            if (
+                alarmPlayer &&
+                alarm?.ringtone &&
+                alarm.ringtone.uri !== "none"
+            ) {
+                //TODO: Decouple vibration from sound to enable silent vibrating alarms.
+                await alarmPlayer.setSource(alarm.ringtone.uri);
+                await alarmPlayer.setVibration(alarm.vibrate);
+                await alarmPlayer.play();
             }
         })();
-    }, [alarmAud, alarm]);
+    }, [alarmPlayer, alarm]);
 
     return (
         <View
@@ -146,7 +218,12 @@ export default function AlarmScreen() {
                         }}
                         onPress={() => {
                             if (puzzlesComplete) {
-                                void dismissAlarm();
+                                try {
+                                    dismissable.current = false;
+                                    void dismissAlarm();
+                                } catch (error) {
+                                    console.error(error);
+                                }
                             } else {
                                 if (
                                     alarm?.puzzles.some(
@@ -179,7 +256,7 @@ export default function AlarmScreen() {
                         justifyContent: "center",
                     }}
                 >
-                    {!puzzlesComplete && (
+                    {snoozeAvailable && (
                         <Button
                             mode="outlined"
                             icon="sleep"

@@ -17,7 +17,7 @@ export const initDatabaseTableIfFirstBoot = (db: SQLiteDatabase) => {
             vibrate BOOLEAN NOT NULL DEFAULT 0,
             ringtone TEXT,
             puzzles TEXT,
-            power_ups TEXT,
+            booster_set TEXT,
             is_enabled BOOLEAN NOT NULL DEFAULT 1,
             last_modified DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
           )

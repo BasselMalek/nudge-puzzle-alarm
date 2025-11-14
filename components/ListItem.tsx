@@ -1,12 +1,6 @@
 import { View } from "react-native";
-import {
-    Text,
-    Card,
-    Icon,
-    useTheme,
-    IconButton,
-    CardProps,
-} from "react-native-paper";
+import { Text, Card, Icon, useTheme, CardProps } from "react-native-paper";
+import { ReactNode } from "react";
 
 export default function ListItem(
     props: {
@@ -14,21 +8,11 @@ export default function ListItem(
         size?: number;
         icon?: string;
         desc?: string;
-        buttons?: boolean;
-        buttonOneAction?: () => void;
-        buttonTwoAction?: () => void;
+        rightContent?: ReactNode;
     } & Omit<CardProps, "children">
 ) {
-    const { colors, roundness } = useTheme();
-    const {
-        title,
-        icon,
-        desc,
-        buttons,
-        buttonOneAction,
-        buttonTwoAction,
-        size = 24,
-    } = props;
+    const { colors } = useTheme();
+    const { title, icon, desc, rightContent, size = 24 } = props;
 
     return (
         <Card onPress={props.onPress} style={props.style}>
@@ -46,6 +30,7 @@ export default function ListItem(
                         flexDirection: "row",
                         alignItems: "center",
                         gap: 10,
+                        flex: 1,
                     }}
                 >
                     {icon !== undefined && (
@@ -61,7 +46,7 @@ export default function ListItem(
                             />
                         </>
                     )}
-                    <View>
+                    <View style={{ flex: 1 }}>
                         <Text variant="labelLarge">{title}</Text>
                         {desc !== undefined && (
                             <Text variant="bodySmall" style={{ opacity: 0.85 }}>
@@ -70,40 +55,10 @@ export default function ListItem(
                         )}
                     </View>
                 </View>
-                <View
-                    style={{
-                        flexDirection: "row",
-                        alignItems: "center",
-                        display: buttons ? "flex" : "none",
-                    }}
-                >
-                    <IconButton
-                        icon={"pencil"}
-                        mode="contained"
-                        style={{
-                            borderRadius: roundness,
-                        }}
-                        size={14}
-                        contentStyle={{
-                            padding: 0,
-                        }}
-                        containerColor={colors.elevation.level5}
-                        onPress={buttonOneAction}
-                    />
-                    <IconButton
-                        icon={"delete"}
-                        mode="contained"
-                        style={{
-                            borderRadius: roundness,
-                        }}
-                        size={14}
-                        contentStyle={{
-                            padding: 0,
-                        }}
-                        containerColor={colors.elevation.level5}
-                        onPress={buttonTwoAction}
-                    />
-                </View>
+
+                {rightContent && (
+                    <View style={{ flexShrink: 0 }}>{rightContent}</View>
+                )}
             </Card.Content>
         </Card>
     );

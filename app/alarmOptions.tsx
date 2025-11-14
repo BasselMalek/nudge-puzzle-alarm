@@ -4,21 +4,24 @@ import {
     Card,
     Icon,
     TextInput,
-    FAB,
     TouchableRipple,
     Button,
 } from "react-native-paper";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import WeekdayRepeat from "@/components/WeekdayRepeat";
-import { useCallback, useRef, useState } from "react";
-import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
+import { useCallback, useEffect, useRef, useState } from "react";
+import {
+    useRouter,
+    useFocusEffect,
+    useLocalSearchParams,
+    useNavigation,
+} from "expo-router";
 import { TimePickerModal } from "react-native-paper-dates";
 import { Alarm, AlarmDto } from "@/types/Alarm";
 import { createAlarm, parseAlarm, saveAlarmDirect } from "@/hooks/useAlarms";
 import { useSQLiteContext } from "expo-sqlite";
 import { StatusBar } from "expo-status-bar";
-import { FlatList, View } from "react-native";
+import { View } from "react-native";
 import { DaySet } from "@/types/DaySet";
 import { scheduleNextInstance } from "@/utils/alarmSchedulingHelpers";
 import SoundOptionsModal from "@/components/SoundOptionsModal";
@@ -31,6 +34,9 @@ import ReorderableList, {
 } from "react-native-reorderable-list";
 import DraggableListItem from "@/components/DraggableListItem";
 import ListItem from "@/components/ListItem";
+import BoosterConfigCards from "@/components/BoosterConfigCards";
+import { BoosterSet } from "@/types/Boosters";
+import Storage from "expo-sqlite/kv-store";
 
 const blankRepeat: DaySet = {
     0: {
@@ -71,7 +77,6 @@ const blankRepeat: DaySet = {
 };
 
 export default function AlarmOptions() {
-    const insets = useSafeAreaInsets();
     const { colors, roundness } = useTheme();
     const { id } = useLocalSearchParams();
     const db = useSQLiteContext();
@@ -80,23 +85,13 @@ export default function AlarmOptions() {
     const [puzzlesModalVisible, setPuzzlesModalVisible] = useState(false);
     const editPuzzleAtIndex = useRef<number | undefined>(undefined);
     const [alarm, setAlarm] = useState<Alarm>(createAlarm({ name: "" }));
-
-    useFocusEffect(
-        useCallback(() => {
-            if (id !== "new") {
-                const initial = db.getFirstSync<AlarmDto>(
-                    "SELECT * FROM alarms WHERE id = ?",
-                    [id as string]
-                );
-                if (!initial) {
-                    router.back();
-                } else {
-                    setAlarm(parseAlarm(initial));
-                }
-            }
-        }, [db, id])
-    );
-
+    const nav = useNavigation();
+    const router = useRouter();
+    const [startDay, setStartDay] = useState<0 | 1 | 6>(0);
+    useFocusEffect(() => {
+        const t = Storage.getItemSync("weekStartDay");
+        setStartDay(t === "SAT" ? 6 : t === "SUN" ? 0 : 1);
+    });
     const cleanUpAlarm = useCallback(() => {
         let cleanedUpAlarm = { ...alarm, isEnabled: true };
         if (!alarm.repeat) {
@@ -128,6 +123,51 @@ export default function AlarmOptions() {
         editPuzzleAtIndex.current = undefined;
         setPuzzlesModalVisible(vis);
     }, []);
+
+    useFocusEffect(
+        useCallback(() => {
+            nav.setOptions({
+                headerRight: () => (
+                    <Button
+                        onPress={() => {
+                            void (async () => {
+                                try {
+                                    const clean = cleanUpAlarm();
+                                    await saveAlarmDirect(
+                                        id as string,
+                                        db,
+                                        clean
+                                    );
+                                    await scheduleNextInstance(clean);
+                                    router.navigate("/?update=true");
+                                } catch (err) {
+                                    console.error("Failed to save alarm:", err);
+                                }
+                            })();
+                        }}
+                    >
+                        <Text>{"Save"}</Text>
+                    </Button>
+                ),
+            });
+        }, [cleanUpAlarm, db, id, nav, router])
+    );
+
+    useFocusEffect(
+        useCallback(() => {
+            if (id !== "new") {
+                const initial = db.getFirstSync<AlarmDto>(
+                    "SELECT * FROM alarms WHERE id = ?",
+                    [id as string]
+                );
+                if (!initial) {
+                    router.back();
+                } else {
+                    setAlarm(parseAlarm(initial));
+                }
+            }
+        }, [db, id, router])
+    );
 
     return (
         <GestureHandlerRootView
@@ -269,7 +309,7 @@ export default function AlarmOptions() {
                         onDayMapChange={(selected: DaySet) =>
                             setAlarm({ ...alarm, repeatDays: selected })
                         }
-                        startDay={0}
+                        startDay={startDay}
                     />
                 </Card.Content>
             </Card>
@@ -282,20 +322,23 @@ export default function AlarmOptions() {
             />
             <View
                 style={{
-                    flex: 1,
-                    gap: 10,
-                    paddingHorizontal: 10,
                     marginTop: 10,
+                    maxHeight: "30%",
+                    paddingHorizontal: 10,
                 }}
             >
                 <Text variant="titleMedium">{"Puzzles"}</Text>
                 <ReorderableList
                     showsVerticalScrollIndicator={false}
-                    ItemSeparatorComponent={() => (
-                        <View style={{ height: 10 }} />
-                    )}
+                    // ItemSeparatorComponent={() => (
+                    //     <View style={{ height: 10 }} />
+                    // )}
                     data={alarm.puzzles}
-                    fadingEdgeLength={{ start: 0, end: 5 }}
+                    // style={{
+                    //     paddingVertical: 10,
+                    //     paddingHorizontal: 3,
+                    // }}
+                    fadingEdgeLength={{ start: 10, end: 10 }}
                     onReorder={({ from, to }: ReorderableListReorderEvent) => {
                         setAlarm((prevAlarm) => ({
                             ...prevAlarm,
@@ -303,6 +346,11 @@ export default function AlarmOptions() {
                         }));
                     }}
                     keyExtractor={(item) => item.id}
+                    contentContainerStyle={{
+                        gap: 10,
+                        paddingVertical: 10,
+                        paddingHorizontal: 3,
+                    }}
                     renderItem={({ item, index }) => {
                         return (
                             <DraggableListItem
@@ -329,7 +377,7 @@ export default function AlarmOptions() {
                     ListFooterComponent={() => {
                         return (
                             <>
-                                <View style={{ height: 10 }} />
+                                {/* <View style={{ height: 10 }} /> */}
                                 {alarm.puzzles.length < 5 && (
                                     <ListItem
                                         disabled={true}
@@ -337,7 +385,7 @@ export default function AlarmOptions() {
                                         style={{ height: 60 }}
                                         title={"New Puzzle"}
                                         desc={
-                                            "Tip: drag your puzzles to change their order"
+                                            "Drag a puzzle to change its order"
                                         }
                                         onPress={() => {
                                             editPuzzleAtIndex.current =
@@ -354,80 +402,18 @@ export default function AlarmOptions() {
             <View
                 style={{
                     flex: 1,
-                    gap: 5,
                     paddingHorizontal: 10,
+                    // gap: 10,
                 }}
             >
                 <Text variant="titleMedium">{"Boosters"}</Text>
-                <FlatList
-                    showsVerticalScrollIndicator={false}
-                    fadingEdgeLength={{ start: 0, end: 5 }}
-                    ItemSeparatorComponent={() => (
-                        <View style={{ height: 10 }} />
-                    )}
-                    data={[]}
-                    // keyExtractor={(item) => item.id}
-                    renderItem={({ item, index }) => {
-                        return (
-                            // <ListItem
-                            //     title={item.title??""}
-                            //     icon={item.icon}
-                            //     buttons
-                            //     buttonOneAction={() => {
-                            //         editPuzzleAtIndex.current = index;
-                            //         setPuzzlesModalVisible(true);
-                            //     }}
-                            //     buttonTwoAction={() => {
-                            //         setAlarm((prevAlarm) => ({
-                            //             ...prevAlarm,
-                            //             puzzles: prevAlarm.puzzles.filter(
-                            //                 (puzzle) => puzzle.id !== item.id
-                            //             ),
-                            //         }));
-                            //     }}
-                            // />
-                            <></>
-                        );
-                    }}
-                    ListFooterComponent={() => {
-                        return (
-                            <>
-                                <View style={{ height: 10 }} />
-                                <ListItem
-                                    icon={"plus"}
-                                    style={{ height: 60 }}
-                                    title={"New Booster"}
-                                    onPress={() => {
-                                        editPuzzleAtIndex.current = undefined;
-                                        setPuzzlesModalVisible(true);
-                                    }}
-                                />
-                            </>
-                        );
+                <BoosterConfigCards
+                    boosters={alarm.boosterSet}
+                    setBoosters={(newSet: BoosterSet) => {
+                        setAlarm({ ...alarm, boosterSet: newSet });
                     }}
                 />
             </View>
-            <FAB
-                icon="check"
-                style={{
-                    position: "absolute",
-                    bottom: insets.bottom + 10,
-                    right: insets.right + 20,
-                }}
-                onPress={() => {
-                    void (async () => {
-                        try {
-                            const clean = cleanUpAlarm();
-                            await saveAlarmDirect(id as string, db, clean);
-                            await scheduleNextInstance(clean);
-                            router.navigate("/?update=true");
-                        } catch (err) {
-                            console.error("Failed to save alarm:", err);
-                        }
-                    })();
-                }}
-                onLongPress={() => console.log(alarm)}
-            />
         </GestureHandlerRootView>
     );
 }

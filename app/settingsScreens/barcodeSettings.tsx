@@ -11,6 +11,7 @@ import {
     Card,
     useTheme,
     Icon,
+    IconButton,
 } from "react-native-paper";
 import { CameraView, useCameraPermissions } from "expo-camera";
 
@@ -22,7 +23,7 @@ export default function BarcodeSettings() {
     const [isScanning, setIsScanning] = useState(false);
     const [permission, requestPermission] = useCameraPermissions();
     const db = useSQLiteContext();
-    const { roundness } = useTheme();
+    const { colors, roundness } = useTheme();
 
     const checkifRegistered = useCallback(
         (id: string) => registeredCodes.map((val) => val.id).includes(id),
@@ -76,6 +77,10 @@ export default function BarcodeSettings() {
                         setRegisteredCodes(items);
                     });
             })();
+
+            return () => {
+                setIsScanning(false);
+            };
         }, [db])
     );
 
@@ -179,12 +184,12 @@ export default function BarcodeSettings() {
                     </Card.Content>
                 </Card>
             )}
-            <View style={{ flex: 3, gap: 15 }}>
+            <View style={{ flex: 3 }}>
                 <Text variant="titleMedium">{"Registered Codes"}</Text>
                 <FlatList
-                    fadingEdgeLength={{ start: 0, end: 5 }}
+                    fadingEdgeLength={{ start: 10, end: 10 }}
                     data={registeredCodes}
-                    contentContainerStyle={{ gap: 10 }}
+                    contentContainerStyle={{ gap: 10, paddingVertical: 10 }}
                     ListFooterComponent={() => (
                         <View
                             style={{
@@ -207,14 +212,47 @@ export default function BarcodeSettings() {
                         <ListItem
                             title={item.name!}
                             style={{ height: 70 }}
-                            buttons
-                            buttonOneAction={() => {
-                                setCustomName(item.name);
-                                setScannedCode(item);
-                            }}
-                            buttonTwoAction={() => {
-                                handleDelete(item.id);
-                            }}
+                            rightContent={
+                                <View
+                                    style={{
+                                        flexDirection: "row",
+                                        alignItems: "center",
+                                        gap: 8,
+                                    }}
+                                >
+                                    <IconButton
+                                        icon={"pencil"}
+                                        mode="contained"
+                                        style={{
+                                            borderRadius: roundness,
+                                        }}
+                                        size={14}
+                                        contentStyle={{
+                                            padding: 0,
+                                        }}
+                                        containerColor={colors.elevation.level5}
+                                        onPress={() => {
+                                            setCustomName(item.name);
+                                            setScannedCode(item);
+                                        }}
+                                    />
+                                    <IconButton
+                                        icon={"delete"}
+                                        mode="contained"
+                                        style={{
+                                            borderRadius: roundness,
+                                        }}
+                                        size={14}
+                                        contentStyle={{
+                                            padding: 0,
+                                        }}
+                                        containerColor={colors.elevation.level5}
+                                        onPress={() => {
+                                            handleDelete(item.id);
+                                        }}
+                                    />
+                                </View>
+                            }
                         />
                     )}
                 />
