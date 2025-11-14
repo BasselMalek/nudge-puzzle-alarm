@@ -9,7 +9,7 @@ import {
 } from "react-native-paper";
 import { LinearGradient } from "expo-linear-gradient";
 import WeekdayRepeat from "@/components/WeekdayRepeat";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
     useRouter,
     useFocusEffect,
@@ -36,6 +36,7 @@ import DraggableListItem from "@/components/DraggableListItem";
 import ListItem from "@/components/ListItem";
 import BoosterConfigCards from "@/components/BoosterConfigCards";
 import { BoosterSet } from "@/types/Boosters";
+import Storage from "expo-sqlite/kv-store";
 
 const blankRepeat: DaySet = {
     0: {
@@ -86,7 +87,11 @@ export default function AlarmOptions() {
     const [alarm, setAlarm] = useState<Alarm>(createAlarm({ name: "" }));
     const nav = useNavigation();
     const router = useRouter();
-
+    const [startDay, setStartDay] = useState<0 | 1 | 6>(0);
+    useFocusEffect(() => {
+        const t = Storage.getItemSync("weekStartDay");
+        setStartDay(t === "SAT" ? 6 : t === "SUN" ? 0 : 1);
+    });
     const cleanUpAlarm = useCallback(() => {
         let cleanedUpAlarm = { ...alarm, isEnabled: true };
         if (!alarm.repeat) {
@@ -304,7 +309,7 @@ export default function AlarmOptions() {
                         onDayMapChange={(selected: DaySet) =>
                             setAlarm({ ...alarm, repeatDays: selected })
                         }
-                        startDay={0}
+                        startDay={startDay}
                     />
                 </Card.Content>
             </Card>

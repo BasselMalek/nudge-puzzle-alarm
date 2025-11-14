@@ -72,7 +72,6 @@ export default function RootLayout() {
                             name="settings"
                             options={{
                                 headerTitle: "Settings",
-                                presentation: "modal",
                                 headerStyle: {
                                     backgroundColor:
                                         paperTheme.colors.background,
@@ -94,7 +93,6 @@ export default function RootLayout() {
                             name="settingsScreens"
                             options={{
                                 headerShown: false,
-                                presentation: "modal",
                                 headerStyle: {
                                     backgroundColor:
                                         paperTheme.colors.background,
@@ -125,25 +123,7 @@ export default function RootLayout() {
                                     backgroundColor:
                                         paperTheme.colors.background,
                                 },
-                                presentation: "modal",
                                 headerTintColor: paperTheme.colors.onBackground,
-                                contentStyle: {
-                                    display: "flex",
-                                    flex: 1,
-                                    backgroundColor:
-                                        paperTheme.colors.background,
-                                    paddingTop: 10,
-                                    paddingLeft: safeInsets.left + 10,
-                                    paddingRight: safeInsets.right + 10,
-                                    paddingBottom: safeInsets.bottom + 10,
-                                    gap: 10,
-                                },
-                            }}
-                        />
-                        <Stack.Screen
-                            name="boosterMiddleware"
-                            options={{
-                                headerShown: false,
                                 contentStyle: {
                                     display: "flex",
                                     flex: 1,

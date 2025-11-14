@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState, useMemo } from "react";
+import { useCallback, useEffect, useState, useMemo, useRef } from "react";
 import { FlatList, View } from "react-native";
 import { Text, Card, useTheme, FAB, IconButton } from "react-native-paper";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -34,6 +34,11 @@ export default function Alarms() {
     const [loadStale, setLoadStale] = useState(true);
     const router = useRouter();
     const first = Storage.getItemSync("isFirstBoot");
+    const [startDay, setStartDay] = useState(0);
+    useFocusEffect(() => {
+        const t = Storage.getItemSync("weekStartDay");
+        setStartDay(t === "SAT" ? 6 : t === "SUN" ? 0 : 1);
+    });
 
     useEffect(() => {
         const checkInitialAlarm = async () => {
@@ -175,6 +180,7 @@ export default function Alarms() {
         ({ item }: { item: Alarm }) => (
             <AlarmCard
                 alarm={item}
+                startDay={startDay}
                 onDelete={() => {
                     deleteAlarm(item.id);
                 }}
@@ -186,7 +192,7 @@ export default function Alarms() {
                 }}
             />
         ),
-        [deleteAlarm, router, toggleAlarm]
+        [deleteAlarm, router, startDay, toggleAlarm]
     );
 
     const keyExtractor = useCallback((item: Alarm) => item.id, []);

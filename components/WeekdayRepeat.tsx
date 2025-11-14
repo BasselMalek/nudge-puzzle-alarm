@@ -120,9 +120,11 @@ export default function WeekdayRepeat(props: {
                 }}
             >
                 {weekOrder.map((dayIndex) => {
+                    console.log("localDaySet keys:", Object.keys(localDaySet));
+                    console.log("weekOrder:", weekOrder);
+
                     const dayData = localDaySet[dayIndex];
                     const isSelected = dayData.enabled && props.repeatEnabled;
-
                     return (
                         <Tag
                             key={dayIndex}

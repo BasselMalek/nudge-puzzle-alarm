@@ -14,7 +14,6 @@ export default function RootLayout() {
                     name="barcodeSettings"
                     options={{
                         headerTitle: "Barcode Settings",
-                        presentation: "modal",
                         headerStyle: {
                             backgroundColor: colors.background,
                         },
@@ -35,7 +34,6 @@ export default function RootLayout() {
                     name="nfcSettings"
                     options={{
                         headerTitle: "NFC Settings",
-                        presentation: "modal",
                         headerStyle: {
                             backgroundColor: colors.background,
                         },
@@ -56,7 +54,6 @@ export default function RootLayout() {
                     name="miscSettings"
                     options={{
                         headerTitle: "App Settings",
-                        presentation: "modal",
                         headerStyle: {
                             backgroundColor: colors.background,
                         },
