@@ -29,15 +29,19 @@ export default function RootLayout() {
 
     let paperTheme;
     const colorSettings = AsyncStorage.getItemSync("systemColors");
+    let mode = AsyncStorage.getItemSync("themeMode");
+    mode = mode === "system" ? null : mode;
+    console.log(mode);
+
     if (colorSettings === null || colorSettings === "false") {
         void AsyncStorage.setItemAsync("systemColors", "false");
         paperTheme =
-            colorScheme === "dark"
+            (mode ?? colorScheme) === "dark"
                 ? { ...MD3DarkTheme, colors: darkPalette.colors }
                 : { ...MD3LightTheme, colors: lightPalette.colors };
     } else {
         paperTheme =
-            colorScheme === "dark"
+            (mode ?? colorScheme) === "dark"
                 ? { ...MD3DarkTheme, colors: theme.dark }
                 : { ...MD3LightTheme, colors: theme.light };
     }

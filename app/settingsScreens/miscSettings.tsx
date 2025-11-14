@@ -12,7 +12,7 @@ export default function MiscSettings() {
     const [dayMenuVisible, setDayMenuVisible] = useState(false);
     const [volumeFadeIn, setVolumeFadeIn] = useState(false);
     const [upcomingAlarmNotif, setUpcomingAlarmNotif] = useState(false);
-    const [themeMode, setThemeMode] = useState("System");
+    const [themeMode, setThemeMode] = useState("system");
     const [themeMenuVisible, setThemeMenuVisible] = useState(false);
 
     useFocusEffect(
@@ -31,7 +31,10 @@ export default function MiscSettings() {
                 );
                 setUpcomingAlarmNotif(upcomingNotif === "true" ? true : false);
                 const themeValue = await AsyncStorage.getItemAsync("themeMode");
-                if (themeValue) setThemeMode(themeValue);
+                if (themeValue)
+                    setThemeMode(
+                        themeValue.charAt(0).toUpperCase() + themeValue.slice(1)
+                    );
             })();
         }, [])
     );
@@ -178,7 +181,7 @@ export default function MiscSettings() {
                                 setThemeMenuVisible(false);
                                 void AsyncStorage.setItemAsync(
                                     "themeMode",
-                                    "Light"
+                                    "light"
                                 );
                             }}
                         />
@@ -189,7 +192,7 @@ export default function MiscSettings() {
                                 setThemeMenuVisible(false);
                                 void AsyncStorage.setItemAsync(
                                     "themeMode",
-                                    "Dark"
+                                    "dark"
                                 );
                             }}
                         />
@@ -200,7 +203,7 @@ export default function MiscSettings() {
                                 setThemeMenuVisible(false);
                                 void AsyncStorage.setItemAsync(
                                     "themeMode",
-                                    "System"
+                                    "system"
                                 );
                             }}
                         />
