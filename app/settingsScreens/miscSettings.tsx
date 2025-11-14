@@ -111,18 +111,31 @@ export default function MiscSettings() {
                 title={"Upcoming Alarm Notification"}
                 desc={"Show notification before alarm rings"}
                 icon="bell-alert"
-                style={styles.listItem}
+                // style={styles.listItem}
+                // rightContent={
+                //     <Switch
+                //         value={upcomingAlarmNotif}
+                //         onValueChange={(newVal) => {
+                //             setUpcomingAlarmNotif(newVal);
+                //             void AsyncStorage.setItemAsync(
+                //                 "upcomingAlarmNotif",
+                //                 newVal ? "true" : "false"
+                //             );
+                //         }}
+                //     />
+                // }
+
+                style={[styles.listItem, { opacity: 0.6 }]}
                 rightContent={
-                    <Switch
-                        value={upcomingAlarmNotif}
-                        onValueChange={(newVal) => {
-                            setUpcomingAlarmNotif(newVal);
-                            void AsyncStorage.setItemAsync(
-                                "upcomingAlarmNotif",
-                                newVal ? "true" : "false"
-                            );
+                    <Text
+                        variant="bodySmall"
+                        style={{
+                            color: colors.onSurface,
+                            opacity: 0.6,
                         }}
-                    />
+                    >
+                        {"Coming Soon"}
+                    </Text>
                 }
             />
             <View style={styles.sectionHeader}>

@@ -3,7 +3,7 @@
         "name": "Nudge",
         "slug": "nudge",
         "scheme": "nudge",
-        "version": "0.5.2",
+        "version": "0.6.0",
         "orientation": "portrait",
         "newArchEnabled": true,
         "icon": "./assets/images/icon.png",
@@ -63,7 +63,15 @@
                     "imageWidth": 200
                 }
             ],
-            "./modules/expo-alarm-manager/plugin/index"
+            "./modules/expo-alarm-manager/plugin/index",
+            [
+                "react-native-legal",
+                {
+                    "devDepsMode": "none",
+                    "includeOptionalDeps": false,
+                    "transitiveDepsMode": "none"
+                }
+            ]
         ],
         "experiments": {
             // "typedRoutes": true

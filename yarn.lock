@@ -836,6 +836,13 @@
   resolved "https://registry.yarnpkg.com/@bcoe/v8-coverage/-/v8-coverage-0.2.3.tgz#75a2e8b51cb758a7553d6804a5932d7aace75c39"
   integrity sha512-0hYQ8SB4Db5zvZB4axdMHGwEaQjkZzFjQiN9LVYvIFB2nSUHW9tYpxWriPrWDASIxiaXax83REcLxuSdnGPZtw==
 
+"@callstack/licenses@^0.3.0":
+  version "0.3.0"
+  resolved "https://registry.yarnpkg.com/@callstack/licenses/-/licenses-0.3.0.tgz#9c3cb701d03d6eff76c35b4434c5ad31f981b844"
+  integrity sha512-dughpfGB8j6IcIdcxGoJr4HnlVGFQuZ/IsQs3XUbc8a+mw/sds5Lb0bTNkA6qdpRuJiITNrO51WFtFwGApfPzQ==
+  dependencies:
+    glob "^7.1.3"
+
 "@callstack/react-theme-provider@^3.0.9":
   version "3.0.9"
   resolved "https://registry.yarnpkg.com/@callstack/react-theme-provider/-/react-theme-provider-3.0.9.tgz#01035fa1231f1fffc1a806be1b55eb82716e80c1"
@@ -10087,6 +10094,16 @@ react-native-is-edge-to-edge@^1.1.6, react-native-is-edge-to-edge@^1.2.1:
   resolved "https://registry.yarnpkg.com/react-native-is-edge-to-edge/-/react-native-is-edge-to-edge-1.2.1.tgz#64e10851abd9d176cbf2b40562f751622bde3358"
   integrity sha512-FLbPWl/MyYQWz+KwqOZsSyj2JmLKglHatd3xLZWskXOpRaio4LfEDEz8E/A6uD8QoTHW6Aobw1jbEwK7KMgR7Q==
 
+react-native-legal@^1.6.0:
+  version "1.6.0"
+  resolved "https://registry.yarnpkg.com/react-native-legal/-/react-native-legal-1.6.0.tgz#08978f82e4ab35dc472692db381bdf20586c1ffe"
+  integrity sha512-JLGEzVIXRDmBQbIb8rzu6qvohh98xo67noFxyR2AzVN+cvcnFul0r71LeiXou1TJzpMlOGIw1E1Mktns69YfAA==
+  dependencies:
+    "@callstack/licenses" "^0.3.0"
+    glob "^7.1.3"
+    xcode "^3.0.1"
+    xml2js "^0.6.2"
+
 react-native-modal@^14.0.0-rc.1:
   version "14.0.0-rc.1"
   resolved "https://registry.yarnpkg.com/react-native-modal/-/react-native-modal-14.0.0-rc.1.tgz#d193af884c910ec34a4953508c7656b5fc83d7d4"
@@ -12429,6 +12446,14 @@ xml2js@0.6.0:
   version "0.6.0"
   resolved "https://registry.yarnpkg.com/xml2js/-/xml2js-0.6.0.tgz#07afc447a97d2bd6507a1f76eeadddb09f7a8282"
   integrity sha512-eLTh0kA8uHceqesPqSE+VvO1CDDJWMwlQfB6LuN6T8w6MaDJ8Txm8P7s5cHD0miF0V+GGTZrDQfxPZQVsur33w==
+  dependencies:
+    sax ">=0.6.0"
+    xmlbuilder "~11.0.0"
+
+xml2js@^0.6.2:
+  version "0.6.2"
+  resolved "https://registry.yarnpkg.com/xml2js/-/xml2js-0.6.2.tgz#dd0b630083aa09c161e25a4d0901e2b2a929b499"
+  integrity sha512-T4rieHaC1EXcES0Kxxj4JWgaUQHDk+qwHcYOCFHfiwKz7tOVPLq7Hjq9dM1WCMhylqMEfP7hMcOIChvotiZegA==
   dependencies:
     sax ">=0.6.0"
     xmlbuilder "~11.0.0"
