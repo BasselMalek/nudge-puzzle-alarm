@@ -131,7 +131,7 @@ export const createAlarm = (p: {
     repeat?: boolean;
     repeatDays?: DaySet;
     vibrate?: boolean;
-    ringtone?: { name: string; uri: string };
+    ringtone?: { name: string; uri: string | null };
     puzzles?: Puzzle[];
     powerUps?: BoosterSet;
 }): Alarm => ({
@@ -140,7 +140,7 @@ export const createAlarm = (p: {
     ringHours: p.ringHours ?? 12,
     ringMins: p.ringMins ?? 0,
     vibrate: p.vibrate ?? false,
-    ringtone: p.ringtone ?? { name: "Silent", uri: "none" },
+    ringtone: p.ringtone ?? { name: "Silent", uri: null },
     repeat: p.repeat ?? false,
     repeatDays: p.repeatDays ?? {
         0: { dayName: "Sunday", letter: "S", enabled: false },

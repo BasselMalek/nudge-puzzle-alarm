@@ -10,7 +10,7 @@ export interface Alarm {
     repeat: boolean;
     repeatDays: DaySet;
     vibrate: boolean;
-    ringtone: { name: string; uri: string };
+    ringtone: { name: string; uri: string | null };
     puzzles: Puzzle[];
     boosterSet: BoosterSet;
     isEnabled: boolean;

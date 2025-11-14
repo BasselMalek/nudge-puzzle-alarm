@@ -128,7 +128,7 @@ export default function SoundOptionsModal(props: {
                                         ...alarm,
                                         ringtone: {
                                             name: "Silent",
-                                            uri: "none",
+                                            uri: null,
                                         },
                                     });
                                 } else {

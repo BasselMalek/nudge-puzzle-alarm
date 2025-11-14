@@ -80,7 +80,7 @@ export const deleteAlarm = (alarmId: string): Promise<boolean> => {
  */
 export const pickAlarmTone = async (
     existingUri?: string
-): Promise<{ name: string; uri: string } | null> => {
+): Promise<{ name: string; uri: string | null } | null> => {
     const a = await ExpoAlarmManagerModule.pickAlarmTone(existingUri);
     return a !== null ? { name: a.at(1)!, uri: a.at(0)! } : null;
 };
