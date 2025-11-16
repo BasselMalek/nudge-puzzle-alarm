@@ -36,21 +36,20 @@ export default function AlarmScreen() {
     const [puzzlesComplete, setPuzzlesComplete] = useState(false);
     const [snoozeDuration, setSnoozeDuration] = useState(5);
     const [snoozeAvailable, setSnoozeAvailable] = useState(true);
-    const dismissable = useRef(true);
+    const dismissable = useRef(false);
 
     useEffect(() => {
         const backHandler = BackHandler.addEventListener(
             "hardwareBackPress",
             () => {
-                return null;
+                return true;
             }
         );
         return () => backHandler.remove();
     }, []);
 
-    usePreventRemove(false, () => {
-        // BackHandler.exitApp();
-        console.log("f");
+    usePreventRemove(!dismissable.current, () => {
+        console.log("Oh, the eternity we shall spend together.");
     });
 
     useEffect(() => {
@@ -79,7 +78,7 @@ export default function AlarmScreen() {
                     );
                     setSnoozeDuration(config.snoozeStartingTime);
                 } else {
-                    setSnoozeAvailable(false);
+                    setSnoozeAvailable(true);
                 }
             } else {
                 const snoozeState = JSON.parse(
@@ -97,6 +96,7 @@ export default function AlarmScreen() {
 
     const dismissAlarm = async () => {
         if (!alarm) return;
+        dismissable.current = true;
         try {
             const newAlarm = await handleDaisyChainAfterRing(alarm);
             await saveAlarmDirect(newAlarm.id, db, newAlarm);
@@ -116,12 +116,12 @@ export default function AlarmScreen() {
             });
         } catch (error) {
             console.error("Failed to dismiss alarm:", error);
-            dismissable.current = true;
+            dismissable.current = false;
         }
     };
 
     const snoozeAlarm = async () => {
-        dismissable.current = false;
+        dismissable.current = true;
         await scheduleSnoozedAlarm(alarm!, snoozeDuration);
         await alarmPlayer?.stop();
         await alarmPlayer?.release();
@@ -219,7 +219,6 @@ export default function AlarmScreen() {
                         onPress={() => {
                             if (puzzlesComplete) {
                                 try {
-                                    dismissable.current = false;
                                     void dismissAlarm();
                                 } catch (error) {
                                     console.error(error);
