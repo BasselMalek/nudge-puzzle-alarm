@@ -2,7 +2,7 @@ import { BackHandler, View } from "react-native";
 import { Button, IconButton, Text, useTheme } from "react-native-paper";
 import { StatusBar } from "expo-status-bar";
 import { useLocalSearchParams } from "expo-router";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { parseAlarm, saveAlarmDirect } from "@/hooks/useAlarms";
 import { Alarm, AlarmDto } from "@/types/Alarm";
 import { useSQLiteContext } from "expo-sqlite";
@@ -36,7 +36,7 @@ export default function AlarmScreen() {
     const [puzzlesComplete, setPuzzlesComplete] = useState(false);
     const [snoozeDuration, setSnoozeDuration] = useState(5);
     const [snoozeAvailable, setSnoozeAvailable] = useState(true);
-    const dismissable = useRef(false);
+    const [dismissable, setDismissable] = useState(false);
 
     useEffect(() => {
         const backHandler = BackHandler.addEventListener(
@@ -48,7 +48,7 @@ export default function AlarmScreen() {
         return () => backHandler.remove();
     }, []);
 
-    usePreventRemove(!dismissable.current, () => {
+    usePreventRemove(!dismissable, () => {
         console.log("Oh, the eternity we shall spend together.");
     });
 
@@ -96,7 +96,7 @@ export default function AlarmScreen() {
 
     const dismissAlarm = async () => {
         if (!alarm) return;
-        dismissable.current = true;
+        setDismissable(true);
         try {
             const newAlarm = await handleDaisyChainAfterRing(alarm);
             await saveAlarmDirect(newAlarm.id, db, newAlarm);
@@ -116,12 +116,12 @@ export default function AlarmScreen() {
             });
         } catch (error) {
             console.error("Failed to dismiss alarm:", error);
-            dismissable.current = false;
+            setDismissable(false);
         }
     };
 
     const snoozeAlarm = async () => {
-        dismissable.current = true;
+        setDismissable(true);
         await scheduleSnoozedAlarm(alarm!, snoozeDuration);
         await alarmPlayer?.stop();
         await alarmPlayer?.release();
@@ -133,13 +133,11 @@ export default function AlarmScreen() {
 
     useEffect(() => {
         void (async () => {
-            if (
-                alarmPlayer &&
-                alarm?.ringtone &&
-                alarm.ringtone.uri !== "none"
-            ) {
-                //TODO: Decouple vibration from sound to enable silent vibrating alarms.
-                await alarmPlayer.setSource(alarm.ringtone.uri);
+            if (alarmPlayer && alarm?.ringtone) {
+                if (alarm.ringtone.uri) {
+                    await alarmPlayer.setSource(alarm.ringtone.uri);
+                }
+                console.log("test");
                 await alarmPlayer.setVibration(alarm.vibrate);
                 await alarmPlayer.play();
             }
