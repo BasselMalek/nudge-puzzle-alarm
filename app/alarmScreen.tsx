@@ -122,6 +122,7 @@ export default function AlarmScreen() {
 
     const snoozeAlarm = async () => {
         setDismissable(true);
+        AlarmManager.setShowWhenLocked(false, alarm?.id);
         await scheduleSnoozedAlarm(alarm!, snoozeDuration);
         await alarmPlayer?.stop();
         await alarmPlayer?.release();
