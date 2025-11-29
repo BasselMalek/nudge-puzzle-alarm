@@ -90,7 +90,6 @@ export default function AlarmScreen() {
                 setSnoozeDuration(snoozeState.duration);
             }
         };
-
         checkSnoozeState();
     }, [alarm]);
 
@@ -98,11 +97,9 @@ export default function AlarmScreen() {
         if (!alarm) return;
         setDismissable(true);
         try {
+            await alarmPlayer?.stop();
             const newAlarm = await handleDaisyChainAfterRing(alarm);
             await saveAlarmDirect(newAlarm.id, db, newAlarm);
-            await alarmPlayer?.stop();
-            await alarmPlayer?.release();
-            AlarmManager.setShowWhenLocked(false, alarm.id);
             await handleDismiss({
                 id: alarm.id,
                 doubleChecked: alarm.boosterSet.postDismissCheck.enabled,
@@ -114,6 +111,7 @@ export default function AlarmScreen() {
                     ? alarm.boosterSet.postDismissLaunch.config.packageName
                     : undefined,
             });
+            AlarmManager.setShowWhenLocked(false, alarm.id);
         } catch (error) {
             console.error("Failed to dismiss alarm:", error);
             setDismissable(false);
@@ -122,10 +120,9 @@ export default function AlarmScreen() {
 
     const snoozeAlarm = async () => {
         setDismissable(true);
-        AlarmManager.setShowWhenLocked(false, alarm?.id);
         await scheduleSnoozedAlarm(alarm!, snoozeDuration);
         await alarmPlayer?.stop();
-        await alarmPlayer?.release();
+        AlarmManager.setShowWhenLocked(false, alarm?.id);
         handleSnooze({
             id: alarm!.id,
             boosterInfo: JSON.stringify(alarm!.boosterSet),
@@ -144,6 +141,12 @@ export default function AlarmScreen() {
             }
         })();
     }, [alarmPlayer, alarm]);
+
+    useEffect(() => {
+        return () => {
+            void alarmPlayer?.stop();
+        };
+    }, [alarmPlayer]);
 
     return (
         <View
