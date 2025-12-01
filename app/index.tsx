@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState, useMemo } from "react";
-import { FlatList, View } from "react-native";
+import { BackHandler, FlatList, View } from "react-native";
 import { Text, Card, useTheme, FAB, IconButton } from "react-native-paper";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
@@ -16,8 +16,10 @@ import { getNextInstanceTimeStamp } from "@/utils/alarmSchedulingHelpers";
 import {
     checkAndNullifyActiveAlarm,
     deleteAlarm as deschedule,
+    scheduleAlarm,
 } from "@/modules/expo-alarm-manager";
 import { useAlarmManagerListener } from "@/hooks/useAlarmManagerEvents";
+import { openApplication } from "expo-intent-launcher";
 void preventAutoHideAsync();
 
 export default function Alarms() {
@@ -29,7 +31,7 @@ export default function Alarms() {
     const [soonestRingTime, setSoonestRingTime] = useState("");
     const { alarms, deleteAlarm, loadAlarms, saveAlarms, toggleAlarm } =
         useAlarms(db, "nudge://alarmScreen");
-    const { update } = useLocalSearchParams();
+    const { update, returnFlag, packageName } = useLocalSearchParams();
     const [loadStale, setLoadStale] = useState(true);
     const router = useRouter();
     const first = Storage.getItemSync("isFirstBoot");
@@ -83,7 +85,12 @@ export default function Alarms() {
             if (first === null) {
                 router.replace("/onboardingScreens/welcome");
             }
-        }, [first, router])
+            if (returnFlag && returnFlag === "dismiss") {
+                BackHandler.exitApp();
+            } else if (returnFlag && returnFlag === "open" && packageName) {
+                openApplication(packageName as string);
+            }
+        }, [first, packageName, returnFlag, router])
     );
 
     // usePreventRemove(router.canGoBack(), () => {
@@ -252,7 +259,7 @@ export default function Alarms() {
                 onPress={handleFABPress}
                 onLongPress={() => console.log(alarms)}
             />
-            {/* <FAB
+            <FAB
                 icon={"alarm"}
                 style={{
                     position: "absolute",
@@ -268,7 +275,7 @@ export default function Alarms() {
                 onLongPress={() => {
                     router.push("/onboardingScreens/welcome");
                 }}
-            /> */}
+            />
             <FlatList
                 style={{
                     display: "flex",

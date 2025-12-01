@@ -1,5 +1,3 @@
-import { openApplication } from "expo-intent-launcher";
-import { BackHandler } from "react-native";
 import { AsyncStorage } from "expo-sqlite/kv-store";
 import { BoosterSet } from "@/types/Boosters";
 import { scheduleDoubleCheck } from "@/modules/expo-alarm-manager";
@@ -32,17 +30,16 @@ export async function handleDismiss(params: {
     }
 
     if (launch_package) {
-        openApplication(launch_package);
+        router.replace(`/?returnFlag=open&packageName=${launch_package}`);
     } else {
         // BackHandler.exitApp();
-        router.replace("/");
+        router.replace("/?returnFlag=dismiss");
     }
 }
 
 export function handleSnooze(params: { id: string; boosterInfo?: string }) {
     const { id, boosterInfo } = params;
     const unparsed = AsyncStorage.getItemSync(id);
-
     if (unparsed && unparsed !== "disabled") {
         const parsed = JSON.parse(unparsed) as SnoozeState;
         parsed.uses = Math.max(0, parsed.uses - 1);
@@ -65,6 +62,5 @@ export function handleSnooze(params: { id: string; boosterInfo?: string }) {
             AsyncStorage.setItemSync(id, "disabled");
         }
     }
-
-    BackHandler.exitApp();
+    router.replace("/?returnFlag=dismiss");
 }
