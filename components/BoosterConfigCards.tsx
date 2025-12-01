@@ -141,7 +141,7 @@ export default function BoosterConfiguration(props: {
                     <ListItem
                         style={{ height: 80 }}
                         title="Post Dismiss Delay"
-                        desc="Seconds"
+                        desc="Minutes"
                         rightContent={
                             <View
                                 style={{
@@ -162,7 +162,7 @@ export default function BoosterConfiguration(props: {
                                             "postDismissDelay",
                                             boosters.postDismissCheck.config
                                                 .postDismissDelay,
-                                            30
+                                            1
                                         )
                                     }
                                 />
@@ -190,7 +190,7 @@ export default function BoosterConfiguration(props: {
                                             "postDismissDelay",
                                             boosters.postDismissCheck.config
                                                 .postDismissDelay,
-                                            30
+                                            1
                                         )
                                     }
                                 />
@@ -360,7 +360,6 @@ export default function BoosterConfiguration(props: {
                                             "snoozeUses",
                                             boosters.snoozeMods.config
                                                 .snoozeUses,
-                                            1,
                                             1
                                         )
                                     }

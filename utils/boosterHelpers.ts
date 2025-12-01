@@ -24,7 +24,7 @@ export async function handleDismiss(params: {
         await scheduleDoubleCheck(
             id,
             `nudge://dismissDouble/${id}?doubleChecked=true`,
-            delayPeriod! * 1000,
+            delayPeriod! * 60 * 1000,
             gracePeriod! * 1000
         );
     }
