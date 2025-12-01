@@ -118,6 +118,9 @@ export default function AlarmScreen() {
 
     const dismissAlarm = async () => {
         setAntiMasher(true);
+        if (alarm?.boosterSet.postDismissLaunch.enabled) {
+            AlarmManager.requestKeyguardDismiss();
+        }
         if (!alarm) return;
         try {
             if (alarmPlayer) {
