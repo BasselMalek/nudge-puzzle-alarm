@@ -50,28 +50,28 @@ declare class ExpoAlarmManagerModule extends NativeModule<ExpoAlarmManagerModule
      * Set audio source for a player.
      * @param src Audio source URI.
      */
-    setPlayerSource(src: string | null): Promise<void>;
+    setPlayerSource(playerId: string, src: string | null): Promise<void>;
 
     /**
      * Enable or disable vibration for a player.
      * @param enabled Whether vibration should be enabled.
      */
-    setPlayerVibration(enabled: boolean): Promise<void>;
+    setPlayerVibration(playerId: string, enabled: boolean): Promise<void>;
 
     /**
      * Start playback for a player.
      */
-    playPlayer(): Promise<void>;
+    playPlayer(playerId: string): Promise<void>;
 
     /**
      * Stop playback for a player.
      */
-    stopPlayer(): Promise<void>;
+    stopPlayer(playerId: string): Promise<void>;
 
     /**
      * Release a player and free resources.
      */
-    releasePlayer(): Promise<void>;
+    releasePlayer(playerId: string): Promise<void>;
 
     /**
      * Schedule a post-wake double check notification & alarm.
@@ -91,7 +91,7 @@ declare class ExpoAlarmManagerModule extends NativeModule<ExpoAlarmManagerModule
     /**
      * Check if player has finished playing.
      */
-    isPlayerFinished(): Promise<boolean>;
+    isPlayerFinished(playerId: string): Promise<boolean>;
 
     /**
      * Opens the "Draw over other apps" options screen.
@@ -140,57 +140,68 @@ declare class ExpoAlarmManagerModule extends NativeModule<ExpoAlarmManagerModule
 const ExpoAlarmManagerNative =
     requireNativeModule<ExpoAlarmManagerModule>("ExpoAlarmManager");
 
-export class AlarmPlayer implements IAlarmPlayer {
+export class AlarmPlayer {
     private playerId: string;
-    private _isFinished: boolean = false;
+    private released: boolean = false;
 
-    constructor(playerId: string) {
+    private constructor(playerId: string) {
         this.playerId = playerId;
-
-        ExpoAlarmManagerNative.addListener("onPlaybackFinished", (event) => {
-            if (event.playerId === this.playerId) {
-                this._isFinished = true;
-            }
-        });
     }
 
-    /**
-     * Create a new AlarmPlayer instance.
-     */
-    static async create(): Promise<AlarmPlayer | null> {
-        const res = await ExpoAlarmManagerNative.createPlayer();
-        if (res) {
-            return new AlarmPlayer(res);
-        } else {
-            return null;
+    static async create(): Promise<AlarmPlayer> {
+        const playerId = await ExpoAlarmManagerNative.createPlayer();
+        return new AlarmPlayer(playerId);
+    }
+
+    async setSource(uri: string): Promise<void> {
+        if (this.released) {
+            throw new Error("AlarmPlayer has been released");
         }
-    }
-
-    async setSource(src: string | null): Promise<void> {
-        await ExpoAlarmManagerNative.setPlayerSource(src);
-        this._isFinished = false;
+        return ExpoAlarmManagerNative.setPlayerSource(this.playerId, uri);
     }
 
     async setVibration(enabled: boolean): Promise<void> {
-        return ExpoAlarmManagerNative.setPlayerVibration(enabled);
+        if (this.released) {
+            throw new Error("AlarmPlayer has been released");
+        }
+        return ExpoAlarmManagerNative.setPlayerVibration(
+            this.playerId,
+            enabled
+        );
     }
 
-    async play(fade?: boolean): Promise<void> {
-        this._isFinished = false;
-        return ExpoAlarmManagerNative.playPlayer();
+    async play(): Promise<void> {
+        if (this.released) {
+            throw new Error("AlarmPlayer has been released");
+        }
+        return ExpoAlarmManagerNative.playPlayer(this.playerId);
     }
 
     async stop(): Promise<void> {
-        this._isFinished = true;
-        return ExpoAlarmManagerNative.stopPlayer();
+        if (this.released) {
+            throw new Error("AlarmPlayer has been released");
+        }
+        return ExpoAlarmManagerNative.stopPlayer(this.playerId);
     }
 
     async release(): Promise<void> {
-        return ExpoAlarmManagerNative.releasePlayer();
+        if (this.released) {
+            console.log("AlarmPlayer already released, skipping.");
+            return;
+        }
+        this.released = true;
+        return ExpoAlarmManagerNative.releasePlayer(this.playerId);
     }
 
     async isFinished(): Promise<boolean> {
-        return ExpoAlarmManagerNative.isPlayerFinished();
+        if (this.released) {
+            throw new Error("AlarmPlayer has been released");
+        }
+        return ExpoAlarmManagerNative.isPlayerFinished(this.playerId);
+    }
+
+    getId(): string {
+        return this.playerId;
     }
 }
 

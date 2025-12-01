@@ -145,21 +145,40 @@ export const checkAndNullifyActiveAlarm = () => {
  */
 export function useAlarmPlayer(): AlarmPlayer | null {
     const [player, setPlayer] = useState<AlarmPlayer | null>(null);
+    const [error, setError] = useState<Error | null>(null);
 
     useEffect(() => {
-        void AlarmPlayer.create().then((p) => {
-            if (p) setPlayer(p);
-        });
+        let mounted = true;
+        void AlarmPlayer.create()
+            .then((p) => {
+                if (mounted) {
+                    setPlayer(p);
+                }
+            })
+            .catch((err) => {
+                console.error("Failed to create alarm player:", err);
+                if (mounted) {
+                    setError(err);
+                }
+            });
         return () => {
+            mounted = false;
             setPlayer((prev) => {
                 if (prev) {
-                    prev.release().catch(() => {});
+                    prev.release().catch((err) => {
+                        console.error(
+                            "CRITICAL: Failed to release player:",
+                            err
+                        );
+                    });
                 }
                 return null;
             });
         };
     }, []);
-
+    if (error) {
+        throw error;
+    }
     return player;
 }
 

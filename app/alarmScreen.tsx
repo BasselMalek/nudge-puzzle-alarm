@@ -37,6 +37,7 @@ export default function AlarmScreen() {
     const [snoozeDuration, setSnoozeDuration] = useState(5);
     const [snoozeAvailable, setSnoozeAvailable] = useState(true);
     const [dismissable, setDismissable] = useState(false);
+    const [antiMasher, setAntiMasher] = useState(false);
 
     useEffect(() => {
         const backHandler = BackHandler.addEventListener(
@@ -93,11 +94,37 @@ export default function AlarmScreen() {
         checkSnoozeState();
     }, [alarm]);
 
-    const dismissAlarm = async () => {
-        if (!alarm) return;
-        setDismissable(true);
+    const snoozeAlarm = async () => {
+        setAntiMasher(true);
+        if (!alarmPlayer || !alarm) {
+            console.error("CRITICAL: Cannot snooze - missing player or alarm");
+            return;
+        }
+
         try {
-            await alarmPlayer?.stop();
+            await alarmPlayer.stop();
+            await alarmPlayer.release();
+            setDismissable(true);
+            await scheduleSnoozedAlarm(alarm, snoozeDuration);
+            AlarmManager.setShowWhenLocked(false, alarm.id);
+            handleSnooze({
+                id: alarm.id,
+                boosterInfo: JSON.stringify(alarm.boosterSet),
+            });
+        } catch (error) {
+            console.error("CRITICAL: Failed to snooze alarm:", error);
+        }
+    };
+
+    const dismissAlarm = async () => {
+        setAntiMasher(true);
+        if (!alarm) return;
+        try {
+            if (alarmPlayer) {
+                await alarmPlayer.stop();
+                await alarmPlayer.release();
+            }
+            setDismissable(true);
             const newAlarm = await handleDaisyChainAfterRing(alarm);
             await saveAlarmDirect(newAlarm.id, db, newAlarm);
             await handleDismiss({
@@ -113,20 +140,9 @@ export default function AlarmScreen() {
             });
             AlarmManager.setShowWhenLocked(false, alarm.id);
         } catch (error) {
-            console.error("Failed to dismiss alarm:", error);
+            console.error("CRITICAL: Failed to dismiss alarm:", error);
             setDismissable(false);
         }
-    };
-
-    const snoozeAlarm = async () => {
-        setDismissable(true);
-        await scheduleSnoozedAlarm(alarm!, snoozeDuration);
-        await alarmPlayer?.stop();
-        AlarmManager.setShowWhenLocked(false, alarm?.id);
-        handleSnooze({
-            id: alarm!.id,
-            boosterInfo: JSON.stringify(alarm!.boosterSet),
-        });
     };
 
     useEffect(() => {
@@ -141,12 +157,6 @@ export default function AlarmScreen() {
             }
         })();
     }, [alarmPlayer, alarm]);
-
-    useEffect(() => {
-        return () => {
-            void alarmPlayer?.stop();
-        };
-    }, [alarmPlayer]);
 
     return (
         <View
@@ -209,6 +219,7 @@ export default function AlarmScreen() {
                         mode="outlined"
                         containerColor={colors.background}
                         iconColor={colors.onBackground}
+                        disabled={antiMasher}
                         style={{
                             alignSelf: "center",
                             width: 68,
@@ -263,6 +274,7 @@ export default function AlarmScreen() {
                             icon="sleep"
                             buttonColor={colors.background}
                             textColor={colors.onBackground}
+                            disabled={antiMasher}
                             contentStyle={{
                                 paddingVertical: 8,
                                 paddingHorizontal: 16,
