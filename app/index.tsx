@@ -16,7 +16,6 @@ import { getNextInstanceTimeStamp } from "@/utils/alarmSchedulingHelpers";
 import {
     checkAndNullifyActiveAlarm,
     deleteAlarm as deschedule,
-    scheduleAlarm,
 } from "@/modules/expo-alarm-manager";
 import { useAlarmManagerListener } from "@/hooks/useAlarmManagerEvents";
 import { openApplication } from "expo-intent-launcher";
@@ -46,8 +45,17 @@ export default function Alarms() {
             try {
                 const active = await checkAndNullifyActiveAlarm();
                 console.log("NUDGE_DEBUG: Initial check:", active);
-                if (active && active.type === "alarm") {
-                    setInitAlarm(active.alarmId);
+                if (active) {
+                    switch (active.type) {
+                        case "alarm":
+                            setInitAlarm(active.alarmId);
+                            break;
+                        case "dismiss":
+                            void deschedule(active.alarmId);
+                            break;
+                        default:
+                            break;
+                    }
                 }
             } catch (error) {
                 console.error(error);
@@ -265,7 +273,7 @@ export default function Alarms() {
                 onPress={handleFABPress}
                 onLongPress={() => console.log(alarms)}
             />
-            <FAB
+            {/* <FAB
                 icon={"alarm"}
                 style={{
                     position: "absolute",
@@ -281,12 +289,11 @@ export default function Alarms() {
                 onLongPress={() => {
                     router.push("/onboardingScreens/welcome");
                 }}
-            />
+            /> */}
             <FlatList
                 style={{
                     display: "flex",
                     flex: 1,
-                    // marginTop: 5,
                     paddingVertical: 10,
                 }}
                 data={alarms}

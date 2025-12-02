@@ -67,6 +67,10 @@ class ExpoAlarmManagerModule : Module() {
                 handleAlarmDeepLink(it)
                 ExpoAlarmManagerReactActivityLifecycleListener.initialAlarm = null
             }
+            ExpoAlarmManagerReactActivityLifecycleListener.initialDismiss?.let {
+                handleDismissDoubleDeepLink(it)
+                ExpoAlarmManagerReactActivityLifecycleListener.initialDismiss = null
+            }
         }
 
         //==============================================================================================================
@@ -597,6 +601,9 @@ class ExpoAlarmManagerModule : Module() {
     private fun sendDismissDoubleDeepLinkEvent(alarmId: String) {
         try {
             Log.d(TAG, "Sending onDismissDoubleDeepLink event with id: $alarmId")
+            activeAlarm = mapOf(
+                "type" to "dismiss", "alarmId" to alarmId
+            )
             sendEvent(
                 "onDismissDoubleDeepLink", mapOf(
                     "alarmId" to alarmId,

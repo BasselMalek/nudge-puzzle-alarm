@@ -15,6 +15,7 @@ class ExpoAlarmManagerReactActivityLifecycleListener : ReactActivityLifecycleLis
     companion object {
         private const val TAG = "NUDGE_DEBUG"
         var initialAlarm: String? = null;
+        var initialDismiss: String? = null;
     }
 
     override fun onCreate(activity: Activity, savedInstanceState: Bundle?) {
@@ -89,6 +90,7 @@ class ExpoAlarmManagerReactActivityLifecycleListener : ReactActivityLifecycleLis
         Log.d(TAG, "Handling alarm intent with id: $alarmId")
     }
     private fun handleAlarmDoubleDismiss(alarmId: String) {
+        initialDismiss = alarmId;
         ExpoAlarmManagerModule.handleDismissDoubleDeepLink(alarmId)
     }
 }
