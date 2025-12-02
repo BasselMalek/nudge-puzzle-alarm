@@ -67,11 +67,17 @@ export default function Alarms() {
         (event: { type: string; alarmId: string }) => {
             console.log("NUDGE_DEBUG: New event received:", event);
             const { type, alarmId } = event;
-            if (type === "onAlarmDeepLink") {
-                void checkAndNullifyActiveAlarm();
-                router.replace(`/alarmScreen?id=${alarmId}`);
-            } else {
-                void deschedule(alarmId);
+            switch (type) {
+                case "onAlarmDeepLink":
+                    void checkAndNullifyActiveAlarm();
+                    router.replace(`/alarmScreen?id=${alarmId}`);
+                    break;
+                case "onDismissDoubleDeepLink":
+                    console.log("alarm id" + alarmId);
+                    void deschedule(alarmId);
+                    break;
+                default:
+                    break;
             }
         },
         [router]

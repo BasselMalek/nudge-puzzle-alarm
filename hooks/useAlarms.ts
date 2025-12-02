@@ -163,7 +163,7 @@ export const createAlarm = (p: {
         postDismissCheck: {
             enabled: false,
             config: {
-                postDismissDelay: 60,
+                postDismissDelay: 5,
                 checkerGraceTime: 60,
             },
         },
