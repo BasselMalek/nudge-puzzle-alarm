@@ -211,7 +211,7 @@ export default function BarcodeSettings() {
                     renderItem={({ item }) => (
                         <ListItem
                             title={item.name!}
-                            style={{ height: 70 }}
+                            style={{ minHeight: 70 }}
                             rightContent={
                                 <View
                                     style={{

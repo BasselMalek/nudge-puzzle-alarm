@@ -11,7 +11,7 @@ export default function Settings() {
                 <FlatList
                     scrollEnabled
                     contentContainerStyle={{
-                        height: "100%",
+                        // height: "100%",
                         gap: 10,
                         paddingVertical: 10,
                     }}
@@ -56,7 +56,7 @@ export default function Settings() {
                     renderItem={({ item }) => {
                         return (
                             <ListItem
-                                style={{ maxHeight: 80 }}
+                                style={{ minHeight: 80 }}
                                 size={35}
                                 icon={item.icon}
                                 title={item.title}

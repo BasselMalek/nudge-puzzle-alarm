@@ -395,7 +395,7 @@ export default function AlarmOptions() {
                                         <ListItem
                                             disabled={true}
                                             icon={"plus"}
-                                            style={{ height: 60 }}
+                                            style={{ minHeight: 60 }}
                                             title={"New Puzzle"}
                                             desc={
                                                 "Drag a puzzle to change its order"

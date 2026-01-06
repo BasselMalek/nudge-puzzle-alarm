@@ -15,10 +15,18 @@ export default function ListItem(
     const { title, icon, desc, rightContent, size = 24 } = props;
 
     return (
-        <Card onPress={props.onPress} style={props.style}>
+        <Card
+            onPress={props.onPress}
+            style={[
+                props.style,
+                {
+                    justifyContent: "center",
+                },
+            ]}
+        >
             <Card.Content
                 style={{
-                    height: "100%",
+                    flex: 1,
                     alignItems: "center",
                     paddingVertical: 10,
                     flexDirection: "row",
@@ -55,7 +63,6 @@ export default function ListItem(
                         )}
                     </View>
                 </View>
-
                 {rightContent && (
                     <View style={{ flexShrink: 0 }}>{rightContent}</View>
                 )}
