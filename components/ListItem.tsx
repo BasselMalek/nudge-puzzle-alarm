@@ -15,10 +15,17 @@ export default function ListItem(
     const { title, icon, desc, rightContent, size = 24 } = props;
 
     return (
-        <Card onPress={props.onPress} style={props.style}>
+        <Card
+            onPress={props.onPress}
+            style={[
+                props.style,
+                {
+                    justifyContent: "center",
+                },
+            ]}
+        >
             <Card.Content
                 style={{
-                    height: "100%",
                     alignItems: "center",
                     paddingVertical: 10,
                     flexDirection: "row",
@@ -46,7 +53,7 @@ export default function ListItem(
                             />
                         </>
                     )}
-                    <View style={{ flex: 1 }}>
+                    <View style={{ flex: 1, minWidth: 0 }}>
                         <Text variant="labelLarge">{title}</Text>
                         {desc !== undefined && (
                             <Text variant="bodySmall" style={{ opacity: 0.85 }}>
@@ -55,7 +62,6 @@ export default function ListItem(
                         )}
                     </View>
                 </View>
-
                 {rightContent && (
                     <View style={{ flexShrink: 0 }}>{rightContent}</View>
                 )}

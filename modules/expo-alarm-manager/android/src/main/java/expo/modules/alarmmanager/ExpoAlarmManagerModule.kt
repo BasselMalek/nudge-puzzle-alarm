@@ -52,6 +52,7 @@ class ExpoAlarmManagerModule : Module() {
 
     private var uriSelectionPendingPromise: Promise? = null
     private var alarmPlayer: AlarmPlayerInstance? = null
+    private var currentPlayerId: String? = null
 
     @SuppressLint("MissingPermission", "QueryPermissionsNeeded")
     override fun definition() = ModuleDefinition {
@@ -65,6 +66,10 @@ class ExpoAlarmManagerModule : Module() {
             initAlarm?.let {
                 handleAlarmDeepLink(it)
                 ExpoAlarmManagerReactActivityLifecycleListener.initialAlarm = null
+            }
+            ExpoAlarmManagerReactActivityLifecycleListener.initialDismiss?.let {
+                handleDismissDoubleDeepLink(it)
+                ExpoAlarmManagerReactActivityLifecycleListener.initialDismiss = null
             }
         }
 
@@ -400,27 +405,46 @@ class ExpoAlarmManagerModule : Module() {
         //==============================================================================================================
         // PLAYER FUNCTIONS
         //==============================================================================================================
-
         AsyncFunction("createPlayer") { promise: Promise ->
             try {
+                if (alarmPlayer != null) {
+                    return@AsyncFunction promise.reject(
+                        "E_PLAYER_EXISTS",
+                        "Player already exists. Must release existing player before creating new one.",
+                        null
+                    )
+                }
                 val playerId = UUID.randomUUID().toString()
                 val context = appContext.reactContext ?: return@AsyncFunction promise.reject(
                     "E_NO_CONTEXT", "No React context available", null
                 )
                 alarmPlayer = AlarmPlayerInstance(context, playerId, this@ExpoAlarmManagerModule)
+                currentPlayerId = playerId
+                Log.d(TAG, "Created player with ID: $playerId")
                 promise.resolve(playerId)
             } catch (e: Exception) {
+                alarmPlayer = null
+                currentPlayerId = null
                 promise.reject("E_CREATE_PLAYER", "Failed to create player: ${e.message}", e)
             }
         }
 
-        AsyncFunction("setPlayerSource") { src: String, promise: Promise ->
+        AsyncFunction("setPlayerSource") { playerId: String, src: String, promise: Promise ->
             try {
                 if (src.isEmpty()) {
                     return@AsyncFunction promise.reject("E_INVALID_SOURCE", "Source URL cannot be empty", null)
                 }
-                val player =
-                    alarmPlayer ?: return@AsyncFunction promise.reject("E_PLAYER_NOT_FOUND", "No active player", null)
+
+                if (playerId != currentPlayerId) {
+                    return@AsyncFunction promise.reject(
+                        "E_PLAYER_MISMATCH",
+                        "Player ID mismatch. Expected: $currentPlayerId, Got: $playerId",
+                        null
+                    )
+                }
+                val player = alarmPlayer ?: return@AsyncFunction promise.reject(
+                    "E_PLAYER_NOT_FOUND", "No active player", null
+                )
                 player.setSource(src)
                 promise.resolve(null)
             } catch (e: Exception) {
@@ -428,8 +452,15 @@ class ExpoAlarmManagerModule : Module() {
             }
         }
 
-        AsyncFunction("setPlayerVibration") { enabled: Boolean, promise: Promise ->
+        AsyncFunction("setPlayerVibration") { playerId: String, enabled: Boolean, promise: Promise ->
             try {
+                if (playerId != currentPlayerId) {
+                    return@AsyncFunction promise.reject(
+                        "E_PLAYER_MISMATCH",
+                        "Player ID mismatch. Expected: $currentPlayerId, Got: $playerId",
+                        null
+                    )
+                }
                 val player = alarmPlayer ?: return@AsyncFunction promise.reject(
                     "E_PLAYER_NOT_FOUND", "No active player", null
                 )
@@ -440,10 +471,18 @@ class ExpoAlarmManagerModule : Module() {
             }
         }
 
-        AsyncFunction("playPlayer") { promise: Promise ->
+        AsyncFunction("playPlayer") { playerId: String, promise: Promise ->
             try {
-                val player =
-                    alarmPlayer ?: return@AsyncFunction promise.reject("E_PLAYER_NOT_FOUND", "No active player", null)
+                if (playerId != currentPlayerId) {
+                    return@AsyncFunction promise.reject(
+                        "E_PLAYER_MISMATCH",
+                        "Player ID mismatch. Expected: $currentPlayerId, Got: $playerId",
+                        null
+                    )
+                }
+                val player = alarmPlayer ?: return@AsyncFunction promise.reject(
+                    "E_PLAYER_NOT_FOUND", "No active player", null
+                )
                 player.play()
                 promise.resolve(null)
             } catch (e: Exception) {
@@ -451,10 +490,18 @@ class ExpoAlarmManagerModule : Module() {
             }
         }
 
-        AsyncFunction("stopPlayer") { promise: Promise ->
+        AsyncFunction("stopPlayer") { playerId: String, promise: Promise ->
             try {
-                val player =
-                    alarmPlayer ?: return@AsyncFunction promise.reject("E_PLAYER_NOT_FOUND", "No active player", null)
+                if (playerId != currentPlayerId) {
+                    return@AsyncFunction promise.reject(
+                        "E_PLAYER_MISMATCH",
+                        "Player ID mismatch. Expected: $currentPlayerId, Got: $playerId",
+                        null
+                    )
+                }
+                val player = alarmPlayer ?: return@AsyncFunction promise.reject(
+                    "E_PLAYER_NOT_FOUND", "No active player to stop", null
+                )
                 player.stop()
                 promise.resolve(null)
             } catch (e: Exception) {
@@ -462,26 +509,43 @@ class ExpoAlarmManagerModule : Module() {
             }
         }
 
-        AsyncFunction("releasePlayer") { promise: Promise ->
+        AsyncFunction("releasePlayer") { playerId: String, promise: Promise ->
             try {
-                val player = alarmPlayer
-                if (player != null) {
-                    player.release()
-                    alarmPlayer = null
-                    promise.resolve(null)
-                } else {
-                    promise.reject("E_PLAYER_NOT_FOUND", "No active player", null)
+                if (playerId != currentPlayerId) {
+                    return@AsyncFunction promise.reject(
+                        "E_PLAYER_MISMATCH",
+                        "Player ID mismatch. Expected: $currentPlayerId, Got: $playerId",
+                        null
+                    )
                 }
+                val player = alarmPlayer ?: return@AsyncFunction promise.reject(
+                    "E_PLAYER_NOT_FOUND", "No active player to release", null
+                )
+                player.stop()
+                player.release()
+                alarmPlayer = null
+                currentPlayerId = null
+                Log.d(TAG, "Released player: $playerId")
+                promise.resolve(null)
             } catch (e: Exception) {
                 alarmPlayer = null
+                currentPlayerId = null
                 promise.reject("E_RELEASE_PLAYER", "Failed to release player", e)
             }
         }
 
-        AsyncFunction("isPlayerFinished") { promise: Promise ->
+        AsyncFunction("isPlayerFinished") { playerId: String, promise: Promise ->
             try {
-                val player =
-                    alarmPlayer ?: return@AsyncFunction promise.reject("E_PLAYER_NOT_FOUND", "No active player", null)
+                if (playerId != currentPlayerId) {
+                    return@AsyncFunction promise.reject(
+                        "E_PLAYER_MISMATCH",
+                        "Player ID mismatch. Expected: $currentPlayerId, Got: $playerId",
+                        null
+                    )
+                }
+                val player = alarmPlayer ?: return@AsyncFunction promise.reject(
+                    "E_PLAYER_NOT_FOUND", "No active player", null
+                )
                 promise.resolve(player.isFinished())
             } catch (e: Exception) {
                 promise.reject("E_CHECK_FINISHED", "Failed to check if player is finished", e)
@@ -493,6 +557,7 @@ class ExpoAlarmManagerModule : Module() {
                 alarmPlayer?.release()
             } finally {
                 alarmPlayer = null
+                currentPlayerId = null
                 uriSelectionPendingPromise = null
                 instance = null
             }
@@ -536,6 +601,9 @@ class ExpoAlarmManagerModule : Module() {
     private fun sendDismissDoubleDeepLinkEvent(alarmId: String) {
         try {
             Log.d(TAG, "Sending onDismissDoubleDeepLink event with id: $alarmId")
+            activeAlarm = mapOf(
+                "type" to "dismiss", "alarmId" to alarmId
+            )
             sendEvent(
                 "onDismissDoubleDeepLink", mapOf(
                     "alarmId" to alarmId,
@@ -694,6 +762,7 @@ class AlarmPlayerInstance(
 
     @RequiresPermission(Manifest.permission.VIBRATE)
     fun release() {
+        Log.d("NUDGE_DEBUG", "alarm player released")
         if (isReleased) return
         isReleased = true
         ringtone?.stop()

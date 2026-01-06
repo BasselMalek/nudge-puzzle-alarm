@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useState, useMemo, useRef } from "react";
-import { FlatList, View } from "react-native";
+import { useCallback, useEffect, useState, useMemo } from "react";
+import { BackHandler, FlatList, View } from "react-native";
 import { Text, Card, useTheme, FAB, IconButton } from "react-native-paper";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
@@ -14,11 +14,11 @@ import Storage from "expo-sqlite/kv-store";
 import { compareAsc } from "date-fns";
 import { getNextInstanceTimeStamp } from "@/utils/alarmSchedulingHelpers";
 import {
-    scheduleAlarm,
     checkAndNullifyActiveAlarm,
     deleteAlarm as deschedule,
 } from "@/modules/expo-alarm-manager";
 import { useAlarmManagerListener } from "@/hooks/useAlarmManagerEvents";
+import { openApplication } from "expo-intent-launcher";
 void preventAutoHideAsync();
 
 export default function Alarms() {
@@ -30,7 +30,7 @@ export default function Alarms() {
     const [soonestRingTime, setSoonestRingTime] = useState("");
     const { alarms, deleteAlarm, loadAlarms, saveAlarms, toggleAlarm } =
         useAlarms(db, "nudge://alarmScreen");
-    const { update } = useLocalSearchParams();
+    const { update, returnFlag, packageName } = useLocalSearchParams();
     const [loadStale, setLoadStale] = useState(true);
     const router = useRouter();
     const first = Storage.getItemSync("isFirstBoot");
@@ -45,8 +45,17 @@ export default function Alarms() {
             try {
                 const active = await checkAndNullifyActiveAlarm();
                 console.log("NUDGE_DEBUG: Initial check:", active);
-                if (active && active.type === "alarm") {
-                    setInitAlarm(active.alarmId);
+                if (active) {
+                    switch (active.type) {
+                        case "alarm":
+                            setInitAlarm(active.alarmId);
+                            break;
+                        case "dismiss":
+                            void deschedule(active.alarmId);
+                            break;
+                        default:
+                            break;
+                    }
                 }
             } catch (error) {
                 console.error(error);
@@ -66,11 +75,17 @@ export default function Alarms() {
         (event: { type: string; alarmId: string }) => {
             console.log("NUDGE_DEBUG: New event received:", event);
             const { type, alarmId } = event;
-            if (type === "onAlarmDeepLink") {
-                void checkAndNullifyActiveAlarm();
-                router.replace(`/alarmScreen?id=${alarmId}`);
-            } else {
-                void deschedule(alarmId);
+            switch (type) {
+                case "onAlarmDeepLink":
+                    void checkAndNullifyActiveAlarm();
+                    router.replace(`/alarmScreen?id=${alarmId}`);
+                    break;
+                case "onDismissDoubleDeepLink":
+                    console.log("alarm id" + alarmId);
+                    void deschedule(alarmId);
+                    break;
+                default:
+                    break;
             }
         },
         [router]
@@ -84,7 +99,12 @@ export default function Alarms() {
             if (first === null) {
                 router.replace("/onboardingScreens/welcome");
             }
-        }, [first, router])
+            if (returnFlag && returnFlag === "dismiss") {
+                BackHandler.exitApp();
+            } else if (returnFlag && returnFlag === "open" && packageName) {
+                openApplication(packageName as string);
+            }
+        }, [first, packageName, returnFlag, router])
     );
 
     // usePreventRemove(router.canGoBack(), () => {
@@ -274,7 +294,6 @@ export default function Alarms() {
                 style={{
                     display: "flex",
                     flex: 1,
-                    // marginTop: 5,
                     paddingVertical: 10,
                 }}
                 data={alarms}

@@ -1,14 +1,19 @@
 import ListItem from "@/components/ListItem";
-import { Card, useTheme, Text, Avatar } from "react-native-paper";
+import { useTheme, Text } from "react-native-paper";
 import { ReactNativeLegal } from "react-native-legal";
 import { View, Image } from "react-native";
 import * as App from "expo-application";
 const imgSrc = require("@/assets/images/hourglass.png");
 
 export default function About() {
-    const { colors, roundness } = useTheme();
+    const { colors } = useTheme();
     return (
-        <View style={{ flex: 1, gap: 8 }}>
+        <View
+            style={{
+                flex: 1,
+                gap: 8,
+            }}
+        >
             <View
                 style={{
                     alignItems: "center",
@@ -46,7 +51,7 @@ export default function About() {
             </View>
             <ListItem
                 title={"Open source licenses"}
-                style={{ height: 72 }}
+                style={{ minHeight: 72 }}
                 onPress={() =>
                     ReactNativeLegal.launchLicenseListScreen("OSS Notice")
                 }

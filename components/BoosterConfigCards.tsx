@@ -73,9 +73,10 @@ export default function BoosterConfiguration(props: {
             }}
             fadingEdgeLength={{ start: 10, end: 10 }}
             showsVerticalScrollIndicator={false}
+            scrollEnabled={false}
         >
             <ListItem
-                style={{ height: 80 }}
+                style={{ minHeight: 80 }}
                 title="Launch App After Dismiss"
                 desc="Opens an app after dismissing alarm"
                 icon="launch"
@@ -91,7 +92,7 @@ export default function BoosterConfiguration(props: {
             {boosters.postDismissLaunch.enabled && (
                 <View style={{ paddingHorizontal: 10 }}>
                     <ListItem
-                        style={{ height: 80 }}
+                        style={{ minHeight: 80 }}
                         title="App"
                         desc={
                             boosters.postDismissLaunch.config.label ||
@@ -121,7 +122,7 @@ export default function BoosterConfiguration(props: {
                 </View>
             )}
             <ListItem
-                style={{ height: 80 }}
+                style={{ minHeight: 80 }}
                 title="Post-Dismiss Check Up"
                 desc="Confirms you are awake with a notification"
                 icon="alarm-multiple"
@@ -139,9 +140,9 @@ export default function BoosterConfiguration(props: {
             {boosters.postDismissCheck.enabled && (
                 <View style={{ paddingHorizontal: 10, gap: 8 }}>
                     <ListItem
-                        style={{ height: 80 }}
+                        style={{ minHeight: 80 }}
                         title="Post Dismiss Delay"
-                        desc="Seconds"
+                        desc="Minutes"
                         rightContent={
                             <View
                                 style={{
@@ -162,7 +163,7 @@ export default function BoosterConfiguration(props: {
                                             "postDismissDelay",
                                             boosters.postDismissCheck.config
                                                 .postDismissDelay,
-                                            30
+                                            1
                                         )
                                     }
                                 />
@@ -190,7 +191,7 @@ export default function BoosterConfiguration(props: {
                                             "postDismissDelay",
                                             boosters.postDismissCheck.config
                                                 .postDismissDelay,
-                                            30
+                                            1
                                         )
                                     }
                                 />
@@ -199,7 +200,7 @@ export default function BoosterConfiguration(props: {
                     />
 
                     <ListItem
-                        style={{ height: 80 }}
+                        style={{ minHeight: 80 }}
                         title="Grace Time"
                         desc="Seconds"
                         rightContent={
@@ -262,7 +263,7 @@ export default function BoosterConfiguration(props: {
 
             {/* Snooze Mods */}
             <ListItem
-                style={{ height: 80 }}
+                style={{ minHeight: 80 }}
                 title="Snooze Limitations"
                 desc="Modifies snooze behavior"
                 icon="timer-sand"
@@ -279,7 +280,7 @@ export default function BoosterConfiguration(props: {
             {boosters.snoozeMods.enabled && (
                 <View style={{ paddingHorizontal: 10, gap: 8 }}>
                     <ListItem
-                        style={{ height: 80 }}
+                        style={{ minHeight: 80 }}
                         title="Starting Time"
                         desc="Minutes"
                         rightContent={
@@ -337,7 +338,7 @@ export default function BoosterConfiguration(props: {
                     />
 
                     <ListItem
-                        style={{ height: 80 }}
+                        style={{ minHeight: 80 }}
                         title="Max Uses"
                         desc="Maximum snooze count"
                         rightContent={
@@ -360,7 +361,6 @@ export default function BoosterConfiguration(props: {
                                             "snoozeUses",
                                             boosters.snoozeMods.config
                                                 .snoozeUses,
-                                            1,
                                             1
                                         )
                                     }
@@ -394,7 +394,7 @@ export default function BoosterConfiguration(props: {
                     />
 
                     <ListItem
-                        style={{ height: 80 }}
+                        style={{ minHeight: 80 }}
                         title="Diminishing Time"
                         desc="Minutes reduced per snooze"
                         rightContent={

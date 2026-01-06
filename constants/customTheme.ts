@@ -1,7 +1,4 @@
 const lightPalette = {
-    //TODO: 1. Adjust the contrast in tags/buttons.
-    //TODO: 2. Integrate the tertiary color into the gradient more.
-
     colors: {
         primary: "rgb(0, 63, 119)",
         onPrimary: "rgb(255, 255, 255)",

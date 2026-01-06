@@ -9,7 +9,7 @@ import {
 } from "react-native-paper";
 import { LinearGradient } from "expo-linear-gradient";
 import WeekdayRepeat from "@/components/WeekdayRepeat";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import {
     useRouter,
     useFocusEffect,
@@ -21,7 +21,7 @@ import { Alarm, AlarmDto } from "@/types/Alarm";
 import { createAlarm, parseAlarm, saveAlarmDirect } from "@/hooks/useAlarms";
 import { useSQLiteContext } from "expo-sqlite";
 import { StatusBar } from "expo-status-bar";
-import { View } from "react-native";
+import { ScrollView, View } from "react-native";
 import { DaySet } from "@/types/DaySet";
 import { scheduleNextInstance } from "@/utils/alarmSchedulingHelpers";
 import SoundOptionsModal from "@/components/SoundOptionsModal";
@@ -139,7 +139,7 @@ export default function AlarmOptions() {
                                         clean
                                     );
                                     await scheduleNextInstance(clean);
-                                    router.navigate("/?update=true");
+                                    router.dismissTo("/?update=true");
                                 } catch (err) {
                                     console.error("Failed to save alarm:", err);
                                 }
@@ -320,100 +320,114 @@ export default function AlarmOptions() {
                 setIsVisible={handleModalClose}
                 editIndex={editPuzzleAtIndex.current}
             />
-            <View
-                style={{
-                    marginTop: 10,
-                    maxHeight: "30%",
-                    paddingHorizontal: 10,
-                }}
+            <ScrollView
+                fadingEdgeLength={{ start: 10, end: 10 }}
+                showsVerticalScrollIndicator={false}
             >
-                <Text variant="titleMedium">{"Puzzles"}</Text>
-                <ReorderableList
-                    showsVerticalScrollIndicator={false}
-                    // ItemSeparatorComponent={() => (
-                    //     <View style={{ height: 10 }} />
-                    // )}
-                    data={alarm.puzzles}
-                    // style={{
-                    //     paddingVertical: 10,
-                    //     paddingHorizontal: 3,
-                    // }}
-                    fadingEdgeLength={{ start: 10, end: 10 }}
-                    onReorder={({ from, to }: ReorderableListReorderEvent) => {
-                        setAlarm((prevAlarm) => ({
-                            ...prevAlarm,
-                            puzzles: reorderItems(prevAlarm.puzzles, from, to),
-                        }));
+                <View
+                    style={{
+                        marginTop: 10,
+                        paddingHorizontal: 10,
                     }}
-                    keyExtractor={(item) => item.id}
-                    contentContainerStyle={{
-                        gap: 10,
-                        paddingVertical: 10,
-                        paddingHorizontal: 3,
+                >
+                    <Text variant="titleMedium">{"Puzzles"}</Text>
+                    <ReorderableList
+                        scrollEnabled={false}
+                        disableScrollViewPanResponder={true}
+                        showsVerticalScrollIndicator={false}
+                        // ItemSeparatorComponent={() => (
+                        //     <View style={{ height: 10 }} />
+                        // )}
+                        data={alarm.puzzles}
+                        // style={{
+                        //     paddingVertical: 10,
+                        //     paddingHorizontal: 3,
+                        // }}
+                        fadingEdgeLength={{ start: 10, end: 10 }}
+                        onReorder={({
+                            from,
+                            to,
+                        }: ReorderableListReorderEvent) => {
+                            setAlarm((prevAlarm) => ({
+                                ...prevAlarm,
+                                puzzles: reorderItems(
+                                    prevAlarm.puzzles,
+                                    from,
+                                    to
+                                ),
+                            }));
+                        }}
+                        keyExtractor={(item) => item.id}
+                        contentContainerStyle={{
+                            gap: 10,
+                            paddingVertical: 10,
+                            paddingHorizontal: 3,
+                        }}
+                        renderItem={({ item, index }) => {
+                            return (
+                                <DraggableListItem
+                                    title={item.title}
+                                    icon={item.icon}
+                                    desc={"Difficulty: " + item.difficulty}
+                                    style={{ height: 60 }}
+                                    buttons
+                                    buttonOneAction={() => {
+                                        editPuzzleAtIndex.current = index;
+                                        setPuzzlesModalVisible(true);
+                                    }}
+                                    buttonTwoAction={() => {
+                                        setAlarm((prevAlarm) => ({
+                                            ...prevAlarm,
+                                            puzzles: prevAlarm.puzzles.filter(
+                                                (puzzle) =>
+                                                    puzzle.id !== item.id
+                                            ),
+                                        }));
+                                    }}
+                                />
+                            );
+                        }}
+                        ListFooterComponent={() => {
+                            return (
+                                <>
+                                    {/* <View style={{ height: 10 }} /> */}
+                                    {alarm.puzzles.length < 5 && (
+                                        <ListItem
+                                            disabled={true}
+                                            icon={"plus"}
+                                            style={{ minHeight: 60 }}
+                                            title={"New Puzzle"}
+                                            desc={
+                                                "Drag a puzzle to change its order"
+                                            }
+                                            onPress={() => {
+                                                editPuzzleAtIndex.current =
+                                                    undefined;
+                                                setPuzzlesModalVisible(true);
+                                            }}
+                                        />
+                                    )}
+                                </>
+                            );
+                        }}
+                    />
+                </View>
+                <View
+                    style={{
+                        flex: 1,
+                        paddingHorizontal: 10,
+                        // gap: 10,
                     }}
-                    renderItem={({ item, index }) => {
-                        return (
-                            <DraggableListItem
-                                title={item.title}
-                                icon={item.icon}
-                                desc={"Difficulty: " + item.difficulty}
-                                style={{ height: 60 }}
-                                buttons
-                                buttonOneAction={() => {
-                                    editPuzzleAtIndex.current = index;
-                                    setPuzzlesModalVisible(true);
-                                }}
-                                buttonTwoAction={() => {
-                                    setAlarm((prevAlarm) => ({
-                                        ...prevAlarm,
-                                        puzzles: prevAlarm.puzzles.filter(
-                                            (puzzle) => puzzle.id !== item.id
-                                        ),
-                                    }));
-                                }}
-                            />
-                        );
-                    }}
-                    ListFooterComponent={() => {
-                        return (
-                            <>
-                                {/* <View style={{ height: 10 }} /> */}
-                                {alarm.puzzles.length < 5 && (
-                                    <ListItem
-                                        disabled={true}
-                                        icon={"plus"}
-                                        style={{ height: 60 }}
-                                        title={"New Puzzle"}
-                                        desc={
-                                            "Drag a puzzle to change its order"
-                                        }
-                                        onPress={() => {
-                                            editPuzzleAtIndex.current =
-                                                undefined;
-                                            setPuzzlesModalVisible(true);
-                                        }}
-                                    />
-                                )}
-                            </>
-                        );
-                    }}
-                />
-            </View>
-            <View
-                style={{
-                    flex: 1,
-                    paddingHorizontal: 10,
-                    // gap: 10,
-                }}
-            >
-                <Text variant="titleMedium">{"Boosters"}</Text>
-                <BoosterConfigCards
-                    boosters={alarm.boosterSet}
-                    setBoosters={(newSet: BoosterSet) => {
-                        setAlarm({ ...alarm, boosterSet: newSet });
-                    }}
-                />
-            </View>
+                >
+                    <Text variant="titleMedium">{"Boosters"}</Text>
+                    <BoosterConfigCards
+                        boosters={alarm.boosterSet}
+                        setBoosters={(newSet: BoosterSet) => {
+                            setAlarm({ ...alarm, boosterSet: newSet });
+                        }}
+                    />
+                </View>
+            </ScrollView>
         </GestureHandlerRootView>
     );
 }

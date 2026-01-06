@@ -67,7 +67,6 @@ const handleDaisyChainAfterRing = async (alarm: Alarm): Promise<Alarm> => {
 const rescheduleAllForOnBoot = async (alarms: Alarm[]): Promise<boolean> => {
     const results = await Promise.all(
         alarms.map(async (alarm) => {
-            //TODO: remove this.
             console.log(
                 `NUDGE_DEBUG: Scheduled alarm (Name: ${alarm.name}, ID: ${
                     alarm.id

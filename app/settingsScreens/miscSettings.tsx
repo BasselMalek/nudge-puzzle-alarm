@@ -249,7 +249,7 @@ const styles = StyleSheet.create({
         paddingBottom: 8,
     },
     listItem: {
-        height: 72,
+        minHeight: 72,
         marginBottom: 12,
     },
 });
