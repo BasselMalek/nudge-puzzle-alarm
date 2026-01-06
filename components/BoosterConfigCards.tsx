@@ -73,6 +73,7 @@ export default function BoosterConfiguration(props: {
             }}
             fadingEdgeLength={{ start: 10, end: 10 }}
             showsVerticalScrollIndicator={false}
+            scrollEnabled={false}
         >
             <ListItem
                 style={{ height: 80 }}
