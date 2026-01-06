@@ -8,7 +8,12 @@ const imgSrc = require("@/assets/images/hourglass.png");
 export default function About() {
     const { colors } = useTheme();
     return (
-        <View style={{ flex: 1, gap: 8 }}>
+        <View
+            style={{
+                flex: 1,
+                gap: 8,
+            }}
+        >
             <View
                 style={{
                     alignItems: "center",

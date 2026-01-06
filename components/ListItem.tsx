@@ -26,7 +26,6 @@ export default function ListItem(
         >
             <Card.Content
                 style={{
-                    flex: 1,
                     alignItems: "center",
                     paddingVertical: 10,
                     flexDirection: "row",
@@ -54,7 +53,7 @@ export default function ListItem(
                             />
                         </>
                     )}
-                    <View style={{ flex: 1 }}>
+                    <View style={{ flex: 1, minWidth: 0 }}>
                         <Text variant="labelLarge">{title}</Text>
                         {desc !== undefined && (
                             <Text variant="bodySmall" style={{ opacity: 0.85 }}>
